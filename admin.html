@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Panel – NST Travels</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 40px;
+    }
+    .panel {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 30px;
+    }
+    h2 {
+      color: #4b2aad;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    .button-grid button {
+      padding: 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #4b2aad;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: background 0.3s;
+    }
+    .button-grid button:hover {
+      background: #3a208b;
+    }
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 14px;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="panel">
+    <h2>🛠️ NST Travels – Admin Panel</h2>
+
+    <div class="button-grid">
+      <button onclick="window.location.href='master.html'">📋 Driver & Vehicle Master</button>
+      <button onclick="window.location.href='whatsapp.html'">📤 WhatsApp Templates</button>
+      <button onclick="window.location.href='trip.html'">📝 Trip Manager</button>
+      <button onclick="window.location.href='dashboard.html'">📊 Dashboard</button>
+      <button onclick="window.location.href='view-trip.html'">📁 View Trips</button>
+      <button onclick="window.location.href='invoice.html?id=#NST001'">🧾 Invoice Generator</button>
+      <button onclick="window.location.href='backup.html'">💾 Backup & Restore</button>
+    </div>
+
+    <div class="footer">
+      © 2025 NST Travels · Admin Control Center
+    </div>
+  </div>
+
+</body>
+</html>
