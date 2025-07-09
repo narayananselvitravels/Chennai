@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Panel – NST Travels</title>
+  <title>NST Admin Panel</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body {
       font-family: 'Poppins', sans-serif;
       background: #f4f6f9;
-      max-width: 800px;
-      margin: 30px auto;
-      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 30px;
       display: none;
     }
     h2 { color: #4b2aad; }
@@ -20,7 +20,7 @@
       background: white;
       padding: 20px;
       border-radius: 8px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      box-shadow: 0 0 8px rgba(0,0,0,0.08);
       margin-bottom: 20px;
     }
     button {
@@ -31,7 +31,8 @@
       border-radius: 5px;
       font-size: 16px;
       cursor: pointer;
-      margin: 5px;
+      margin-right: 10px;
+      margin-top: 10px;
     }
     button:hover { background: #3a208b; }
     .danger { background: #dc3545; }
@@ -40,79 +41,86 @@
     .login-modal {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.4);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 9999;
     }
-
     .login-box {
       background: white;
-      padding: 30px;
-      border-radius: 8px;
-      width: 300px;
+      border-radius: 10px;
+      padding: 30px 25px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      width: 320px;
       text-align: center;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      border-top: 5px solid #4b2aad;
     }
-
+    .login-box h2 {
+      margin-bottom: 20px;
+      color: #4b2aad;
+    }
     .login-box input {
       width: 100%;
       padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+      margin-bottom: 15px;
       font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
     }
-
     .login-box button {
       width: 100%;
+      background: #4b2aad;
+      color: white;
+      border: none;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
     }
-
+    .login-box button:hover {
+      background: #3a208b;
+    }
     .error {
       color: red;
       font-size: 14px;
-      margin-top: 5px;
+      margin-top: 8px;
     }
   </style>
 </head>
 <body>
 
+<!-- LOGIN MODAL -->
 <div class="login-modal" id="loginModal">
   <div class="login-box">
-    <h3>🔐 Admin Login</h3>
-    <input type="text" id="loginUser" placeholder="Username">
-    <input type="password" id="loginPass" placeholder="Password">
+    <h2>🔐 Admin Login</h2>
+    <input type="text" id="loginUser" placeholder="Username" />
+    <input type="password" id="loginPass" placeholder="Password" />
     <button onclick="validateLogin()">Login</button>
     <div class="error" id="loginError"></div>
   </div>
 </div>
 
+<!-- ADMIN CONTENT -->
 <h2>🛠️ NST Admin Panel</h2>
 
 <div class="section">
-  <h3>📊 Shared Trip Stats</h3>
-  <p><strong>Trips Shared:</strong> <span id="tripCount">0</span></p>
+  <h3>📊 Trip Info</h3>
+  <p><strong>Total Trips:</strong> <span id="tripCount">0</span></p>
   <p><strong>Current Trip ID:</strong> <span id="currentId">#NST001</span></p>
-  <button onclick="exportTrips()">📥 Export Shared Trips (Excel)</button>
-  <button onclick="resetTripId()">🔄 Reset Trip ID Only</button>
+  <button onclick="exportTrips()">📥 Export Trips (Excel)</button>
+  <button onclick="resetTripId()">🔄 Reset Trip ID to #NST001</button>
 </div>
 
 <div class="section">
-  <h3>🧭 Sub Pages</h3>
-  <button onclick="location.href='master.html'">📘 Master</button>
-  <button onclick="location.href='whatsapp.html'">📤 WhatsApp</button>
-  <button onclick="location.href='trip.html'">🧾 Trip</button>
-  <button onclick="location.href='dashboard.html'">📊 Dashboard</button>
-  <button onclick="location.href='backup.html'">☁️ Backup</button>
-  <button onclick="location.href='invoice.html'">🧾 Invoice</button>
-  <button onclick="location.href='view-trips.html'">📋 View Trips</button>
-</div>
-
-<div class="section">
-  <h3>⚠️ Full System Reset</h3>
-  <p>This will remove all trip data and reset the Trip ID to <strong>#NST001</strong>.</p>
-  <button class="danger" onclick="resetAll()">🗑️ Reset All Data</button>
+  <h3>🗂️ Pages</h3>
+  <button onclick="window.location.href='master.html'">👤 Driver & Vehicle Master</button>
+  <button onclick="window.location.href='whatsapp.html'">📤 WhatsApp Share</button>
+  <button onclick="window.location.href='trip.html'">📝 Trip Entry</button>
+  <button onclick="window.location.href='dashboard.html'">📊 Dashboard</button>
+  <button onclick="window.location.href='backup.html'">💾 Backup/Restore</button>
+  <button onclick="window.location.href='invoice.html'">🧾 Invoice</button>
+  <button onclick="window.location.href='view-trip.html'">📋 View Trips</button>
 </div>
 
 <script>
@@ -130,53 +138,38 @@
 
   function exportTrips() {
     const data = JSON.parse(localStorage.getItem(SHKEY) || "[]");
-    if (!data.length) return alert("No shared trips to export.");
+    if (!data.length) return alert("No trips to export.");
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "SharedTrips");
-    XLSX.writeFile(wb, "NST_Shared_Trips.xlsx");
-  }
-
-  function resetAll() {
-    if (confirm("Are you sure? This will erase all trip data and reset everything.")) {
-      localStorage.removeItem("trip-seq");
-      localStorage.removeItem(SHKEY);
-      for (let key in localStorage) {
-        if (key.startsWith("#NST")) localStorage.removeItem(key);
-      }
-      alert("✅ Data cleared and system reset.");
-      getTripCount();
-      getCurrentId();
-    }
+    XLSX.utils.book_append_sheet(wb, ws, "NST_Trips");
+    XLSX.writeFile(wb, "NST_Trips.xlsx");
   }
 
   function resetTripId() {
-    const trips = JSON.parse(localStorage.getItem(SHKEY) || "[]");
-    const idsUsed = trips.map(t => parseInt(t.id.replace("#NST", ""))).filter(n => !isNaN(n)).sort((a,b) => a-b);
-    let nextId = 1;
-    for (let i = 0; i < idsUsed.length; i++) {
-      if (idsUsed[i] !== nextId) break;
-      nextId++;
-    }
-    localStorage.setItem("trip-seq", nextId);
-    alert("🔄 Trip ID reset to #NST" + String(nextId).padStart(3, "0"));
+    localStorage.setItem("trip-seq", "1");
+    alert("✅ Trip ID reset to #NST001");
     getCurrentId();
   }
 
   function validateLogin() {
-    const u = document.getElementById("loginUser").value.trim();
-    const p = document.getElementById("loginPass").value.trim();
-    const err = document.getElementById("loginError");
+    const user = document.getElementById("loginUser").value.trim();
+    const pass = document.getElementById("loginPass").value.trim();
+    const errorBox = document.getElementById("loginError");
 
-    if (u === "Siva" && p === "1007") {
+    if (user === "Siva" && pass === "1007") {
       document.getElementById("loginModal").style.display = "none";
       document.body.style.display = "block";
       getTripCount();
       getCurrentId();
     } else {
-      err.textContent = "❌ Invalid credentials";
+      errorBox.textContent = "❌ Invalid credentials. Try again.";
     }
   }
+
+  window.onload = () => {
+    document.body.style.display = "none";
+    document.getElementById("loginModal").style.display = "flex";
+  };
 </script>
 
 </body>
