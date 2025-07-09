@@ -176,3 +176,139 @@
 
   <!-- Table container -->
   <div id="tripTableContainer"></div>
+<script>
+const SHKEY = "shared-trips";
+let allTrips = [];
+
+function loadTrips() {
+  allTrips = JSON.parse(localStorage.getItem(SHKEY) || "[]");
+  renderFilters();
+  renderTable(allTrips);
+  renderCards(allTrips);
+}
+function renderFilters() {
+  const drivers = [...new Set(allTrips.map(t => t.driverName))].filter(Boolean);
+  filterDriver.innerHTML = '<option value="">All Drivers</option>' + drivers.map(d => `<option>${d}</option>`).join('');
+  const vehicles = [...new Set(allTrips.map(t => t.vehicleModel))].filter(Boolean);
+  filterVehicle.innerHTML = '<option value="">All Vehicles</option>' + vehicles.map(v => `<option>${v}</option>`).join('');
+}
+
+function renderCards(trips) {
+  cardTotalTrips.textContent = trips.length;
+  cardRevenue.textContent = "₹" + trips.reduce((a, b) => a + Number(b.totalAmount || 0), 0);
+  cardKM.textContent = trips.reduce((a, b) => a + Number(b.totalKM || 0), 0) + " km";
+  const paid = trips.filter(t => t.paymentStatus === "Paid").length;
+  const unpaid = trips.filter(t => t.paymentStatus === "Not Paid").length;
+  cardPayStatus.textContent = `${paid} / ${unpaid}`;
+}
+
+function renderTable(trips) {
+  if (!trips.length) return tripTableContainer.innerHTML = "<p>No trips found.</p>";
+  let html = `<table id="tripTable"><thead><tr>
+    <th class="sortable">Trip ID</th><th>Date</th><th>Pickup</th><th>Drop</th>
+    <th>Customer</th><th>Driver</th><th>Vehicle</th><th>KM</th>
+    <th>Duration</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
+  trips.forEach((t, i) => {
+    const paidClass = t.paymentStatus === "Paid" ? "badge-paid" : "badge-unpaid";
+    html += `<tr>
+      <td>${t.id}</td><td>${t.date}</td><td>${t.pickup}</td><td>${t.drop}</td>
+      <td>${t.custName} (${t.custNumber})</td><td>${t.driverName}</td><td>${t.vehicleModel}</td>
+      <td>${t.totalKM || 0}</td><td>${t.duration || 0}h</td>
+      <td>₹${t.totalAmount || 0}</td><td><span class="${paidClass}">${t.paymentStatus}</span></td>
+      <td>
+        <button class="action-btn btn-edit" onclick="editTrip(${i})">Edit</button>
+        <button class="action-btn btn-delete" onclick="deleteTrip(${i})">Delete</button>
+      </td></tr>`;
+  });
+  html += "</tbody></table>";
+  tripTableContainer.innerHTML = html;
+}
+
+function deleteTrip(index) {
+  if (confirm("Delete this trip?")) {
+    allTrips.splice(index, 1);
+    localStorage.setItem(SHKEY, JSON.stringify(allTrips));
+    loadTrips();
+  }
+}
+
+function editTrip(index) {
+  const trip = allTrips[index];
+  alert(`Editing not implemented yet.\nTrip ID: ${trip.id}`);
+  // TODO: You can open popup or redirect with trip data
+}
+
+function exportExcel() {
+  if (!allTrips.length) return alert("No trips to export.");
+  const ws = XLSX.utils.json_to_sheet(allTrips);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "NST Trips");
+  XLSX.writeFile(wb, "NST_Trips.xlsx");
+}
+
+function backupData() {
+  const blob = new Blob([JSON.stringify(allTrips)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "NST_Trips_Backup.json";
+  a.click();
+}
+
+function restoreData() {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".json";
+  input.onchange = () => {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result);
+        if (!Array.isArray(data)) throw "Invalid JSON structure.";
+        localStorage.setItem(SHKEY, JSON.stringify(data));
+        loadTrips();
+        alert("✅ Data restored successfully.");
+      } catch (e) {
+        alert("❌ Invalid file format.");
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// 🔍 Search & Filter
+document.getElementById("searchInput").addEventListener("input", filterTrips);
+document.querySelectorAll("#filterDriver, #filterVehicle, #filterStatus, #filterDateFrom, #filterDateTo").forEach(el =>
+  el.addEventListener("change", filterTrips)
+);
+
+function filterTrips() {
+  let result = [...allTrips];
+  const q = searchInput.value.toLowerCase();
+  if (q) {
+    result = result.filter(t =>
+      (t.id + t.custName + t.custNumber + t.driverName + t.vehicleModel).toLowerCase().includes(q)
+    );
+  }
+  const d = filterDriver.value;
+  if (d) result = result.filter(t => t.driverName === d);
+  const v = filterVehicle.value;
+  if (v) result = result.filter(t => t.vehicleModel === v);
+  const s = filterStatus.value;
+  if (s) result = result.filter(t => t.paymentStatus === s);
+  const df = filterDateFrom.value;
+  const dt = filterDateTo.value;
+  if (df) result = result.filter(t => t.date >= df);
+  if (dt) result = result.filter(t => t.date <= dt);
+  renderTable(result);
+  renderCards(result);
+}
+
+window.onload = loadTrips;
+</script>
+</body>
+</html>
+
