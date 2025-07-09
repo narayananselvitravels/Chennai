@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NST Trip Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #f4f6f9;
+    }
+    h2 { color: #4b2aad; }
+
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .card {
+      flex: 1 1 200px;
+      background: white;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .card-title { font-size: 14px; color: #666; }
+    .card-value { font-size: 24px; font-weight: 600; color: #333; }
+
+    .filter-panel {
+      background: white;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      align-items: center;
+    }
+    .filter-row > div {
+      flex: 1 1 200px;
+    }
+    .filter-row label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    .filter-row input,
+    .filter-row select {
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .controls {
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .controls button {
+      background: #4b2aad;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    .controls button:hover { background: #3a208b; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      white-space: nowrap;
+      text-align: left;
+    }
+    th.sortable:hover {
+      cursor: pointer;
+      background: #eaeaea;
+    }
+    th { background: #4b2aad; color: white; position: sticky; top: 0; }
+    .badge-paid { background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; }
+    .badge-unpaid { background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 4px; }
+    .action-btn { cursor: pointer; padding: 5px 8px; border: none; border-radius: 4px; margin-right: 5px; }
+    .btn-edit { background: #17a2b8; color: white; }
+    .btn-delete { background: #dc3545; color: white; }
+
+    @media print {
+      body * { visibility: hidden; }
+      #tripTable, #tripTable * { visibility: visible; }
+      #tripTable { position: absolute; top: 0; left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <h2>📋 NST Trip Dashboard</h2>
+
+  <!-- Summary Cards -->
+  <div class="cards">
+    <div class="card">
+      <div class="card-title">Total Trips</div>
+      <div class="card-value" id="cardTotalTrips">0</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Total Revenue</div>
+      <div class="card-value" id="cardRevenue">₹0</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Total KM</div>
+      <div class="card-value" id="cardKM">0 km</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Paid / Unpaid</div>
+      <div class="card-value" id="cardPayStatus">0 / 0</div>
+    </div>
+  </div>
+
+  <!-- Filter Panel -->
+  <div class="filter-panel">
+    <div class="filter-row">
+      <div>
+        <label>Search</label>
+        <input type="text" id="searchInput" placeholder="Search ID, Customer, Driver, Vehicle..." />
+      </div>
+      <div>
+        <label>Driver</label>
+        <select id="filterDriver"><option value="">All Drivers</option></select>
+      </div>
+      <div>
+        <label>Vehicle</label>
+        <select id="filterVehicle"><option value="">All Vehicles</option></select>
+      </div>
+      <div>
+        <label>Status</label>
+        <select id="filterStatus"><option value="">All Status</option>
+          <option value="Paid">Paid</option>
+          <option value="Not Paid">Not Paid</option>
+        </select>
+      </div>
+      <div>
+        <label>Date From</label>
+        <input type="date" id="filterDateFrom">
+      </div>
+      <div>
+        <label>Date To</label>
+        <input type="date" id="filterDateTo">
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button onclick="exportExcel()">Export CSV/Excel</button>
+    <button onclick="print()">🖨️ Print View</button>
+    <button onclick="backupData()">💾 Backup JSON</button>
+    <button onclick="restoreData()">📂 Restore JSON</button>
+  </div>
+
+  <!-- Table container -->
+  <div id="tripTableContainer"></div>
