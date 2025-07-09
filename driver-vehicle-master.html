@@ -1,134 +1,200 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trips – NST Travels</title>
+  <meta charset="UTF-8" />
+  <title>All Trips – NST</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    body { font-family: 'Poppins', sans-serif; margin: 20px; background: #f4f6f9; color: #333; }
+    body { font-family: 'Poppins', sans-serif; background: #f4f6f9; padding: 20px; max-width: 1200px; margin: auto; }
     h2 { color: #4b2aad; }
-    .summary-boxes { display: flex; gap: 15px; flex-wrap: wrap; margin: 15px 0; }
-    .summary-box {
-      flex: 1;
-      background: white;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      text-align: center;
+    input, button, select {
+      padding: 10px; font-size: 16px; margin-bottom: 15px;
+      border-radius: 5px; border: 1px solid #ccc;
     }
-    .filters { display: flex; gap: 15px; flex-wrap: wrap; margin: 20px 0; }
-    .filters select, .filters input {
-      padding: 10px;
-      font-size: 14px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td {
+      border: 1px solid #ddd; padding: 8px; text-align: left;
     }
-    table {
-      width: 100%; border-collapse: collapse; margin-top: 15px;
-      background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    th {
+      background: #4b2aad; color: white; cursor: pointer;
     }
-    th, td { padding: 10px; border: 1px solid #ddd; }
-    th { background: #4b2aad; color: white; }
-    td.paid { color: green; font-weight: bold; }
-    td.unpaid { color: red; font-weight: bold; }
+    .btn {
+      background: #4b2aad; color: white; border: none;
+      padding: 10px 16px; cursor: pointer; border-radius: 5px; margin-right: 5px;
+    }
+    .btn:hover { background: #3a208b; }
+    .danger { background: #dc3545; }
+    .danger:hover { background: #b02a37; }
+    .modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center;
+    }
+    .modal-content {
+      background: white; padding: 20px; border-radius: 10px; width: 500px;
+      max-height: 90vh; overflow-y: auto;
+    }
   </style>
 </head>
 <body>
 
-<h2>📋 All Trips – NST Travels</h2>
+<h2>📋 All Trips – NST</h2>
 
-<div class="summary-boxes">
-  <div class="summary-box"><strong>Total Trips:</strong><div id="totalTrips">0</div></div>
-  <div class="summary-box"><strong>Total Amount:</strong><div id="totalAmount">₹0</div></div>
-  <div class="summary-box"><strong>Unpaid Trips:</strong><div id="unpaidCount">0</div></div>
-  <div class="summary-box"><strong>This Month:</strong><div id="thisMonth">0</div></div>
+<input type="text" id="searchBox" placeholder="🔍 Search trip, driver, vehicle, etc." onkeyup="filterTable()">
+<button class="btn" onclick="exportTrips()">📥 Export to Excel</button>
+
+<div id="tripTableContainer"></div>
+
+<!-- 🛠️ Modal for Edit -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <h3>Edit Trip</h3>
+    <input id="editDate" placeholder="Date (DD-MM-YYYY)">
+    <input id="editPickup" placeholder="Pickup Location">
+    <input id="editDrop" placeholder="Drop Location">
+    <input id="editCustName" placeholder="Customer Name">
+    <input id="editCustNumber" placeholder="Customer Number">
+    <input id="editDriver" placeholder="Driver Name">
+    <input id="editVehicle" placeholder="Vehicle Model">
+    <input id="editTotalKM" placeholder="Total KM">
+    <input id="editAmount" placeholder="Total Amount">
+    <select id="editStatus">
+      <option value="">-- Status --</option>
+      <option>Paid</option>
+      <option>Not Paid</option>
+    </select>
+    <input type="hidden" id="editIndex">
+    <button class="btn" onclick="saveEdit()">💾 Save Changes</button>
+    <button class="btn danger" onclick="closeModal()">✖ Close</button>
+  </div>
 </div>
-
-<div class="filters">
-  <input type="text" id="filterDriver" placeholder="Driver Name">
-  <input type="text" id="filterVehicle" placeholder="Vehicle Model">
-  <select id="filterStatus">
-    <option value="">All Status</option>
-    <option value="Paid">Paid</option>
-    <option value="Not Paid">Not Paid</option>
-  </select>
-  <input type="date" id="fromDate">
-  <input type="date" id="toDate">
-  <button onclick="applyFilters()">Apply Filters</button>
-</div>
-
-<table>
-  <thead>
-    <tr>
-      <th>ID</th><th>Date</th><th>Pickup</th><th>Drop</th><th>Driver</th><th>Vehicle</th>
-      <th>KM</th><th>Amount</th><th>Status</th>
-    </tr>
-  </thead>
-  <tbody id="tripTable"></tbody>
-</table>
 
 <script>
-const SHKEY = "shared-trips";
-let trips = JSON.parse(localStorage.getItem(SHKEY) || "[]");
+const STORAGE_KEY = "shared-trips";
 
-function formatDate(dstr) {
-  if (!dstr) return "";
-  const d = new Date(dstr);
-  return `${d.getDate().toString().padStart(2, '0')}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getFullYear()}`;
-}
+function loadTrips() {
+  const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  if (!data.length) {
+    tripTableContainer.innerHTML = "<p>No trips available.</p>";
+    return;
+  }
 
-function loadTrips(list = trips) {
-  const tbody = document.getElementById("tripTable");
-  tbody.innerHTML = "";
-  let total = 0, unpaid = 0, thisMonth = 0;
-  const now = new Date();
-  list.forEach(t => {
-    const isUnpaid = t.paymentStatus === "Not Paid";
-    const amt = parseFloat(t.totalAmount || 0);
-    const date = new Date(t.date);
-    if (isUnpaid) unpaid++;
-    if (date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()) thisMonth++;
-    total += amt;
-    tbody.innerHTML += `
-      <tr>
-        <td>${t.id}</td>
-        <td>${formatDate(t.date)}</td>
-        <td>${t.pickup}</td>
-        <td>${t.drop}</td>
-        <td>${t.driverName}</td>
-        <td>${t.vehicleModel}</td>
-        <td>${t.totalKM}</td>
-        <td>₹${amt}</td>
-        <td class="${isUnpaid ? 'unpaid' : 'paid'}">${t.paymentStatus}</td>
-      </tr>`;
+  let html = `<table id="tripTable">
+    <thead><tr>
+      <th onclick="sortTable(0)">Trip ID</th>
+      <th>Date</th>
+      <th>Pickup</th>
+      <th>Drop</th>
+      <th>Driver</th>
+      <th>Vehicle</th>
+      <th>KM</th>
+      <th>Amount</th>
+      <th>Status</th>
+      <th>Action</th>
+    </tr></thead><tbody>`;
+
+  data.forEach((t, i) => {
+    html += `<tr>
+      <td>${t.id}</td>
+      <td>${t.date}</td>
+      <td>${t.pickup}</td>
+      <td>${t.drop}</td>
+      <td>${t.driverName}</td>
+      <td>${t.vehicleModel}</td>
+      <td>${t.totalKM} km</td>
+      <td>₹${t.totalAmount}</td>
+      <td>${t.paymentStatus}</td>
+      <td>
+        <button class="btn" onclick="editTrip(${i})">✏ Edit</button>
+        <button class="btn danger" onclick="deleteTrip(${i})">🗑 Delete</button>
+      </td>
+    </tr>`;
   });
-  document.getElementById("totalTrips").innerText = list.length;
-  document.getElementById("totalAmount").innerText = `₹${total}`;
-  document.getElementById("unpaidCount").innerText = unpaid;
-  document.getElementById("thisMonth").innerText = thisMonth;
+
+  html += "</tbody></table>";
+  tripTableContainer.innerHTML = html;
 }
 
-function applyFilters() {
-  let fDriver = document.getElementById("filterDriver").value.toLowerCase();
-  let fVehicle = document.getElementById("filterVehicle").value.toLowerCase();
-  let fStatus = document.getElementById("filterStatus").value;
-  let from = new Date(document.getElementById("fromDate").value);
-  let to = new Date(document.getElementById("toDate").value);
+function editTrip(index) {
+  const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]")[index];
+  editIndex.value = index;
+  editDate.value = data.date || "";
+  editPickup.value = data.pickup || "";
+  editDrop.value = data.drop || "";
+  editCustName.value = data.custName || "";
+  editCustNumber.value = data.custNumber || "";
+  editDriver.value = data.driverName || "";
+  editVehicle.value = data.vehicleModel || "";
+  editTotalKM.value = data.totalKM || "";
+  editAmount.value = data.totalAmount || "";
+  editStatus.value = data.paymentStatus || "";
+  editModal.style.display = "flex";
+}
 
-  const filtered = trips.filter(t => {
-    let match = true;
-    if (fDriver && !t.driverName.toLowerCase().includes(fDriver)) match = false;
-    if (fVehicle && !t.vehicleModel.toLowerCase().includes(fVehicle)) match = false;
-    if (fStatus && t.paymentStatus !== fStatus) match = false;
-    if (document.getElementById("fromDate").value && new Date(t.date) < from) match = false;
-    if (document.getElementById("toDate").value && new Date(t.date) > to) match = false;
-    return match;
+function saveEdit() {
+  const idx = parseInt(editIndex.value);
+  const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  if (!data[idx]) return;
+
+  data[idx].date = editDate.value;
+  data[idx].pickup = editPickup.value;
+  data[idx].drop = editDrop.value;
+  data[idx].custName = editCustName.value;
+  data[idx].custNumber = editCustNumber.value;
+  data[idx].driverName = editDriver.value;
+  data[idx].vehicleModel = editVehicle.value;
+  data[idx].totalKM = editTotalKM.value;
+  data[idx].totalAmount = editAmount.value;
+  data[idx].paymentStatus = editStatus.value;
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  closeModal();
+  loadTrips();
+}
+
+function closeModal() {
+  editModal.style.display = "none";
+}
+
+function deleteTrip(index) {
+  if (!confirm("Delete this trip?")) return;
+  let arr = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  arr.splice(index, 1);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+  loadTrips();
+}
+
+function exportTrips() {
+  const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  if (!data.length) return alert("No data to export.");
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(data);
+  XLSX.utils.book_append_sheet(wb, ws, "NST Trips");
+  XLSX.writeFile(wb, "NST_Trips.xlsx");
+}
+
+function filterTable() {
+  const val = searchBox.value.toLowerCase();
+  const rows = document.querySelectorAll("#tripTable tbody tr");
+  rows.forEach(row => {
+    row.style.display = row.innerText.toLowerCase().includes(val) ? "" : "none";
   });
-  loadTrips(filtered);
 }
 
-loadTrips();
+function sortTable(colIndex) {
+  const table = document.getElementById("tripTable");
+  const rows = Array.from(table.rows).slice(1);
+  let asc = table.dataset.sort !== "asc";
+  rows.sort((a, b) => a.cells[colIndex].innerText.localeCompare(b.cells[colIndex].innerText));
+  if (!asc) rows.reverse();
+  rows.forEach(r => table.tBodies[0].appendChild(r));
+  table.dataset.sort = asc ? "asc" : "desc";
+}
+
+window.onload = loadTrips;
 </script>
+
 </body>
 </html>
