@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Driver & Vehicle Master</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f4f6f9;
+      margin: 20px auto;
+      padding: 20px;
+      max-width: 900px;
+    }
+    h2 { color: #4b2aad; }
+    label { font-weight: bold; display: block; margin-top: 15px; }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0 15px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background: #4b2aad;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover { background: #3a208b; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background: #4b2aad;
+      color: white;
+    }
+    .actions button {
+      margin-right: 5px;
+      padding: 6px 10px;
+      font-size: 14px;
+    }
+    .delete { background: #dc3545; }
+    .delete:hover { background: #b02a37; }
+    .edit { background: #198754; }
+    .edit:hover { background: #146c43; }
+    .search { margin-bottom: 10px; padding: 8px; }
+    .section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 4px rgba(0,0,0,0.1); margin-bottom: 30px; }
+  </style>
+</head>
+<body>
+
+<h2>🧾 Driver & Vehicle Master</h2>
+
+<div class="section">
+  <h3>👨‍✈️ Add Driver</h3>
+  <label>Driver Name</label>
+  <input id="dName" placeholder="e.g. Siva">
+  <label>Driver Number</label>
+  <input id="dNumber" placeholder="e.g. 9876543210">
+  <button onclick="addDriver()">➕ Add Driver</button>
+  <input type="text" class="search" oninput="renderDriverList()" id="dSearch" placeholder="🔍 Search drivers...">
+  <div id="driverList"></div>
+</div>
+
+<div class="section">
+  <h3>🚘 Add Vehicle</h3>
+  <label>Vehicle Model</label>
+  <input id="vModel" placeholder="e.g. Innova Crysta">
+  <label>Vehicle Number</label>
+  <input id="vNumber" placeholder="e.g. PY05N0505">
+  <button onclick="addVehicle()">➕ Add Vehicle</button>
+  <input type="text" class="search" oninput="renderVehicleList()" id="vSearch" placeholder="🔍 Search vehicles...">
+  <div id="vehicleList"></div>
+</div>
+
+<script>
+  let drivers = JSON.parse(localStorage.getItem("driver-master") || "[]");
+  let vehicles = JSON.parse(localStorage.getItem("vehicle-master") || "[]");
+
+  function saveData() {
+    localStorage.setItem("driver-master", JSON.stringify(drivers));
+    localStorage.setItem("vehicle-master", JSON.stringify(vehicles));
+  }
+
+  function renderDriverList() {
+    const filter = document.getElementById("dSearch").value.toLowerCase();
+    let html = `<table><tr><th>Name</th><th>Number</th><th>Actions</th></tr>`;
+    drivers
+      .filter(d => d.name.toLowerCase().includes(filter) || d.mobile.includes(filter))
+      .forEach((d, i) => {
+        html += `<tr><td>${d.name}</td><td>${d.mobile}</td>
+        <td class="actions">
+          <button class="edit" onclick="editDriver(${i})">Edit</button>
+          <button class="delete" onclick="deleteDriver(${i})">Delete</button>
+        </td></tr>`;
+      });
+    html += `</table><p><strong>Total Drivers:</strong> ${drivers.length}</p>`;
+    document.getElementById("driverList").innerHTML = html;
+  }
+
+  function renderVehicleList() {
+    const filter = document.getElementById("vSearch").value.toLowerCase();
+    let html = `<table><tr><th>Model</th><th>Number</th><th>Actions</th></tr>`;
+    vehicles
+      .filter(v => v.model.toLowerCase().includes(filter) || v.number.includes(filter))
+      .forEach((v, i) => {
+        html += `<tr><td>${v.model}</td><td>${v.number}</td>
+        <td class="actions">
+          <button class="edit" onclick="editVehicle(${i})">Edit</button>
+          <button class="delete" onclick="deleteVehicle(${i})">Delete</button>
+        </td></tr>`;
+      });
+    html += `</table><p><strong>Total Vehicles:</strong> ${vehicles.length}</p>`;
+    document.getElementById("vehicleList").innerHTML = html;
+  }
+
+  function addDriver() {
+    const name = dName.value.trim(), mobile = dNumber.value.trim();
+    if (!name || !mobile) return alert("Please fill both fields");
+    drivers.push({ name, mobile });
+    saveData(); dName.value = ""; dNumber.value = "";
+    renderDriverList();
+  }
+
+  function addVehicle() {
+    const model = vModel.value.trim(), number = vNumber.value.trim();
+    if (!model || !number) return alert("Please fill both fields");
+    vehicles.push({ model, number });
+    saveData(); vModel.value = ""; vNumber.value = "";
+    renderVehicleList();
+  }
+
+  function deleteDriver(index) {
+    if (confirm("Delete this driver?")) {
+      drivers.splice(index, 1); saveData(); renderDriverList();
+    }
+  }
+
+  function deleteVehicle(index) {
+    if (confirm("Delete this vehicle?")) {
+      vehicles.splice(index, 1); saveData(); renderVehicleList();
+    }
+  }
+
+  function editDriver(index) {
+    const d = drivers[index];
+    const name = prompt("Edit Driver Name", d.name);
+    const mobile = prompt("Edit Driver Number", d.mobile);
+    if (name && mobile) {
+      drivers[index] = { name, mobile };
+      saveData(); renderDriverList();
+    }
+  }
+
+  function editVehicle(index) {
+    const v = vehicles[index];
+    const model = prompt("Edit Vehicle Model", v.model);
+    const number = prompt("Edit Vehicle Number", v.number);
+    if (model && number) {
+      vehicles[index] = { model, number };
+      saveData(); renderVehicleList();
+    }
+  }
+
+  renderDriverList();
+  renderVehicleList();
+</script>
+
+</body>
+</html>
