@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>View All Trips – NST Travels</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f4f6f9;
+      max-width: 96%;
+      margin: 30px auto;
+      padding: 20px;
+    }
+    h2 {
+      color: #4b2aad;
+    }
+    input, select, button {
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      margin: 5px 10px 15px 0;
+    }
+    button {
+      background: #4b2aad;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #3a208b;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background: #4b2aad;
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .action-btn {
+      padding: 5px 8px;
+      font-size: 12px;
+      margin-right: 5px;
+    }
+    .danger {
+      background: #dc3545;
+    }
+    .danger:hover {
+      background: #b02a37;
+    }
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>📋 View All Trips – NST Travels</h2>
+
+  <div class="filter-bar">
+    <input type="text" id="searchBox" placeholder="🔍 Keyword..." oninput="filterTrips()">
+    <input type="month" id="monthFilter" onchange="filterTrips()" />
+    <input type="date" id="dateFilter" onchange="filterTrips()" />
+    <button onclick="exportExcel()">📥 Export to Excel</button>
+    <button onclick="window.location.href='index.html'">➕ New Trip</button>
+  </div>
+
+  <div id="tripTable"></div>
+
+  <script>
+    const SHKEY = "shared-trips";
+
+    function getTrips() {
+      return JSON.parse(localStorage.getItem(SHKEY) || "[]");
+    }
+
+    function saveTrips(trips) {
+      localStorage.setItem(SHKEY, JSON.stringify(trips));
+    }
+
+    function renderTrips(data) {
+      if (!data.length) {
+        tripTable.innerHTML = "<p>No trips found.</p>";
+        return;
+      }
+
+      let html = `<table><thead><tr>
+        <th>Trip ID</th><th>Date</th><th>Pickup</th><th>Drop</th>
+        <th>Customer</th><th>Driver</th><th>Vehicle</th>
+        <th>Time</th><th>KM</th><th>Amount</th><th>Status</th><th>Note</th><th>Actions</th>
+      </tr></thead><tbody>`;
+
+      data.forEach((t, i) => {
+        html += `<tr>
+          <td>${t.id}</td><td>${t.date}</td><td>${t.pickup}</td><td>${t.drop}</td>
+          <td>${t.custName} (${t.custNumber})</td>
+          <td>${t.driverName} (${t.driverNumber})</td>
+          <td>${t.vehicleModel} (${t.vehicleNo})</td>
+          <td>${t.start} - ${t.end} (${t.duration} hr)</td>
+          <td>${t.startKM} - ${t.endKM} (${t.totalKM} km)</td>
+          <td>₹${t.totalAmount}</td>
+          <td>${t.paymentStatus}</td>
+          <td>${t.note || ''}</td>
+          <td>
+            <button class="action-btn" onclick="editTrip(${i})">✏️</button>
+            <button class="action-btn danger" onclick="deleteTrip(${i})">🗑️</button>
+          </td>
+        </tr>`;
+      });
+
+      html += "</tbody></table>";
+      tripTable.innerHTML = html;
+    }
+
+    function filterTrips() {
+      const keyword = searchBox.value.toLowerCase();
+      const month = monthFilter.value;
+      const date = dateFilter.value;
+      const all = getTrips();
+      const filtered = all.filter(t => {
+        const matchKeyword = keyword === "" || Object.values(t).some(val =>
+          String(val).toLowerCase().includes(keyword)
+        );
+        const matchMonth = !month || (t.date && t.date.startsWith(month));
+        const matchDate = !date || t.date === date;
+        return matchKeyword && matchMonth && matchDate;
+      });
+      renderTrips(filtered);
+    }
+
+    function exportExcel() {
+      const data = getTrips();
+      if (!data.length) return alert("No trips to export!");
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "NST_Trips");
+      XLSX.writeFile(wb, "NST_Trips.xlsx");
+    }
+
+    function deleteTrip(index) {
+      if (!confirm("Are you sure to delete this trip?")) return;
+      const trips = getTrips();
+      trips.splice(index, 1);
+      saveTrips(trips);
+      filterTrips();
+    }
+
+    function editTrip(index) {
+      const trip = getTrips()[index];
+      localStorage.setItem("edit-trip", JSON.stringify({ trip, index }));
+      window.location.href = "index.html";
+    }
+
+    window.onload = () => renderTrips(getTrips());
+  </script>
+
+</body>
+</html>
