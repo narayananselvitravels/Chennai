@@ -5,10 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Invoice – NST Travels</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      margin: 0; padding: 40px;
+      margin: 0;
+      padding: 40px;
       background: #f9f9fc;
       color: #333;
     }
@@ -36,8 +38,15 @@
     .invoice-details {
       margin-bottom: 20px;
     }
-    .row { display: flex; justify-content: space-between; margin-bottom: 10px; }
-    .label { font-weight: 600; width: 150px; }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .label {
+      font-weight: 600;
+      width: 150px;
+    }
     .table {
       width: 100%;
       border-collapse: collapse;
@@ -59,14 +68,19 @@
     }
     .totals .row {
       justify-content: space-between;
+      margin-bottom: 10px;
     }
     .note {
       margin-top: 30px;
       font-size: 14px;
       color: #555;
     }
-    .print-btn {
-      margin-top: 30px;
+    .buttons {
+      margin-top: 40px;
+      text-align: center;
+    }
+    .buttons button {
+      margin: 5px;
       padding: 10px 20px;
       background: #4b2aad;
       color: white;
@@ -75,14 +89,20 @@
       font-size: 16px;
       cursor: pointer;
     }
-    .print-btn:hover {
+    .buttons button:hover {
       background: #3a208b;
+    }
+    input[type="number"], textarea {
+      font-family: 'Poppins';
+      padding: 4px;
+      font-size: 14px;
+      width: 100px;
     }
   </style>
 </head>
 <body>
 
-<div class="invoice-container">
+<div class="invoice-container" id="invoice">
   <div class="invoice-header">
     <h1>🚖 NST Travels</h1>
     <div>
@@ -124,67 +144,35 @@
         <th>Item</th><th>Details</th><th>Amount (₹)</th>
       </tr>
     </thead>
-    <tbody id="chargeDetails">
-      <!-- dynamic rows inserted here -->
-    </tbody>
+    <tbody id="chargeDetails"></tbody>
   </table>
 
   <div class="totals">
     <div class="row"><div class="label">Subtotal:</div><div id="subtotal">--</div></div>
-    <div class="row"><div class="label">Discount:</div><div>₹0</div></div>
+    <div class="row"><div class="label">Toll:</div><input type="number" id="tollCharge" value="0" onchange="updateTotal()"></div>
+    <div class="row"><div class="label">Parking:</div><input type="number" id="parkingCharge" value="0" onchange="updateTotal()"></div>
+    <div class="row"><div class="label">Discount:</div><input type="number" id="discount" value="0" onchange="updateTotal()"></div>
     <hr>
     <div class="row"><div class="label"><strong>Total:</strong></div><div id="total"><strong>--</strong></div></div>
   </div>
 
   <div class="note">
-    <p>📝 <strong>Note:</strong> <span id="note">Thank you for choosing NST Travels. For any queries, contact us at +91-9876543210.</span></p>
+    <p>📝 <strong>Note:</strong>
+      <textarea id="note" rows="2" oninput="updateTotal()">Thank you for choosing NST Travels. For any queries, contact us at +91-9876543210.</textarea>
+    </p>
   </div>
 
-  <button class="print-btn" onclick="window.print()">🖨️ Print Invoice</button>
+  <div class="buttons">
+    <button onclick="printInvoice()">🖨️ Print Invoice</button>
+    <button onclick="downloadPDF()">💾 Download PDF</button>
+    <button onclick="shareInvoice()">📤 Share via WhatsApp</button>
+  </div>
 </div>
 
 <script>
   function getParam(key) {
     const url = new URL(window.location.href);
     return url.searchParams.get(key);
-  }
-
-  function loadInvoice() {
-    const id = getParam('id');
-    const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
-    const data = trips.find(t => t.id === id);
-    if (!data) return alert("Trip not found.");
-
-    document.getElementById("invId").innerText = data.id;
-    document.getElementById("invDate").innerText = formatDate(data.date);
-    document.getElementById("custName").innerText = data.custName;
-    document.getElementById("custNumber").innerText = data.custNumber;
-    document.getElementById("driverName").innerText = data.driverName;
-    document.getElementById("driverNumber").innerText = data.driverNumber;
-    document.getElementById("vehicleModel").innerText = data.vehicleModel;
-    document.getElementById("vehicleNo").innerText = data.vehicleNo;
-    document.getElementById("pickup").innerText = data.pickup;
-    document.getElementById("drop").innerText = data.drop;
-    document.getElementById("note").innerText = data.note || '-';
-
-    const charges = [
-      { item: "Package", detail: `${data.vehicleModel} – Base Package`, amount: baseRate(data.vehicleModel) },
-      { item: "Extra Hours", detail: `${data.extraHours} hrs × ₹${hourRate(data.vehicleModel)}`, amount: data.extraHours * hourRate(data.vehicleModel) },
-      { item: "Extra KM", detail: `${data.extraKM} km × ₹${kmRate(data.vehicleModel)}`, amount: data.extraKM * kmRate(data.vehicleModel) },
-      { item: "Toll", detail: "—", amount: 0 },
-      { item: "Parking", detail: "—", amount: 0 }
-    ];
-
-    let total = 0;
-    let tbody = "";
-    charges.forEach(row => {
-      total += row.amount;
-      tbody += `<tr><td>${row.item}</td><td>${row.detail}</td><td>${row.amount}</td></tr>`;
-    });
-
-    document.getElementById("chargeDetails").innerHTML = tbody;
-    document.getElementById("subtotal").innerText = "₹" + total;
-    document.getElementById("total").innerHTML = `<strong>₹${total}</strong>`;
   }
 
   function baseRate(model) {
@@ -203,6 +191,76 @@
     if (!dateStr) return "--";
     const d = new Date(dateStr);
     return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+  }
+
+  function loadInvoice() {
+    const id = getParam('id');
+    const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
+    const data = trips.find(t => t.id === id);
+    if (!data) return alert("Trip not found.");
+
+    document.getElementById("invId").innerText = data.id;
+    document.getElementById("invDate").innerText = formatDate(data.date);
+    document.getElementById("custName").innerText = data.custName;
+    document.getElementById("custNumber").innerText = data.custNumber;
+    document.getElementById("driverName").innerText = data.driverName;
+    document.getElementById("driverNumber").innerText = data.driverNumber;
+    document.getElementById("vehicleModel").innerText = data.vehicleModel;
+    document.getElementById("vehicleNo").innerText = data.vehicleNo;
+    document.getElementById("pickup").innerText = data.pickup;
+    document.getElementById("drop").innerText = data.drop;
+    document.getElementById("note").value = data.note || "-";
+
+    const charges = [
+      { item: "Package", detail: `${data.vehicleModel} – Base Package`, amount: baseRate(data.vehicleModel) },
+      { item: "Extra Hours", detail: `${data.extraHours} hrs × ₹${hourRate(data.vehicleModel)}`, amount: data.extraHours * hourRate(data.vehicleModel) },
+      { item: "Extra KM", detail: `${data.extraKM} km × ₹${kmRate(data.vehicleModel)}`, amount: data.extraKM * kmRate(data.vehicleModel) }
+    ];
+
+    let tbody = "";
+    let subtotal = 0;
+    charges.forEach(row => {
+      subtotal += row.amount;
+      tbody += `<tr><td>${row.item}</td><td>${row.detail}</td><td>${row.amount}</td></tr>`;
+    });
+    document.getElementById("chargeDetails").innerHTML = tbody;
+    document.getElementById("subtotal").innerText = `₹${subtotal}`;
+    updateTotal();
+  }
+
+  function updateTotal() {
+    let subtotal = parseInt(document.getElementById("subtotal").innerText.replace("₹", "")) || 0;
+    let toll = parseInt(document.getElementById("tollCharge").value) || 0;
+    let parking = parseInt(document.getElementById("parkingCharge").value) || 0;
+    let discount = parseInt(document.getElementById("discount").value) || 0;
+    let total = subtotal + toll + parking - discount;
+    document.getElementById("total").innerHTML = `<strong>₹${total}</strong>`;
+  }
+
+  function printInvoice() {
+    window.print();
+  }
+
+  function downloadPDF() {
+    const element = document.getElementById("invoice");
+    html2pdf().from(element).save(`Invoice_${document.getElementById("invId").innerText}.pdf`);
+  }
+
+  function shareInvoice() {
+    const id = document.getElementById("invId").innerText;
+    const customer = document.getElementById("custName").innerText;
+    const vehicle = document.getElementById("vehicleModel").innerText;
+    const total = document.getElementById("total").innerText.replace("₹", "").trim();
+    const note = document.getElementById("note").value;
+
+    const msg = `🧾 *NST Travels Invoice*\n\n` +
+                `*Invoice No:* ${id}\n` +
+                `*Customer:* ${customer}\n` +
+                `*Vehicle:* ${vehicle}\n` +
+                `*Total Amount:* ₹${total}\n\n` +
+                `📝 *Note:* ${note}\n\n` +
+                `Thank you for choosing NST Travels!`;
+    window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
   }
 
   window.onload = loadInvoice;
