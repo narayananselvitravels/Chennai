@@ -1,167 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Driver & Vehicle Master – NST</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trips – NST Travels</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Poppins', sans-serif; background: #f4f6f9; padding: 20px; max-width: 800px; margin: auto; }
+    body { font-family: 'Poppins', sans-serif; margin: 20px; background: #f4f6f9; color: #333; }
     h2 { color: #4b2aad; }
-    label { font-weight: 600; display: block; margin-top: 10px; }
-    input, button, select {
-      width: 100%; padding: 10px; margin: 5px 0 15px;
-      border: 1px solid #ccc; border-radius: 5px; font-size: 16px;
+    .summary-boxes { display: flex; gap: 15px; flex-wrap: wrap; margin: 15px 0; }
+    .summary-box {
+      flex: 1;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      text-align: center;
     }
-    button { background: #4b2aad; color: white; cursor: pointer; border: none; }
-    button:hover { background: #3a208b; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td {
-      border: 1px solid #ccc; padding: 8px; text-align: left;
+    .filters { display: flex; gap: 15px; flex-wrap: wrap; margin: 20px 0; }
+    .filters select, .filters input {
+      padding: 10px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
     }
+    table {
+      width: 100%; border-collapse: collapse; margin-top: 15px;
+      background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    th, td { padding: 10px; border: 1px solid #ddd; }
     th { background: #4b2aad; color: white; }
-    .actions button {
-      width: auto; padding: 5px 10px; margin: 0 5px; font-size: 14px;
-    }
-    .danger { background: #dc3545; }
-    .danger:hover { background: #b02a37; }
-    .search-box { margin-top: 10px; }
-    .counter { font-size: 14px; margin-bottom: 10px; }
+    td.paid { color: green; font-weight: bold; }
+    td.unpaid { color: red; font-weight: bold; }
   </style>
 </head>
 <body>
 
-<h2>🛠️ Driver & Vehicle Master</h2>
+<h2>📋 All Trips – NST Travels</h2>
 
-<!-- Add Driver -->
-<h3>👤 Add Driver</h3>
-<label>Driver Name</label>
-<input id="driverName" placeholder="e.g. Ramesh Kumar">
-<label>Driver Mobile</label>
-<input id="driverMobile" placeholder="e.g. 9876543210">
-<button onclick="addDriver()">➕ Add Driver</button>
-
-<!-- Add Vehicle -->
-<h3>🚘 Add Vehicle</h3>
-<label>Vehicle Model</label>
-<input id="vehicleModel" placeholder="e.g. Innova Crysta">
-<label>Vehicle Number</label>
-<input id="vehicleNumber" placeholder="e.g. PY05N0505">
-<button onclick="addVehicle()">➕ Add Vehicle</button>
-
-<hr>
-
-<!-- Search Filter -->
-<div class="search-box">
-  <label>🔎 Filter</label>
-  <input id="searchBox" placeholder="Search Driver or Vehicle..." onkeyup="filterData()">
+<div class="summary-boxes">
+  <div class="summary-box"><strong>Total Trips:</strong><div id="totalTrips">0</div></div>
+  <div class="summary-box"><strong>Total Amount:</strong><div id="totalAmount">₹0</div></div>
+  <div class="summary-box"><strong>Unpaid Trips:</strong><div id="unpaidCount">0</div></div>
+  <div class="summary-box"><strong>This Month:</strong><div id="thisMonth">0</div></div>
 </div>
 
-<!-- Display Data -->
-<div class="counter">
-  👤 Drivers: <span id="driverCount">0</span> | 🚘 Vehicles: <span id="vehicleCount">0</span>
+<div class="filters">
+  <input type="text" id="filterDriver" placeholder="Driver Name">
+  <input type="text" id="filterVehicle" placeholder="Vehicle Model">
+  <select id="filterStatus">
+    <option value="">All Status</option>
+    <option value="Paid">Paid</option>
+    <option value="Not Paid">Not Paid</option>
+  </select>
+  <input type="date" id="fromDate">
+  <input type="date" id="toDate">
+  <button onclick="applyFilters()">Apply Filters</button>
 </div>
 
-<div id="masterDataList"></div>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th><th>Date</th><th>Pickup</th><th>Drop</th><th>Driver</th><th>Vehicle</th>
+      <th>KM</th><th>Amount</th><th>Status</th>
+    </tr>
+  </thead>
+  <tbody id="tripTable"></tbody>
+</table>
 
 <script>
-let driverKey = "driver-master", vehicleKey = "vehicle-master";
+const SHKEY = "shared-trips";
+let trips = JSON.parse(localStorage.getItem(SHKEY) || "[]");
 
-function loadData() {
-  updateTable();
-  updateCounters();
+function formatDate(dstr) {
+  if (!dstr) return "";
+  const d = new Date(dstr);
+  return `${d.getDate().toString().padStart(2, '0')}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getFullYear()}`;
 }
 
-function addDriver() {
-  const name = driverName.value.trim();
-  const mobile = driverMobile.value.trim();
-  if (!name || !mobile) return alert("Please enter both driver name and number.");
-
-  let data = JSON.parse(localStorage.getItem(driverKey) || "[]");
-  if (data.find(d => d.name === name || d.mobile === mobile)) return alert("Duplicate driver.");
-  data.push({ name, mobile });
-  localStorage.setItem(driverKey, JSON.stringify(data));
-  driverName.value = driverMobile.value = "";
-  updateTable(); updateCounters();
-}
-
-function addVehicle() {
-  const model = vehicleModel.value.trim();
-  const number = vehicleNumber.value.trim();
-  if (!model || !number) return alert("Please enter both vehicle model and number.");
-
-  let data = JSON.parse(localStorage.getItem(vehicleKey) || "[]");
-  if (data.find(v => v.model === model || v.number === number)) return alert("Duplicate vehicle.");
-  data.push({ model, number });
-  localStorage.setItem(vehicleKey, JSON.stringify(data));
-  vehicleModel.value = vehicleNumber.value = "";
-  updateTable(); updateCounters();
-}
-
-function updateTable() {
-  const dList = JSON.parse(localStorage.getItem(driverKey) || "[]");
-  const vList = JSON.parse(localStorage.getItem(vehicleKey) || "[]");
-
-  let html = "<h3>👤 Driver List</h3>";
-  if (dList.length) {
-    html += "<table><tr><th>Name</th><th>Mobile</th><th>Actions</th></tr>";
-    dList.forEach((d, i) => {
-      html += `<tr><td>${d.name}</td><td>${d.mobile}</td>
-        <td class="actions">
-          <button onclick="deleteDriver(${i})" class="danger">Delete</button>
-        </td></tr>`;
-    });
-    html += "</table>";
-  } else html += "<p>No drivers added.</p>";
-
-  html += "<h3>🚘 Vehicle List</h3>";
-  if (vList.length) {
-    html += "<table><tr><th>Model</th><th>Number</th><th>Actions</th></tr>";
-    vList.forEach((v, i) => {
-      html += `<tr><td>${v.model}</td><td>${v.number}</td>
-        <td class="actions">
-          <button onclick="deleteVehicle(${i})" class="danger">Delete</button>
-        </td></tr>`;
-    });
-    html += "</table>";
-  } else html += "<p>No vehicles added.</p>"; 
-
-  masterDataList.innerHTML = html;
-}
-
-function deleteDriver(index) {
-  if (!confirm("Delete this driver?")) return;
-  let dList = JSON.parse(localStorage.getItem(driverKey) || "[]");
-  dList.splice(index, 1);
-  localStorage.setItem(driverKey, JSON.stringify(dList));
-  updateTable(); updateCounters();
-}
-
-function deleteVehicle(index) {
-  if (!confirm("Delete this vehicle?")) return;
-  let vList = JSON.parse(localStorage.getItem(vehicleKey) || "[]");
-  vList.splice(index, 1);
-  localStorage.setItem(vehicleKey, JSON.stringify(vList));
-  updateTable(); updateCounters();
-}
-
-function updateCounters() {
-  let d = JSON.parse(localStorage.getItem(driverKey) || "[]");
-  let v = JSON.parse(localStorage.getItem(vehicleKey) || "[]");
-  driverCount.innerText = d.length;
-  vehicleCount.innerText = v.length;
-}
-
-function filterData() {
-  const val = searchBox.value.toLowerCase();
-  const rows = masterDataList.querySelectorAll("table tr:not(:first-child)");
-  rows.forEach(row => {
-    row.style.display = row.innerText.toLowerCase().includes(val) ? "" : "none";
+function loadTrips(list = trips) {
+  const tbody = document.getElementById("tripTable");
+  tbody.innerHTML = "";
+  let total = 0, unpaid = 0, thisMonth = 0;
+  const now = new Date();
+  list.forEach(t => {
+    const isUnpaid = t.paymentStatus === "Not Paid";
+    const amt = parseFloat(t.totalAmount || 0);
+    const date = new Date(t.date);
+    if (isUnpaid) unpaid++;
+    if (date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()) thisMonth++;
+    total += amt;
+    tbody.innerHTML += `
+      <tr>
+        <td>${t.id}</td>
+        <td>${formatDate(t.date)}</td>
+        <td>${t.pickup}</td>
+        <td>${t.drop}</td>
+        <td>${t.driverName}</td>
+        <td>${t.vehicleModel}</td>
+        <td>${t.totalKM}</td>
+        <td>₹${amt}</td>
+        <td class="${isUnpaid ? 'unpaid' : 'paid'}">${t.paymentStatus}</td>
+      </tr>`;
   });
+  document.getElementById("totalTrips").innerText = list.length;
+  document.getElementById("totalAmount").innerText = `₹${total}`;
+  document.getElementById("unpaidCount").innerText = unpaid;
+  document.getElementById("thisMonth").innerText = thisMonth;
 }
 
-window.onload = loadData;
-</script>
+function applyFilters() {
+  let fDriver = document.getElementById("filterDriver").value.toLowerCase();
+  let fVehicle = document.getElementById("filterVehicle").value.toLowerCase();
+  let fStatus = document.getElementById("filterStatus").value;
+  let from = new Date(document.getElementById("fromDate").value);
+  let to = new Date(document.getElementById("toDate").value);
 
+  const filtered = trips.filter(t => {
+    let match = true;
+    if (fDriver && !t.driverName.toLowerCase().includes(fDriver)) match = false;
+    if (fVehicle && !t.vehicleModel.toLowerCase().includes(fVehicle)) match = false;
+    if (fStatus && t.paymentStatus !== fStatus) match = false;
+    if (document.getElementById("fromDate").value && new Date(t.date) < from) match = false;
+    if (document.getElementById("toDate").value && new Date(t.date) > to) match = false;
+    return match;
+  });
+  loadTrips(filtered);
+}
+
+loadTrips();
+</script>
 </body>
 </html>
