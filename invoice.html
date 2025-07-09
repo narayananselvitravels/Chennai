@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Invoice – NST Travels</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0; padding: 40px;
+      background: #f9f9fc;
+      color: #333;
+    }
+    .invoice-container {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .invoice-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #4b2aad;
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+    .invoice-header h1 {
+      color: #4b2aad;
+      font-size: 28px;
+      margin: 0;
+    }
+    .invoice-details {
+      margin-bottom: 20px;
+    }
+    .row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+    .label { font-weight: 600; width: 150px; }
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .table th, .table td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+    .table th {
+      background: #4b2aad;
+      color: white;
+    }
+    .totals {
+      margin-top: 20px;
+      float: right;
+      width: 300px;
+    }
+    .totals .row {
+      justify-content: space-between;
+    }
+    .note {
+      margin-top: 30px;
+      font-size: 14px;
+      color: #555;
+    }
+    .print-btn {
+      margin-top: 30px;
+      padding: 10px 20px;
+      background: #4b2aad;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .print-btn:hover {
+      background: #3a208b;
+    }
+  </style>
+</head>
+<body>
+
+<div class="invoice-container">
+  <div class="invoice-header">
+    <h1>🚖 NST Travels</h1>
+    <div>
+      <p><strong>Invoice No:</strong> #NST001</p>
+      <p><strong>Date:</strong> 07-July-2025</p>
+    </div>
+  </div>
+
+  <div class="invoice-details">
+    <div class="row">
+      <div>
+        <h3>👤 Customer</h3>
+        <p><strong>Name:</strong> John Doe</p>
+        <p><strong>Phone:</strong> 9876543210</p>
+      </div>
+      <div>
+        <h3>👨‍✈️ Driver</h3>
+        <p><strong>Name:</strong> Perumal</p>
+        <p><strong>Phone:</strong> 9699994563</p>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <h3>🚘 Trip Info</h3>
+        <p><strong>Model:</strong> Innova Crysta</p>
+        <p><strong>Vehicle No:</strong> PY05N0505</p>
+      </div>
+      <div>
+        <p><strong>Pickup:</strong> Auroville</p>
+        <p><strong>Drop:</strong> Chennai Airport</p>
+      </div>
+    </div>
+  </div>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Item</th><th>Details</th><th>Amount (₹)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Package</td><td>Innova Crysta – 8 hrs / 80 KM</td><td>7500</td></tr>
+      <tr><td>Extra Hours</td><td>2 hrs × ₹1000/hr</td><td>2000</td></tr>
+      <tr><td>Extra KM</td><td>10 km × ₹20/km</td><td>200</td></tr>
+      <tr><td>Toll</td><td>–</td><td>150</td></tr>
+      <tr><td>Parking</td><td>–</td><td>100</td></tr>
+    </tbody>
+  </table>
+
+  <div class="totals">
+    <div class="row"><div class="label">Subtotal:</div><div>₹9,950</div></div>
+    <div class="row"><div class="label">Discount:</div><div>₹0</div></div>
+    <hr>
+    <div class="row"><div class="label"><strong>Total:</strong></div><div><strong>₹9,950</strong></div></div>
+  </div>
+
+  <div class="note">
+    <p>📝 Note: Thank you for choosing NST Travels. For any queries, contact us at +91-9876543210.</p>
+  </div>
+
+  <button class="print-btn" onclick="window.print()">🖨️ Print Invoice</button>
+</div>
+
+</body>
+</html>
