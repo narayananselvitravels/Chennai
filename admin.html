@@ -1,83 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Panel – NST Travels</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body {
       font-family: 'Poppins', sans-serif;
       background: #f4f6f9;
-      margin: 0;
-      padding: 40px;
-    }
-    .panel {
-      max-width: 800px;
-      margin: auto;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      padding: 30px;
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 20px;
     }
     h2 {
       color: #4b2aad;
-      text-align: center;
-      margin-bottom: 30px;
     }
-    .button-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-    }
-    .button-grid button {
-      padding: 15px;
-      font-size: 16px;
-      border: none;
+    .section {
+      background: white;
+      padding: 20px;
       border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    button {
       background: #4b2aad;
       color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 5px;
+      font-size: 16px;
       cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      transition: background 0.3s;
+      margin: 10px 10px 0 0;
     }
-    .button-grid button:hover {
+    button:hover {
       background: #3a208b;
     }
-    .footer {
-      margin-top: 40px;
-      text-align: center;
-      font-size: 14px;
-      color: #888;
+    .danger {
+      background: #dc3545;
+    }
+    .danger:hover {
+      background: #b02a37;
+    }
+    a {
+      display: inline-block;
+      margin: 8px 12px 0 0;
+      color: #4b2aad;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    p {
+      font-size: 16px;
+      margin: 10px 0;
     }
   </style>
 </head>
 <body>
 
-  <div class="panel">
-    <h2>🛠️ NST Travels – Admin Panel</h2>
+  <h2>🛠️ NST Admin Panel</h2>
 
-    <div class="button-grid">
-      <button onclick="window.location.href='master.html'">📋 Driver & Vehicle Master</button>
-      <button onclick="window.location.href='whatsapp.html'">📤 WhatsApp Templates</button>
-      <button onclick="window.location.href='trip.html'">📝 Trip Manager</button>
-      <button onclick="window.location.href='dashboard.html'">📊 Dashboard</button>
-      <button onclick="window.location.href='view-trips.html'">📁 View Trips</button>
-      <button onclick="window.location.href='invoice.html?id=#NST001'">🧾 Invoice Generator</button>
-      <button onclick="window.location.href='backup.html'">💾 Backup & Restore</button>
-      
-<div class="section">
-  <h3>🔄 Reset Trip ID Only</h3>
-  <p>This will reset Trip ID back to <strong>#NST001</strong> without deleting saved trips.</p>
-  <button onclick="resetTripId()">🔁 Reset Trip ID</button>
-</div>
-
-    </div>
-
-    <div class="footer">
-      © 2025 NST Travels · Admin Control Center
-    </div>
+  <div class="section">
+    <h3>📁 Master Pages</h3>
+    <a href="master.html" target="_blank">Driver & Vehicle Master</a>
+    <a href="whatsapp.html" target="_blank">WhatsApp Share Setup</a>
+    <a href="trip.html" target="_blank">Trip Form</a>
+    <a href="dashboard.html" target="_blank">Dashboard</a>
+    <a href="backup.html" target="_blank">Backup & Restore</a>
+    <a href="invoice.html" target="_blank">Invoice Generator</a>
+    <a href="view-trips.html" target="_blank">View Trips</a>
   </div>
+
+  <div class="section">
+    <h3>📊 Trip Stats</h3>
+    <p><strong>Total Shared Trips:</strong> <span id="tripCount">0</span></p>
+    <p><strong>Current Trip ID:</strong> <span id="currentId">#NST001</span></p>
+    <button onclick="exportTrips()">📥 Export Shared Trips (Excel)</button>
+  </div>
+
+  <div class="section">
+    <h3>⚠️ Reset System</h3>
+    <p>This will <strong>delete all trip data</strong> and reset everything.</p>
+    <button class="danger" onclick="resetAll()">🗑️ Reset All Data</button>
+  </div>
+
+  <div class="section">
+    <h3>🔄 Reset Trip ID Only</h3>
+    <p>This will reset Trip ID back to <strong>#NST001</strong> without deleting saved trips.</p>
+    <button onclick="resetTripId()">🔁 Reset Trip ID</button>
+  </div>
+
+  <script>
+    const SHKEY = "shared-trips";
+
+    function getTripCount() {
+      let shared = JSON.parse(localStorage.getItem(SHKEY) || "[]");
+      document.getElementById("tripCount").innerText = shared.length;
+    }
+
+    function getCurrentId() {
+      let c = localStorage.getItem("trip-seq") || "1";
+      document.getElementById("currentId").innerText = "#NST" + String(c).padStart(3, "0");
+    }
+
+    function exportTrips() {
+      const data = JSON.parse(localStorage.getItem(SHKEY) || "[]");
+      if (!data.length) return alert("No shared trips to export.");
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "SharedTrips");
+      XLSX.writeFile(wb, "NST_Shared_Trips.xlsx");
+    }
+
+    function resetAll() {
+      if (confirm("⚠️ This will ERASE ALL DATA including Trip ID. Proceed?")) {
+        localStorage.removeItem("trip-seq");
+        localStorage.removeItem(SHKEY);
+        for (let key in localStorage) {
+          if (key.startsWith("#NST")) localStorage.removeItem(key);
+        }
+        alert("✅ All data cleared and system reset.");
+        getTripCount();
+        getCurrentId();
+      }
+    }
+
+    function resetTripId() {
+      if (confirm("Reset Trip ID to #NST001 without deleting trips?")) {
+        localStorage.setItem("trip-seq", "1");
+        alert("✅ Trip ID has been reset to #NST001.");
+        getCurrentId();
+      }
+    }
+
+    getTripCount();
+    getCurrentId();
+  </script>
 
 </body>
 </html>
