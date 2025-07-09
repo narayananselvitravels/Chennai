@@ -13,6 +13,7 @@
       max-width: 900px;
       margin: 30px auto;
       padding: 20px;
+      display: none;
     }
     h2 { color: #4b2aad; }
     .section {
@@ -53,6 +54,23 @@
       font-size: 14px;
     }
   </style>
+  <script>
+    // ✅ Simple Login Prompt
+    const username = "Siva";
+    const password = "1007";
+    const u = prompt("Enter Username:");
+    const p = prompt("Enter Password:");
+    if (u === username && p === password) {
+      document.addEventListener("DOMContentLoaded", () => {
+        document.body.style.display = "block";
+        getTripCount();
+        getCurrentId();
+      });
+    } else {
+      alert("❌ Access Denied");
+      window.location.href = "index.html";
+    }
+  </script>
 </head>
 <body>
   <h2>🛠️ NST Admin Panel</h2>
@@ -114,9 +132,8 @@
           .sort((a, b) => a - b);
 
         let nextId = 1;
-        while (usedIds.includes(nextId)) {
-          nextId++;
-        }
+        while (usedIds.includes(nextId)) nextId++;
+
         localStorage.setItem("trip-seq", nextId.toString());
         alert(`✅ Trip ID reset. Next Trip ID will be #NST${String(nextId).padStart(3, '0')}`);
         getCurrentId();
@@ -135,9 +152,6 @@
         getCurrentId();
       }
     }
-
-    getTripCount();
-    getCurrentId();
   </script>
 </body>
 </html>
