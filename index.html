@@ -6,9 +6,7 @@
   <title>NST Trip Sheet</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family:'Poppins',sans-serif; margin:0 auto; padding:20px; max-width:800px; background:#f4f6f9;
-    }
+    body { font-family:'Poppins',sans-serif; margin:0 auto; padding:20px; max-width:900px; background:#f4f6f9 }
     h2 { color:#4b2aad }
     label { font-weight:bold; margin-top:10px; display:block }
     input, select, textarea, button {
@@ -17,22 +15,12 @@
     }
     button { background:#4b2aad; color:#fff; border:none; cursor:pointer }
     button:hover { background:#3a208b }
-    table { width:100%; border-collapse:collapse; margin-top:20px }
+    table { width:100%; border-collapse:collapse; margin-top:20px; font-size:14px }
     table, th, td { border:1px solid #ddd }
-    th, td { padding:8px; text-align:left }
-    th { background:#4b2aad; color:#fff }
-
-    .paid {
-      background-color: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-    }
-
-    .not-paid {
-      background-color: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
+    th, td { padding:8px; text-align:left; white-space:nowrap }
+    th { background:#4b2aad; color:#fff; position:sticky; top:0 }
+    .paid { background:#d4edda; color:#155724; font-weight:bold; text-align:center }
+    .not-paid { background:#f8d7da; color:#721c24; font-weight:bold; text-align:center }
   </style>
 </head>
 <body>
@@ -61,7 +49,7 @@
 
 <label>Start Time</label><input type="time" id="startTime" onchange="recalc()">
 <label>End Time</label><input type="time" id="endTime" onchange="recalc()">
-<label>Duration</label><input id="duration" readonly>
+<label>Total Duration (hrs)</label><input id="duration" readonly>
 <label>Extra Hours</label><input type="number" id="extraHours">
 
 <label>Start KM</label><input type="number" id="startKM" onchange="recalc()">
@@ -70,15 +58,14 @@
 <label>Extra KM</label><input type="number" id="extraKM">
 
 <label>Total Amount ₹</label><input type="number" id="totalAmount">
-
 <label>Payment Status</label>
-<select id="paymentStatus" onchange="updatePaymentColor(this)">
+<select id="paymentStatus">
   <option value="">-- Select --</option>
   <option>Paid</option>
   <option>Not Paid</option>
 </select>
 
-<label>Note</label><textarea id="note" rows="3" placeholder="Trip remarks..."></textarea>
+<label>Note</label><textarea id="note" rows="3"></textarea>
 
 <button onclick="shareWhatsApp()">📤 Share via WhatsApp</button>
 <button onclick="showSharedTrips()">📋 View Saved Trips</button>
@@ -91,6 +78,8 @@
   let drivers = {}, vehicles = {};
 
   function init() {
+    tripId.value = genId();
+
     const dList = JSON.parse(localStorage.getItem("driver-master") || "[]");
     driverName.innerHTML = '<option value="">-- Select --</option>';
     driverNumber.innerHTML = '<option value="">-- Select --</option>';
@@ -108,8 +97,6 @@
       vehicleModel.innerHTML += `<option>${v.model}</option>`;
       vehicleNo.innerHTML += `<option>${v.number}</option>`;
     });
-
-    tripId.value = genId();
   }
 
   function genId() {
@@ -137,51 +124,55 @@
     if (startTime.value && endTime.value) {
       let s = new Date(`1970-01-01T${startTime.value}`);
       let e = new Date(`1970-01-01T${endTime.value}`);
-      let diff = (e - s) / 60000;
-      if (diff < 0) diff += 1440;
-      let hrs = Math.floor(diff / 60);
-      let mins = Math.round(diff % 60);
-      duration.value = `${hrs} hrs ${mins} min`;
+      let diff = (e - s) / 3600000;
+      if (diff < 0) diff += 24;
+      duration.value = (diff).toFixed(2);
     }
-    if (startKM.value && endKM.value) {
-      totalKM.value = parseFloat(endKM.value) - parseFloat(startKM.value);
-    }
+    totalKM.value = (+endKM.value - +startKM.value).toFixed(1);
   }
 
   function shareWhatsApp() {
-    const id = tripId.value;
-    if (!localStorage.getItem(id)) {
-      reserveId();
-      localStorage.setItem(id, "used");
-      tripId.value = genId();
-    }
+    const data = {
+      id: tripId.value,
+      date: tripDateDisplay.value,
+      pickup: pickupLocation.value,
+      drop: dropLocation.value,
+      custName: custName.value,
+      custNumber: custNumber.value,
+      driverName: driverName.value,
+      driverNumber: driverNumber.value,
+      vehicleModel: vehicleModel.value,
+      vehicleNo: vehicleNo.value,
+      start: startTime.value,
+      end: endTime.value,
+      duration: duration.value,
+      extraHours: extraHours.value,
+      startKM: startKM.value,
+      endKM: endKM.value,
+      totalKM: totalKM.value,
+      extraKM: extraKM.value,
+      totalAmount: totalAmount.value,
+      paymentStatus: paymentStatus.value,
+      note: note.value
+    };
 
-    const msg = `📋 *TRIP SUMMARY*\n\n*Trip ID:* ${id}\n*Date:* ${tripDateDisplay.value}\n\n` +
-      `📍 *Pickup:* ${pickupLocation.value}\n📍 *Drop:* ${dropLocation.value}\n\n` +
-      `👤 *Customer:* ${custName.value} (${custNumber.value})\n` +
-      `🚖 *Driver:* ${driverName.value} (${driverNumber.value})\n` +
-      `🚘 *Vehicle:* ${vehicleModel.value} (${vehicleNo.value})\n\n` +
-      `🕒 *Time:* ${startTime.value} - ${endTime.value} (${duration.value}) | Extra Hr: ${extraHours.value}\n` +
-      `📍 *KM:* ${startKM.value} - ${endKM.value} = ${totalKM.value} km | Extra KM: ${extraKM.value}\n\n` +
-      `💰 *Amount:* ₹${totalAmount.value} | *Status:* ${paymentStatus.value}\n` +
-      `📝 *Note:* ${note.value || "-"}`;
+    const msg = `📋 *TRIP SUMMARY*\n\n*Trip ID:* ${data.id}\n*Date:* ${data.date}\n` +
+      `📍 *Pickup:* ${data.pickup}\n📍 *Drop:* ${data.drop}\n\n` +
+      `👤 *Customer:* ${data.custName} (${data.custNumber})\n` +
+      `👨‍✈️ *Driver:* ${data.driverName} (${data.driverNumber})\n` +
+      `🚘 *Vehicle:* ${data.vehicleModel} (${data.vehicleNo})\n\n` +
+      `🕒 *Time:* ${data.start} - ${data.end} (${data.duration} hrs, Extra ${data.extraHours} hrs)\n` +
+      `📏 *KM:* ${data.startKM} - ${data.endKM} = ${data.totalKM} km (Extra ${data.extraKM} km)\n` +
+      `💰 *Amount:* ₹${data.totalAmount} | *Status:* ${data.paymentStatus}\n\n` +
+      `📝 *Note:* ${data.note || "-"}`;
+
     window.open("https://wa.me/?text=" + encodeURIComponent(msg), '_blank');
 
-    // Save to storage only once (first time share)
-    const arr = JSON.parse(localStorage.getItem(SHKEY) || "[]");
-    if (!arr.find(t => t.id === id)) {
-      arr.push({
-        id, date: tripDateDisplay.dataset.raw || "", pickup: pickupLocation.value, drop: dropLocation.value,
-        custName: custName.value, custNumber: custNumber.value,
-        driverName: driverName.value, driverNumber: driverNumber.value,
-        vehicleModel: vehicleModel.value, vehicleNo: vehicleNo.value,
-        start: startTime.value, end: endTime.value, duration: duration.value,
-        extraHours: extraHours.value, startKM: startKM.value, endKM: endKM.value,
-        totalKM: totalKM.value, extraKM: extraKM.value,
-        totalAmount: totalAmount.value, paymentStatus: paymentStatus.value, note: note.value
-      });
-      localStorage.setItem(SHKEY, JSON.stringify(arr));
-    }
+    let arr = JSON.parse(localStorage.getItem(SHKEY) || "[]");
+    arr.push(data);
+    localStorage.setItem(SHKEY, JSON.stringify(arr));
+    reserveId();
+    tripId.value = genId();
   }
 
   function showSharedTrips() {
@@ -190,24 +181,25 @@
       sharedTripsList.innerHTML = "<p>No trips saved.</p>";
       return;
     }
-    let html = `<h3>📋 Saved Trips</h3><table><tr>
-    <th>ID</th><th>Date</th><th>Pickup</th><th>Drop</th><th>Customer</th><th>Driver</th><th>Vehicle</th><th>Amount</th><th>Status</th></tr>`;
+
+    let html = `<h3>📋 Saved Trips</h3><div style="overflow-x:auto"><table><thead><tr>
+    <th>ID</th><th>Date</th><th>Pickup</th><th>Drop</th><th>Customer</th><th>Driver</th>
+    <th>Vehicle</th><th>Time</th><th>Duration</th><th>Extra Hr</th>
+    <th>Total KM</th><th>Extra KM</th><th>Amount</th><th>Status</th><th>Note</th></tr></thead><tbody>`;
+
     arr.forEach(t => {
       html += `<tr>
         <td>${t.id}</td><td>${t.date}</td><td>${t.pickup}</td><td>${t.drop}</td>
         <td>${t.custName}</td><td>${t.driverName}</td><td>${t.vehicleModel}</td>
-        <td>₹${t.totalAmount}</td><td>${t.paymentStatus}</td></tr>`;
+        <td>${t.start}–${t.end}</td><td>${t.duration}</td><td>${t.extraHours}</td>
+        <td>${t.totalKM}</td><td>${t.extraKM}</td><td>₹${t.totalAmount}</td>
+        <td class="${t.paymentStatus === 'Paid' ? 'paid' : 'not-paid'}">${t.paymentStatus}</td>
+        <td>${t.note || "-"}</td>
+      </tr>`;
     });
-    sharedTripsList.innerHTML = html + "</table>";
-  }
 
-  function updatePaymentColor(select) {
-    select.classList.remove("paid", "not-paid");
-    if (select.value === "Paid") {
-      select.classList.add("paid");
-    } else if (select.value === "Not Paid") {
-      select.classList.add("not-paid");
-    }
+    html += "</tbody></table></div>";
+    sharedTripsList.innerHTML = html;
   }
 
   tripDate.addEventListener("change", () => {
@@ -218,5 +210,6 @@
 
   window.onload = init;
 </script>
+
 </body>
 </html>
