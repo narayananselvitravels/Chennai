@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NST Trip Sheet</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <style>
+    body { font-family:'Poppins',sans-serif; margin:0 auto; padding:20px; max-width:1000px; background:#f4f6f9 }
+    h2 { color:#4b2aad }
+    label { font-weight:bold; margin-top:10px; display:block }
+    input, select, textarea, button {
+      width:100%; padding:10px; margin:5px 0 15px;
+      border:1px solid #ccc; border-radius:5px; font-size:16px;
+    }
+    button { background:#4b2aad; color:#fff; border:none; cursor:pointer }
+    button:hover { background:#3a208b }
+    table { width:100%; border-collapse:collapse; margin-top:20px }
+    table, th, td { border:1px solid #ddd }
+    th, td { padding:8px; text-align:left }
+    th.sortable:hover { background:#ddd; cursor:pointer }
+    th { background:#4b2aad; color:#fff }
+    .paid { background:#d4edda; }
+    .unpaid { background:#f8d7da; }
+    .tag { display:inline-block; padding:2px 6px; margin-left:4px; background:#eee; border-radius:4px; font-size:12px }
+    .qr-code { margin-top:10px }
+    .actions button { margin: 3px 0; width: 100% }
+    #summaryStats { background: #fff3cd; padding: 10px; margin-top: 10px; border-radius: 8px; }
+    .top-buttons button { margin: 5px; }
+  </style>
+</head>
+<body>
+<h2>📝 NST Trip Sheet</h2>
+
+<!-- Form fields (Trip ID, Date, Pickup/Drop, etc.) continue below -->
+<!-- Part 2: Trip Entry Form -->
+
+<label>Trip ID</label><input id="tripId" readonly>
+
+<label>Date</label>
+<div style="position:relative">
+  <input type="text" id="tripDateDisplay" placeholder="Select Date" readonly style="cursor:pointer">
+  <input type="date" id="tripDate" style="opacity:0;position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer">
+</div>
+
+<label>Pickup Location</label><input id="pickupLocation">
+<label>Drop Location</label><input id="dropLocation">
+
+<label>Customer Name</label><input id="custName">
+<label>Customer Number</label><input id="custNumber">
+
+<label>Driver Name</label><select id="driverName" onchange="syncDriver(true)"></select>
+<label>Driver Number</label><select id="driverNumber" onchange="syncDriver(false)"></select>
+
+<label>Vehicle Model</label><select id="vehicleModel" onchange="syncVehicle(true)"></select>
+<label>Vehicle Number</label><select id="vehicleNo" onchange="syncVehicle(false)"></select>
+
+<label>Start Time</label><input type="time" id="startTime" onchange="recalc()">
+<label>End Time</label><input type="time" id="endTime" onchange="recalc()">
+<label>Duration (hrs)</label><input id="duration" readonly>
+<label>Extra Hours</label><input type="number" id="extraHours">
+
+<label>Start KM</label><input type="number" id="startKM" onchange="recalc()">
+<label>End KM</label><input type="number" id="endKM" onchange="recalc()">
+<label>Total KM</label><input id="totalKM" readonly>
+<label>Extra KM</label><input type="number" id="extraKM">
+
+<label>Total Amount ₹</label><input type="number" id="totalAmount">
+<label>Payment Status</label>
+<select id="paymentStatus">
+  <option value="">-- Select --</option>
+  <option>Paid</option>
+  <option>Not Paid</option>
+</select>
+
+<label>Tags (Optional)</label><input id="tags" placeholder="Example: Airport, Wedding, VIP">
+<label>Note</label><textarea id="note" rows="3"></textarea>
+
+<div class="top-buttons">
+  <button onclick="shareWhatsApp()">📤 Share via WhatsApp</button>
+  <button onclick="saveTrip()">💾 Save Trip</button>
+  <button onclick="exportToExcel()">📁 Export All Trips (Excel)</button>
+  <button onclick="printAllTrips()">🖨️ Print / PDF</button>
+  <button onclick="window.location.href='admin.html'">🔐 Admin Panel</button>
+</div>
+
+<div id="summaryStats"></div>
+
+<input type="text" id="searchInput" placeholder="🔍 Search by customer, vehicle, or driver...">
+<div id="sharedTripsList"></div>
+<div id="qrcode" class="qr-code"></div>
+
+<!-- Part 3: Shared Trips Table with Edit/Delete -->
+
+<table id="tripsTable" style="display:none">
+  <thead>
+    <tr>
+      <th>Trip ID</th>
+      <th>Date</th>
+      <th>Customer</th>
+      <th>Driver</th>
+      <th>Vehicle</th>
+      <th>KM</th>
+      <th>Amount</th>
+      <th>Status</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody id="tripsBody"></tbody>
+</table>
+
+<script>
+  const STORAGE_KEY = "shared-trips";
+
+  function loadTrips(filter = "") {
+    let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    const tbody = document.getElementById("tripsBody");
+    const table = document.getElementById("tripsTable");
+    tbody.innerHTML = "";
+    let count = 0;
+
+    data.forEach((t, i) => {
+      const searchable = `${t.custName} ${t.driverName} ${t.vehicleModel}`.toLowerCase();
+      if (!filter || searchable.includes(filter.toLowerCase())) {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+          <td>${t.id}</td>
+          <td>${t.date}</td>
+          <td>${t.custName}</td>
+          <td>${t.driverName}</td>
+          <td>${t.vehicleModel}</td>
+          <td>${t.totalKM} km</td>
+          <td>₹${t.totalAmount}</td>
+          <td><span style="background:${t.paymentStatus === 'Paid' ? '#28a745' : '#dc3545'};color:white;padding:2px 6px;border-radius:4px">${t.paymentStatus}</span></td>
+          <td>
+            <button onclick="editTrip(${i})">✏️</button>
+            <button onclick="deleteTrip(${i})">🗑️</button>
+          </td>
+        `;
+
+        tbody.appendChild(row);
+        count++;
+      }
+    });
+
+    table.style.display = count ? "table" : "none";
+    summaryStats.innerHTML = `🔢 Showing ${count} trip(s).`;
+  }
+
+  function deleteTrip(i) {
+    if (!confirm("Delete this trip?")) return;
+    let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    data.splice(i, 1);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    loadTrips(document.getElementById("searchInput").value);
+  }
+
+  function editTrip(i) {
+    let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    const t = data[i];
+    tripId.value = t.id;
+    tripDate.value = t.date;
+    tripDateDisplay.value = t.date;
+    pickupLocation.value = t.pickup;
+    dropLocation.value = t.drop;
+    custName.value = t.custName;
+    custNumber.value = t.custNumber;
+    driverName.value = t.driverName;
+    driverNumber.value = t.driverNumber;
+    vehicleModel.value = t.vehicleModel;
+    vehicleNo.value = t.vehicleNo;
+    startTime.value = t.start;
+    endTime.value = t.end;
+    duration.value = t.duration;
+    extraHours.value = t.extraHours;
+    startKM.value = t.startKM;
+    endKM.value = t.endKM;
+    totalKM.value = t.totalKM;
+    extraKM.value = t.extraKM;
+    totalAmount.value = t.totalAmount;
+    paymentStatus.value = t.paymentStatus;
+    note.value = t.note;
+    tags.value = t.tags || "";
+
+    data.splice(i, 1); // remove old
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    loadTrips();
+    alert("📝 Trip loaded for editing. Click Save to update.");
+  }
+
+  document.getElementById("searchInput").addEventListener("input", e => loadTrips(e.target.value));
+</script>
+
+<!-- Part 4: Utilities & Final Scripts -->
+
+<!-- QR Code support (optional external script) -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+<script>
+  function exportToExcel() {
+    let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    if (!data.length) return alert("No trips to export.");
+    let ws = XLSX.utils.json_to_sheet(data);
+    let wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "NST Trips");
+    XLSX.writeFile(wb, "NST_Trips.xlsx");
+  }
+
+  function printAllTrips() {
+    let content = document.getElementById("tripsTable").outerHTML;
+    let win = window.open("", "", "width=900,height=700");
+    win.document.write(`
+      <html><head><title>Print Trips</title>
+      <style>
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px; border: 1px solid #999; text-align: left; }
+        th { background: #4b2aad; color: white; }
+      </style>
+      </head><body>${content}</body></html>`);
+    win.document.close();
+    win.print();
+  }
+
+  tripDate.addEventListener("change", () => {
+    const raw = tripDate.value;
+    const d = new Date(raw);
+    tripDateDisplay.value = d.toLocaleDateString("en-GB", { day: '2-digit', month: 'long', year: 'numeric' });
+    tripDateDisplay.dataset.raw = raw;
+  });
+
+  function loadDriverVehicleMasters() {
+    const dList = JSON.parse(localStorage.getItem("driver-master") || "[]");
+    driverName.innerHTML = '<option value="">-- Select --</option>';
+    driverNumber.innerHTML = '<option value="">-- Select --</option>';
+    dList.forEach(d => {
+      drivers[d.name] = d.mobile;
+      driverName.innerHTML += `<option>${d.name}</option>`;
+      driverNumber.innerHTML += `<option>${d.mobile}</option>`;
+    });
+
+    const vList = JSON.parse(localStorage.getItem("vehicle-master") || "[]");
+    vehicleModel.innerHTML = '<option value="">-- Select --</option>';
+    vehicleNo.innerHTML = '<option value="">-- Select --</option>';
+    vList.forEach(v => {
+      vehicles[v.model] = v.number;
+      vehicleModel.innerHTML += `<option>${v.model}</option>`;
+      vehicleNo.innerHTML += `<option>${v.number}</option>`;
+    });
+  }
+
+  function initApp() {
+    tripId.value = genId();
+    loadDriverVehicleMasters();
+    loadTrips();
+  }
+
+  window.onload = initApp;
+</script>
