@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Driver & Vehicle Master – NST</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Poppins', sans-serif; background: #f4f6f9; padding: 20px; max-width: 800px; margin: auto; }
+    h2 { color: #4b2aad; }
+    label { font-weight: 600; display: block; margin-top: 10px; }
+    input, button, select {
+      width: 100%; padding: 10px; margin: 5px 0 15px;
+      border: 1px solid #ccc; border-radius: 5px; font-size: 16px;
+    }
+    button { background: #4b2aad; color: white; cursor: pointer; border: none; }
+    button:hover { background: #3a208b; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td {
+      border: 1px solid #ccc; padding: 8px; text-align: left;
+    }
+    th { background: #4b2aad; color: white; }
+    .actions button {
+      width: auto; padding: 5px 10px; margin: 0 5px; font-size: 14px;
+    }
+    .danger { background: #dc3545; }
+    .danger:hover { background: #b02a37; }
+    .search-box { margin-top: 10px; }
+    .counter { font-size: 14px; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+<h2>🛠️ Driver & Vehicle Master</h2>
+
+<!-- Add Driver -->
+<h3>👤 Add Driver</h3>
+<label>Driver Name</label>
+<input id="driverName" placeholder="e.g. Ramesh Kumar">
+<label>Driver Mobile</label>
+<input id="driverMobile" placeholder="e.g. 9876543210">
+<button onclick="addDriver()">➕ Add Driver</button>
+
+<!-- Add Vehicle -->
+<h3>🚘 Add Vehicle</h3>
+<label>Vehicle Model</label>
+<input id="vehicleModel" placeholder="e.g. Innova Crysta">
+<label>Vehicle Number</label>
+<input id="vehicleNumber" placeholder="e.g. PY05N0505">
+<button onclick="addVehicle()">➕ Add Vehicle</button>
+
+<hr>
+
+<!-- Search Filter -->
+<div class="search-box">
+  <label>🔎 Filter</label>
+  <input id="searchBox" placeholder="Search Driver or Vehicle..." onkeyup="filterData()">
+</div>
+
+<!-- Display Data -->
+<div class="counter">
+  👤 Drivers: <span id="driverCount">0</span> | 🚘 Vehicles: <span id="vehicleCount">0</span>
+</div>
+
+<div id="masterDataList"></div>
+
+<script>
+let driverKey = "driver-master", vehicleKey = "vehicle-master";
+
+function loadData() {
+  updateTable();
+  updateCounters();
+}
+
+function addDriver() {
+  const name = driverName.value.trim();
+  const mobile = driverMobile.value.trim();
+  if (!name || !mobile) return alert("Please enter both driver name and number.");
+
+  let data = JSON.parse(localStorage.getItem(driverKey) || "[]");
+  if (data.find(d => d.name === name || d.mobile === mobile)) return alert("Duplicate driver.");
+  data.push({ name, mobile });
+  localStorage.setItem(driverKey, JSON.stringify(data));
+  driverName.value = driverMobile.value = "";
+  updateTable(); updateCounters();
+}
+
+function addVehicle() {
+  const model = vehicleModel.value.trim();
+  const number = vehicleNumber.value.trim();
+  if (!model || !number) return alert("Please enter both vehicle model and number.");
+
+  let data = JSON.parse(localStorage.getItem(vehicleKey) || "[]");
+  if (data.find(v => v.model === model || v.number === number)) return alert("Duplicate vehicle.");
+  data.push({ model, number });
+  localStorage.setItem(vehicleKey, JSON.stringify(data));
+  vehicleModel.value = vehicleNumber.value = "";
+  updateTable(); updateCounters();
+}
+
+function updateTable() {
+  const dList = JSON.parse(localStorage.getItem(driverKey) || "[]");
+  const vList = JSON.parse(localStorage.getItem(vehicleKey) || "[]");
+
+  let html = "<h3>👤 Driver List</h3>";
+  if (dList.length) {
+    html += "<table><tr><th>Name</th><th>Mobile</th><th>Actions</th></tr>";
+    dList.forEach((d, i) => {
+      html += `<tr><td>${d.name}</td><td>${d.mobile}</td>
+        <td class="actions">
+          <button onclick="deleteDriver(${i})" class="danger">Delete</button>
+        </td></tr>`;
+    });
+    html += "</table>";
+  } else html += "<p>No drivers added.</p>";
+
+  html += "<h3>🚘 Vehicle List</h3>";
+  if (vList.length) {
+    html += "<table><tr><th>Model</th><th>Number</th><th>Actions</th></tr>";
+    vList.forEach((v, i) => {
+      html += `<tr><td>${v.model}</td><td>${v.number}</td>
+        <td class="actions">
+          <button onclick="deleteVehicle(${i})" class="danger">Delete</button>
+        </td></tr>`;
+    });
+    html += "</table>";
+  } else html += "<p>No vehicles added.</p>"; 
+
+  masterDataList.innerHTML = html;
+}
+
+function deleteDriver(index) {
+  if (!confirm("Delete this driver?")) return;
+  let dList = JSON.parse(localStorage.getItem(driverKey) || "[]");
+  dList.splice(index, 1);
+  localStorage.setItem(driverKey, JSON.stringify(dList));
+  updateTable(); updateCounters();
+}
+
+function deleteVehicle(index) {
+  if (!confirm("Delete this vehicle?")) return;
+  let vList = JSON.parse(localStorage.getItem(vehicleKey) || "[]");
+  vList.splice(index, 1);
+  localStorage.setItem(vehicleKey, JSON.stringify(vList));
+  updateTable(); updateCounters();
+}
+
+function updateCounters() {
+  let d = JSON.parse(localStorage.getItem(driverKey) || "[]");
+  let v = JSON.parse(localStorage.getItem(vehicleKey) || "[]");
+  driverCount.innerText = d.length;
+  vehicleCount.innerText = v.length;
+}
+
+function filterData() {
+  const val = searchBox.value.toLowerCase();
+  const rows = masterDataList.querySelectorAll("table tr:not(:first-child)");
+  rows.forEach(row => {
+    row.style.display = row.innerText.toLowerCase().includes(val) ? "" : "none";
+  });
+}
+
+window.onload = loadData;
+</script>
+
+</body>
+</html>
