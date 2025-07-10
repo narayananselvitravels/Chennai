@@ -16,12 +16,14 @@
       color: #333;
     }
     .invoice-container {
-      max-width: 800px;
+      width: 794px;  /* A4 width at 96dpi */
+      min-height: 1123px; /* A4 height */
       margin: auto;
       background: white;
       padding: 30px;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-sizing: border-box;
     }
     .invoice-header {
       display: flex;
@@ -284,16 +286,15 @@ function downloadPDF() {
   const opt = {
     margin: 0,
     filename: getFileName() + ".pdf",
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    html2canvas: { scale: 2, scrollY: 0 },
+    jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' }
   };
-  html2pdf().from(element).set(opt).save();
+  html2pdf().set(opt).from(element).save();
 }
 
 function downloadImage() {
   const element = document.getElementById("invoice");
-  html2canvas(element).then(canvas => {
+  html2canvas(element, { scale: 2, scrollY: 0 }).then(canvas => {
     const link = document.createElement("a");
     link.download = getFileName() + ".png";
     link.href = canvas.toDataURL("image/png");
@@ -301,23 +302,21 @@ function downloadImage() {
   });
 }
 
-window.onload = () => {
+window.onload = function () {
+  // Load available Trip IDs
+  const select = document.getElementById("tripSelect");
   const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
-  const dropdown = document.getElementById("tripSelect");
   trips.forEach(t => {
-    const opt = document.createElement("option");
-    opt.value = t.id;
-    opt.innerText = t.id;
-    dropdown.appendChild(opt);
+    const option = document.createElement("option");
+    option.value = t.id;
+    option.textContent = t.id;
+    select.appendChild(option);
   });
   recalculateAmounts();
-};
 
-document.addEventListener("input", (e) => {
-  if (e.target.closest("#chargeDetails") || e.target.id === "discount") {
-    recalculateAmounts();
-  }
-});
+  // Auto recalculate on blur (after editing)
+  document.getElementById("chargeDetails").addEventListener("blur", recalculateAmounts, true);
+};
 </script>
 
 </body>
