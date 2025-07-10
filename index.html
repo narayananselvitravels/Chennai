@@ -6,76 +6,62 @@
   <title>NST Trip Sheet</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Poppins', sans-serif; background: #f4f6f9; padding: 20px; max-width: 900px; margin: auto; }
-    h2 { color: #4b2aad }
-    label { font-weight: 600; margin-top: 10px; display: block }
+    body { font-family:'Poppins',sans-serif; margin:0 auto; padding:20px; max-width:800px; background:#f4f6f9 }
+    h2 { color:#4b2aad }
+    label { font-weight:bold; margin-top:10px; display:block }
     input, select, textarea, button {
-      width: 100%; padding: 10px; margin: 5px 0 15px;
-      border: 1px solid #ccc; border-radius: 5px; font-size: 15px;
+      width:100%; padding:10px; margin:5px 0 15px;
+      border:1px solid #ccc; border-radius:5px; font-size:16px;
     }
-    button { background: #4b2aad; color: #fff; border: none; cursor: pointer }
-    button:hover { background: #3a208b }
-    .status-paid { background: #d4edda; color: #155724; font-weight: bold; }
-    .status-unpaid { background: #f8d7da; color: #721c24; font-weight: bold; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
-    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
-    th { background-color: #4b2aad; color: white; }
+    button { background:#4b2aad; color:#fff; border:none; cursor:pointer }
+    button:hover { background:#3a208b }
+    table { width:100%; border-collapse:collapse; margin-top:20px }
+    table, th, td { border:1px solid #ddd }
+    th, td { padding:8px; text-align:left }
+    th { background:#4b2aad; color:#fff }
   </style>
 </head>
 <body>
 
 <h2>📝 NST Trip Sheet</h2>
 
-<!-- Trip ID and Date -->
-<label>Trip ID</label>
-<input id="tripId" readonly />
+<label>Trip ID</label><input id="tripId" readonly>
 
 <label>Date</label>
 <div style="position:relative">
-  <input type="text" id="tripDateDisplay" placeholder="Select Date" readonly style="cursor:pointer" />
-  <input type="date" id="tripDate" style="opacity:0;position:absolute;top:0;left:0;width:100%;height:100%;" />
+  <input type="text" id="tripDateDisplay" placeholder="Select Date" readonly style="cursor:pointer">
+  <input type="date" id="tripDate" style="opacity:0;position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer">
 </div>
 
-<!-- Duty Column -->
-<label>Duty</label>
-<select id="dutySelect">
-  <option value="">-- Select Duty --</option>
-</select>
+<label>Duty</label><select id="dutyType"></select>
 
-<!-- Locations -->
-<label>Pickup Location</label><input id="pickupLocation" />
-<label>Drop Location</label><input id="dropLocation" />
+<label>Pickup Location</label><input id="pickupLocation">
+<label>Drop Location</label><input id="dropLocation">
 
-<!-- Customer -->
-<label>Customer Name</label><input id="custName" />
-<label>Customer Number</label><input id="custNumber" />
+<label>Customer Name</label><input id="custName">
+<label>Customer Number</label><input id="custNumber">
 
-<!-- Driver -->
 <label>Driver Name</label><select id="driverName" onchange="syncDriver(true)"></select>
 <label>Driver Number</label><select id="driverNumber" onchange="syncDriver(false)"></select>
 
-<!-- Vehicle -->
 <label>Vehicle Model</label><select id="vehicleModel" onchange="syncVehicle(true)"></select>
 <label>Vehicle Number</label><select id="vehicleNo" onchange="syncVehicle(false)"></select>
 
-<!-- Time -->
-<label>Start Time</label><input type="time" id="startTime" onchange="recalc()" />
-<label>End Time</label><input type="time" id="endTime" onchange="recalc()" />
-<label>Duration (hrs)</label><input id="duration" readonly />
-<label>Extra Hours</label><input type="number" id="extraHours" />
+<label>Start Time</label><input type="time" id="startTime" onchange="recalc()">
+<label>End Time</label><input type="time" id="endTime" onchange="recalc()">
+<label>Duration (hrs)</label><input id="duration">
+<label>Extra Hours</label><input type="number" id="extraHours">
 
-<!-- KM -->
-<label>Start KM</label><input type="number" id="startKM" onchange="recalc()" />
-<label>End KM</label><input type="number" id="endKM" onchange="recalc()" />
-<label>Total KM</label><input id="totalKM" readonly />
-<label>Extra KM</label><input type="number" id="extraKM" />
+<label>Start KM</label><input type="number" id="startKM" onchange="recalc()">
+<label>End KM</label><input type="number" id="endKM" onchange="recalc()">
+<label>Total KM</label><input id="totalKM">
+<label>Extra KM</label><input type="number" id="extraKM">
 
-<!-- Fare -->
-<label>Parking ₹</label><input type="number" id="parking" />
-<label>Toll ₹</label><input type="number" id="toll" />
-<label>Total Amount ₹</label><input type="number" id="totalAmount" />
+<label>Parking ₹</label><input type="number" id="parking">
+<label>Toll ₹</label><input type="number" id="toll">
 
-<!-- Payment -->
+<label>Total Amount ₹</label><input type="number" id="totalAmount">
+
 <label>Payment Status</label>
 <select id="paymentStatus">
   <option value="">-- Select --</option>
@@ -83,10 +69,8 @@
   <option>Not Paid</option>
 </select>
 
-<!-- Notes -->
 <label>Note</label><textarea id="note" rows="3"></textarea>
 
-<!-- Buttons -->
 <button onclick="shareWhatsApp()">📤 Share via WhatsApp</button>
 <button onclick="showSharedTrips()">📋 View Saved Trips</button>
 <button onclick="window.location.href='admin.html'">🔐 Admin Panel</button>
@@ -94,17 +78,25 @@
 <div id="sharedTripsList"></div>
 
 <script>
-  let drivers = {}, vehicles = {}, SHKEY = "shared-trips";
+  let drivers = {}, vehicles = {}, duties = {};
+  const SHKEY = "shared-trips";
 
   function init() {
     // Trip ID
     tripId.value = genId();
 
-    // Driver Master
-    const dList = JSON.parse(localStorage.getItem("driver-master") || "[]");
-    driverName.innerHTML = '<option value="">-- Select --</option>';
-    driverNumber.innerHTML = '<option value="">-- Select --</option>';
+    // Duty Master
+    const dList = JSON.parse(localStorage.getItem("duty-master") || "[]");
+    dutyType.innerHTML = '<option value="">-- Select --</option>';
     dList.forEach(d => {
+      duties[d.name] = d.type;
+      dutyType.innerHTML += `<option value="${d.name}">${d.name}</option>`;
+    });
+
+    // Driver Master
+    const driverList = JSON.parse(localStorage.getItem("driver-master") || "[]");
+    driverName.innerHTML = driverNumber.innerHTML = '<option value="">-- Select --</option>';
+    driverList.forEach(d => {
       drivers[d.name] = d.mobile;
       driverName.innerHTML += `<option>${d.name}</option>`;
       driverNumber.innerHTML += `<option>${d.mobile}</option>`;
@@ -112,23 +104,11 @@
 
     // Vehicle Master
     const vList = JSON.parse(localStorage.getItem("vehicle-master") || "[]");
-    vehicleModel.innerHTML = '<option value="">-- Select --</option>';
-    vehicleNo.innerHTML = '<option value="">-- Select --</option>';
+    vehicleModel.innerHTML = vehicleNo.innerHTML = '<option value="">-- Select --</option>';
     vList.forEach(v => {
       vehicles[v.model] = v.number;
       vehicleModel.innerHTML += `<option>${v.model}</option>`;
       vehicleNo.innerHTML += `<option>${v.number}</option>`;
-    });
-
-    // Duty Master
-    const dutyList = JSON.parse(localStorage.getItem("duty-master") || "[]");
-    dutySelect.innerHTML = '<option value="">-- Select Duty --</option>';
-    dutyList.forEach(d => {
-      if (typeof d === "string") {
-        dutySelect.innerHTML += `<option>${d}</option>`;
-      } else if (typeof d === "object" && d.name) {
-        dutySelect.innerHTML += `<option>${d.name}</option>`;
-      }
     });
   }
 
@@ -139,7 +119,6 @@
 
   function reserveId() {
     let n = parseInt(localStorage.getItem("trip-seq") || "1");
-    localStorage.setItem("#NST" + String(n).padStart(3, "0"), "used");
     localStorage.setItem("trip-seq", n + 1);
   }
 
@@ -154,120 +133,100 @@
   }
 
   function recalc() {
+    // Duration
     if (startTime.value && endTime.value) {
       let s = new Date(`1970-01-01T${startTime.value}`);
       let e = new Date(`1970-01-01T${endTime.value}`);
-      let diff = (e - s) / (1000 * 60 * 60); // in hours
+      let diff = (e - s) / 3600000;
       if (diff < 0) diff += 24;
       duration.value = diff.toFixed(2);
     }
+
+    // Total KM
     if (startKM.value && endKM.value) {
-      totalKM.value = endKM.value - startKM.value;
+      const total = parseFloat(endKM.value) - parseFloat(startKM.value);
+      totalKM.value = total >= 0 ? total.toFixed(2) : "";
     }
   }
 
-function shareWhatsApp() {
-  const fields = {
-    "📋 *NST TRIP SUMMARY*": "",
+  function shareWhatsApp() {
+    let msg = `📋 *NST TRIP SUMMARY*%0A`;
 
-    "🗓️ *TRIP DETAILS*": {
-      "• *Trip ID:*": tripId.value,
-      "• *Date:*": tripDateDisplay.value
-    },
+    const fields = [
+      ['🗓️ *TRIP DETAILS*', [
+        ['Trip ID', tripId.value],
+        ['Date', tripDateDisplay.value]
+      ]],
+      ['📍 *LOCATIONS*', [
+        ['Pickup', pickupLocation.value],
+        ['Drop', dropLocation.value]
+      ]],
+      ['👤 *CUSTOMER INFO*', [
+        ['Name', custName.value],
+        ['Number', custNumber.value]
+      ]],
+      ['👨‍✈️ *DRIVER INFO*', [
+        ['Name', driverName.value],
+        ['Number', driverNumber.value]
+      ]],
+      ['🚘 *VEHICLE INFO*', [
+        ['Model', vehicleModel.value],
+        ['Number', vehicleNo.value]
+      ]],
+      ['🕒 *TIME DETAILS*', [
+        ['Start Time', startTime.value],
+        ['End Time', endTime.value],
+        ['Duration', duration.value + ' hrs'],
+        ['Extra Hours', extraHours.value]
+      ]],
+      ['📏 *DISTANCE DETAILS*', [
+        ['Start KM', startKM.value],
+        ['End KM', endKM.value],
+        ['Total KM', totalKM.value + ' km'],
+        ['Extra KM', extraKM.value]
+      ]],
+      ['💰 *FARE DETAILS*', [
+        ['Parking', '₹' + (parking.value || 0)],
+        ['Toll', '₹' + (toll.value || 0)],
+        ['Total Amount', '₹' + totalAmount.value],
+        ['Payment Status', paymentStatus.value]
+      ]],
+      ['📝 *NOTE*', [
+        [null, note.value || '-']
+      ]]
+    ];
 
-    "📍 *LOCATIONS*": {
-      "• *Pickup:*": pickupLocation.value,
-      "• *Drop:*": dropLocation.value
-    },
+    fields.forEach(([title, pairs]) => {
+      msg += `%0A${title}%0A`;
+      pairs.forEach(([label, val]) => {
+        if (val && val !== "0" && val !== "-") {
+          msg += label ? `• *${label}:* ${val}%0A` : `${val}%0A`;
+        }
+      });
+    });
 
-    "👤 *CUSTOMER INFO*": {
-      "• *Name:*": custName.value,
-      "• *Number:*": custNumber.value
-    },
-
-    "👨‍✈️ *DRIVER INFO*": {
-      "• *Name:*": driverName.value,
-      "• *Number:*": driverNumber.value
-    },
-
-    "🚘 *VEHICLE INFO*": {
-      "• *Model:*": vehicleModel.value,
-      "• *Number:*": vehicleNo.value
-    },
-
-    "🕒 *TIME DETAILS*": {
-      "• *Start Time:*": startTime.value,
-      "• *End Time:*": endTime.value,
-      "• *Duration:*": duration.value ? `${duration.value} hrs` : "",
-      "• *Extra Hours:*": extraHours.value
-    },
-
-    "📏 *DISTANCE DETAILS*": {
-      "• *Start KM:*": startKM.value,
-      "• *End KM:*": endKM.value,
-      "• *Total KM:*": totalKM.value ? `${totalKM.value} km` : "",
-      "• *Extra KM:*": extraKM.value ? `${extraKM.value} km` : ""
-    },
-
-    "💰 *FARE DETAILS*": {
-      "• *Parking:*": parking?.value ? `₹${parking.value}` : "",
-      "• *Toll:*": toll?.value ? `₹${toll.value}` : "",
-      "• *Total Amount:*": totalAmount?.value ? `₹${totalAmount.value}` : "",
-      "• *Payment Status:*": paymentStatus.value
-    },
-
-    "📝 *NOTE*": note.value
-  };
-
-  let msg = "";
-
-  for (const [section, data] of Object.entries(fields)) {
-    if (typeof data === "string") {
-      if (data.trim()) msg += `${section}\n${data.trim()}\n\n`;
-      else if (section.includes("*NOTE*")) msg += `${section}\n-\n\n`;
-      else msg += `${section}\n\n`;
-    } else {
-      let lines = Object.entries(data)
-        .filter(([_, val]) => val && val.trim())
-        .map(([label, val]) => `${label} ${val.trim()}`);
-      if (lines.length) {
-        msg += `${section}\n${lines.join("\n")}\n\n`;
-      }
-    }
+    reserveId(); tripId.value = genId();
+    window.open("https://wa.me/?text=" + msg, '_blank');
   }
-
-  window.open("https://wa.me/?text=" + encodeURIComponent(msg.trim()), "_blank");
-  reserveId();
-  tripId.value = genId();
-}
 
   function showSharedTrips() {
     const arr = JSON.parse(localStorage.getItem(SHKEY) || "[]");
-    if (!arr.length) return sharedTripsList.innerHTML = "<p>No trips saved.</p>";
-
+    if (!arr.length) {
+      sharedTripsList.innerHTML = "<p>No trips saved.</p>";
+      return;
+    }
     let html = `<h3>📋 Saved Trips</h3><table><tr>
-    <th>ID</th><th>Date</th><th>Pickup</th><th>Drop</th>
-    <th>Customer</th><th>Driver</th><th>Vehicle</th>
-    <th>KM</th><th>Amount</th><th>Status</th></tr>`;
-
+    <th>ID</th><th>Date</th><th>Pickup</th><th>Drop</th><th>Customer</th><th>Driver</th><th>Vehicle</th><th>Amount</th><th>Status</th></tr>`;
     arr.forEach(t => {
-      const statusClass = t.paymentStatus === "Paid" ? "status-paid" : "status-unpaid";
-      html += `<tr>
-        <td>${t.id}</td><td>${t.date}</td><td>${t.pickup}</td><td>${t.drop}</td>
-        <td>${t.custName}</td><td>${t.driverName}</td><td>${t.vehicleModel}</td>
-        <td>${t.totalKM}</td><td>₹${t.totalAmount}</td>
-        <td class="${statusClass}">${t.paymentStatus}</td>
-      </tr>`;
+      html += `<tr><td>${t.id}</td><td>${t.date}</td><td>${t.pickup}</td><td>${t.drop}</td><td>${t.custName}</td><td>${t.driverName}</td><td>${t.vehicleModel}</td><td>₹${t.totalAmount}</td><td>${t.paymentStatus}</td></tr>`;
     });
-
     sharedTripsList.innerHTML = html + "</table>";
   }
 
-  // Date Formatting
   tripDate.addEventListener("change", () => {
     const raw = tripDate.value;
     const d = new Date(raw);
-    tripDateDisplay.value = d.toLocaleDateString("en-GB", { day: '2-digit', month: 'long', year: 'numeric' });
+    tripDateDisplay.value = d.toLocaleDateString("en-GB", { day:'2-digit', month:'long', year:'numeric' });
     tripDateDisplay.dataset.raw = raw;
   });
 
