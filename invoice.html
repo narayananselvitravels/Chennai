@@ -1,15 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Invoice – NST Travels</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      margin: 0;
-      padding: 40px;
+      margin: 0; padding: 40px;
       background: #f9f9fc;
       color: #333;
     }
@@ -34,7 +34,9 @@
       font-size: 28px;
       margin: 0;
     }
-    .invoice-details { margin-bottom: 20px; }
+    .invoice-details {
+      margin-bottom: 20px;
+    }
     .row { display: flex; justify-content: space-between; margin-bottom: 10px; }
     .label { font-weight: 600; width: 150px; }
     .table {
@@ -58,16 +60,18 @@
     }
     .totals .row {
       justify-content: space-between;
-      margin-bottom: 8px;
     }
     .note {
       margin-top: 30px;
       font-size: 14px;
       color: #555;
     }
-    .btn {
-      margin-top: 15px;
-      margin-right: 10px;
+    .buttons {
+      margin-top: 30px;
+      text-align: center;
+    }
+    .buttons button {
+      margin: 5px;
       padding: 10px 20px;
       background: #4b2aad;
       color: white;
@@ -76,242 +80,16 @@
       font-size: 16px;
       cursor: pointer;
     }
-    .btn:hover {
+    .buttons button:hover {
       background: #3a208b;
-    }
-    [contenteditable="true"]:focus {
-      outline: 2px dashed #4b2aad;
-      background: #f4f2ff;
-    }
-    .topbar {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .topbar select {
-      padding: 8px 12px;
-      font-size: 16px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      width: 220px;
-      margin-right: 10px;
-    }
-    @media print {
-      .topbar,
-      .btn {
-        display: none !important;
-      }
     }
   </style>
 </head>
-<body>
-
-<div class="topbar">
-  <select id="tripSelect">
-    <option value="">Select Trip ID</option>
-  </select>
-  <button class="btn" onclick="loadTrip()">🔍 Load Trip</button>
-</div>
-
-<div class="invoice-container" id="invoice">
+<body><div class="invoice-container" id="invoice">
   <div class="invoice-header">
     <h1>🚖 NST Travels</h1>
     <div>
-      <p><strong>Invoice No:</strong> <span id="invId" contenteditable="true">xxxxxxxxx</span></p>
-      <p><strong>Date:</strong> <span id="invDate" contenteditable="true">--</span></p>
+      <p><strong>Invoice No:</strong> <span id="invId">#NST001</span></p>
+      <p><strong>Date:</strong> <span id="invDate">10-July-2025</span></p>
     </div>
-  </div>
-
-  <div class="invoice-details">
-    <div class="row">
-      <div>
-        <h3>👤 Customer</h3>
-        <p><strong>Name:</strong> <span id="custName" contenteditable="true">xxxxxxxxx</span></p>
-        <p><strong>Phone:</strong> <span id="custNumber" contenteditable="true">xxxxxxxxx</span></p>
-      </div>
-      <div>
-        <h3>👨‍✈️ Driver</h3>
-        <p><strong>Name:</strong> <span id="driverName" contenteditable="true">xxxxxxxxx</span></p>
-        <p><strong>Phone:</strong> <span id="driverNumber" contenteditable="true">xxxxxxxxx</span></p>
-      </div>
-    </div>
-
-    <div class="row">
-      <div>
-        <h3>🚘 Trip Info</h3>
-        <p><strong>Model:</strong> <span id="vehicleModel" contenteditable="true">xxxxxxxxx</span></p>
-        <p><strong>Vehicle No:</strong> <span id="vehicleNo" contenteditable="true">xxxxxxxxx</span></p>
-      </div>
-      <div>
-        <p><strong>Pickup:</strong> <span id="pickup" contenteditable="true">xxxxxxxxx</span></p>
-        <p><strong>Drop:</strong> <span id="drop" contenteditable="true">xxxxxxxxx</span></p>
-      </div>
-    </div>
-  </div>
-
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Item</th><th>Details</th><th>Amount (₹)</th>
-      </tr>
-    </thead>
-    <tbody id="chargeDetails">
-      <tr>
-        <td contenteditable="true">Package</td>
-        <td contenteditable="true">Innova Crysta – 8 hrs / 80 KM</td>
-        <td contenteditable="true">7500</td>
-      </tr>
-      <tr>
-        <td contenteditable="true">Extra Hours</td>
-        <td contenteditable="true">2 hrs × ₹1000</td>
-        <td contenteditable="true">--</td>
-      </tr>
-      <tr>
-        <td contenteditable="true">Extra KM</td>
-        <td contenteditable="true">10 km × ₹20</td>
-        <td contenteditable="true">--</td>
-      </tr>
-      <tr>
-        <td contenteditable="true">Toll</td>
-        <td contenteditable="true">–</td>
-        <td contenteditable="true">150</td>
-      </tr>
-      <tr>
-        <td contenteditable="true">Parking</td>
-        <td contenteditable="true">–</td>
-        <td contenteditable="true">100</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <div class="totals">
-    <div class="row"><div class="label">Subtotal:</div><div id="subtotal">₹0</div></div>
-    <div class="row"><div class="label">Discount:</div><div id="discount" contenteditable="true">₹0</div></div>
-    <hr>
-    <div class="row"><div class="label"><strong>Total:</strong></div><div id="total"><strong>₹0</strong></div></div>
-  </div>
-
-  <div class="note">
-    <p>📝 Note: <span id="note" contenteditable="true">Thank you for choosing NST Travels. For queries, call +91-9876543210.</span></p>
-  </div>
-
-  <button class="btn" onclick="window.print()">🖨️ Print Invoice</button>
-  <button class="btn" onclick="shareImage()">📷 Share Image via WhatsApp</button>
-  <button class="btn" onclick="sharePDF()">📄 Share PDF via WhatsApp</button>
-</div>
-
-<!-- Scripts -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-<script>
-function parseDetail(text) {
-  const match = text.match(/(\d+)\s*(hrs|km)?\s*[x×]\s*₹?(\d+)/i);
-  if (match) {
-    const qty = parseInt(match[1]);
-    const rate = parseInt(match[3]);
-    return qty * rate;
-  }
-  const direct = text.match(/₹?\s?(\d+)/);
-  return direct ? parseInt(direct[1]) : 0;
-}
-
-function recalculateAmounts() {
-  let subtotal = 0;
-  const rows = document.querySelectorAll("#chargeDetails tr");
-  rows.forEach(row => {
-    const detail = row.children[1].innerText.trim();
-    const value = parseDetail(detail);
-    row.children[2].innerText = value;
-    subtotal += value;
-  });
-  document.getElementById("subtotal").innerText = `₹${subtotal}`;
-  const discount = parseInt(document.getElementById("discount").innerText.replace(/[^\d]/g, "")) || 0;
-  const total = subtotal - discount;
-  document.getElementById("total").innerHTML = `<strong>₹${total}</strong>`;
-}
-
-document.addEventListener("input", e => {
-  if (e.target.closest("#chargeDetails") || e.target.id === "discount") {
-    recalculateAmounts();
-  }
-});
-
-function loadTrip() {
-  const id = document.getElementById("tripSelect").value;
-  if (!id) return alert("Select a Trip ID");
-  const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
-  const t = trips.find(x => x.id === id);
-  if (!t) return alert("Trip not found");
-
-  document.getElementById("invId").innerText = t.id || "--";
-  document.getElementById("invDate").innerText = t.date || "--";
-  document.getElementById("custName").innerText = t.custName || "";
-  document.getElementById("custNumber").innerText = t.custNumber || "";
-  document.getElementById("driverName").innerText = t.driverName || "";
-  document.getElementById("driverNumber").innerText = t.driverNumber || "";
-  document.getElementById("vehicleModel").innerText = t.vehicleModel || "";
-  document.getElementById("vehicleNo").innerText = t.vehicleNo || "";
-  document.getElementById("pickup").innerText = t.pickup || "";
-  document.getElementById("drop").innerText = t.drop || "";
-  document.getElementById("note").innerText = t.note || "";
-
-  const pkg = { "Innova Crysta": 7500, "Innova Hycross": 8500, "Force Urbania": 9500 }[t.vehicleModel] || 0;
-  const hr = { "Innova Crysta": 1000, "Innova Hycross": 1200, "Force Urbania": 1500 }[t.vehicleModel] || 0;
-  const km = { "Innova Crysta": 20, "Innova Hycross": 24, "Force Urbania": 26 }[t.vehicleModel] || 0;
-
-  const hrs = parseInt(t.extraHours || 0);
-  const kms = parseInt(t.extraKM || 0);
-
-  document.getElementById("chargeDetails").innerHTML = `
-    <tr><td contenteditable="true">Package</td><td contenteditable="true">${t.vehicleModel} – Base Package</td><td contenteditable="true">${pkg}</td></tr>
-    <tr><td contenteditable="true">Extra Hours</td><td contenteditable="true">${hrs} hrs × ₹${hr}</td><td contenteditable="true">--</td></tr>
-    <tr><td contenteditable="true">Extra KM</td><td contenteditable="true">${kms} km × ₹${km}</td><td contenteditable="true">--</td></tr>
-    <tr><td contenteditable="true">Toll</td><td contenteditable="true">–</td><td contenteditable="true">${t.toll || 0}</td></tr>
-    <tr><td contenteditable="true">Parking</td><td contenteditable="true">–</td><td contenteditable="true">${t.parking || 0}</td></tr>
-  `;
-  document.getElementById("discount").innerText = `₹${t.discount || 0}`;
-  recalculateAmounts();
-}
-
-function sharePDF() {
-  const el = document.getElementById("invoice");
-  const id = document.getElementById("invId").innerText.trim().replace("#", "");
-  const date = document.getElementById("invDate").innerText.trim().replace(/[^0-9a-zA-Z]/g, "-");
-  const filename = `Invoice_${id}_${date}.pdf`;
-
-  html2pdf().from(el).set({
-    filename: filename,
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  }).outputPdf('blob').then(blob => {
-    alert("PDF saved. Now share manually via WhatsApp.");
-    window.open(`https://wa.me/?text=Invoice ${id} - ${date}`, '_blank');
-  });
-}
-
-function shareImage() {
-  const el = document.getElementById("invoice");
-  const id = document.getElementById("invId").innerText.trim().replace("#", "");
-  const date = document.getElementById("invDate").innerText.trim().replace(/[^0-9a-zA-Z]/g, "-");
-
-  html2canvas(el, { scale: 2 }).then(canvas => {
-    alert("Image ready. Now share manually via WhatsApp.");
-    window.open(`https://wa.me/?text=Invoice ${id} - ${date}`, '_blank');
-  });
-}
-
-window.onload = () => {
-  const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
-  const sel = document.getElementById("tripSelect");
-  trips.forEach(t => {
-    const opt = document.createElement("option");
-    opt.value = t.id;
-    opt.text = t.id;
-    sel.add(opt);
-  });
-  recalculateAmounts();
-};
-</script>
-
-</body>
-</html>
+  </div>  <div class="invoice-details">
