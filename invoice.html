@@ -2,218 +2,224 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <title>Invoice – NST Travels</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NST Travels – Invoice</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Poppins', sans-serif; background: #f5f5f5; padding: 30px; max-width: 850px; margin: auto; }
-    h2 { color: #4b2aad; }
-    label { font-weight: bold; margin-top: 10px; display: block; }
-    input, select, textarea {
-      width: 100%; padding: 10px; margin-bottom: 12px;
-      border: 1px solid #ccc; border-radius: 5px; font-size: 16px;
+    body {
+      font-family: 'Poppins', sans-serif;
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #f7f8fa;
+    }
+    h1 { text-align: center; color: #4b2aad; }
+    .section {
+      background: #fff; border: 1px solid #ccc; border-radius: 8px;
+      padding: 20px; margin-bottom: 20px;
+    }
+    label { font-weight: 600; display: block; margin-top: 10px; }
+    input, select {
+      width: 100%; padding: 10px; margin-top: 5px; font-size: 16px;
+      border: 1px solid #ccc; border-radius: 4px;
     }
     button {
-      background: #4b2aad; color: white; padding: 12px 20px; border: none;
-      border-radius: 5px; cursor: pointer; font-size: 16px; margin-right: 10px;
+      padding: 12px 20px;
+      background: #4b2aad; color: #fff;
+      border: none; border-radius: 5px;
+      font-size: 16px; cursor: pointer; margin-right: 10px;
     }
     button:hover { background: #3a208b; }
-    .invoice-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    .actions { margin-top: 20px; }
-    @media print {
-      body { padding: 0; }
-      .no-print { display: none !important; }
-    }
+    .row { display: flex; flex-wrap: wrap; gap: 20px; }
+    .col { flex: 1 1 45%; }
+    .total { font-size: 20px; font-weight: bold; color: #4b2aad; }
   </style>
 </head>
 <body>
+  <h1>🧾 NST Travels – Trip Invoice</h1>
 
-<h2>🧾 NST Travels – Invoice Generator</h2>
-
-<select id="tripSelect" onchange="loadTrip()">
-  <option value="">-- Select Trip ID --</option>
-</select>
-
-<div class="invoice-box" id="invoiceBox" style="display:none;">
-  <label>Customer Name</label><input id="custName">
-  <label>Customer Number</label><input id="custNumber">
-  <label>Date</label><input id="tripDate">
-  <label>Pickup Location</label><input id="pickup">
-  <label>Drop Location</label><input id="drop">
-  <label>Driver Name</label><input id="driverName">
-  <label>Driver Number</label><input id="driverNumber">
-  <label>Vehicle Model</label><input id="vehicleModel">
-  <label>Vehicle Number</label><input id="vehicleNo">
-  <label>Start Time</label><input id="start">
-  <label>End Time</label><input id="end">
-  <label>Duration (hrs)</label><input id="duration">
-  <label>Extra Hours</label><input id="extraHours">
-  <label>Start KM</label><input id="startKM">
-  <label>End KM</label><input id="endKM">
-  <label>Total KM</label><input id="totalKM">
-  <label>Extra KM</label><input id="extraKM">
-  <label>Parking ₹</label><input id="parking" type="number" value="0" oninput="updateTotal()">
-  <label>Toll ₹</label><input id="toll" type="number" value="0" oninput="updateTotal()">
-  <label>Total Amount ₹</label><input id="totalAmount" type="number">
-  <label>Payment Status</label>
-  <select id="paymentStatus">
-    <option>Paid</option>
-    <option>Not Paid</option>
-  </select>
-  <label>Note</label><textarea id="note" rows="3"></textarea>
-
-  <div class="actions no-print">
-    <button onclick="saveInvoice()">💾 Update Invoice</button>
-    <button onclick="print()">🖨️ Print Invoice</button>
-    <button onclick="shareWhatsApp()">📤 Share on WhatsApp</button>
+  <div class="section">
+    <label>Select Trip</label>
+    <select id="tripSelect" onchange="loadTrip()">
+      <option value="">-- Choose Trip ID --</option>
+    </select>
   </div>
-</div>
 
-<script>
-  let trips = [];
-  let currentIndex = -1;
+  <div class="section" id="invoiceForm" style="display:none">
+    <div class="row">
+      <div class="col">
+        <label>Trip ID</label>
+        <input id="tripId" readonly>
+      </div>
+      <div class="col">
+        <label>Date</label>
+        <input id="tripDate">
+      </div>
+    </div>
 
-  function loadTripIDs() {
-    trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
-    const select = document.getElementById("tripSelect");
-    select.innerHTML = '<option value="">-- Select Trip ID --</option>';
-    trips.forEach((trip, index) => {
-      const opt = document.createElement("option");
-      opt.value = index;
-      opt.text = `${trip.id} - ${trip.date}`;
-      select.appendChild(opt);
+    <div class="row">
+      <div class="col">
+        <label>Customer Name</label>
+        <input id="custName">
+      </div>
+      <div class="col">
+        <label>Customer Number</label>
+        <input id="custNumber">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label>Driver Name</label>
+        <input id="driverName">
+      </div>
+      <div class="col">
+        <label>Driver Number</label>
+        <input id="driverNumber">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label>Vehicle Model</label>
+        <input id="vehicleModel">
+      </div>
+      <div class="col">
+        <label>Vehicle Number</label>
+        <input id="vehicleNo">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label>Pickup Location</label>
+        <input id="pickupLocation">
+      </div>
+      <div class="col">
+        <label>Drop Location</label>
+        <input id="dropLocation">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label>Start Time</label>
+        <input id="startTime">
+      </div>
+      <div class="col">
+        <label>End Time</label>
+        <input id="endTime">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label>Duration (hrs)</label>
+        <input id="duration">
+      </div>
+      <div class="col">
+        <label>Extra Hours</label>
+        <input id="extraHours">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label>Start KM</label>
+        <input id="startKM">
+      </div>
+      <div class="col">
+        <label>End KM</label>
+        <input id="endKM">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label>Total KM</label>
+        <input id="totalKM">
+      </div>
+      <div class="col">
+        <label>Extra KM</label>
+        <input id="extraKM">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label>Parking ₹</label>
+        <input id="parking" type="number" value="0">
+      </div>
+      <div class="col">
+        <label>Toll ₹</label>
+        <input id="toll" type="number" value="0">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label>Total Amount ₹</label>
+        <input id="totalAmount" type="number">
+      </div>
+      <div class="col">
+        <label>Payment Status</label>
+        <select id="paymentStatus">
+          <option>Paid</option>
+          <option>Not Paid</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Note</label>
+    <input id="note">
+
+    <div style="margin-top:20px">
+      <button onclick="window.print()">🖨️ Print Invoice</button>
+      <button onclick="shareWhatsApp()">📤 Share via WhatsApp</button>
+      <button onclick="window.location.href='admin.html'">🔙 Admin Panel</button>
+    </div>
+  </div>
+
+  <script>
+    const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
+    const tripSelect = document.getElementById("tripSelect");
+
+    trips.forEach((trip, i) => {
+      let opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = trip.id + " - " + trip.date;
+      tripSelect.appendChild(opt);
     });
-  }
 
-  function loadTrip() {
-    currentIndex = tripSelect.value;
-    if (currentIndex === "") {
-      invoiceBox.style.display = "none";
-      return;
+    function loadTrip() {
+      const idx = tripSelect.value;
+      if (idx === "") return;
+      const t = trips[idx];
+      document.getElementById("invoiceForm").style.display = "block";
+
+      for (let key in t) {
+        if (document.getElementById(key)) {
+          document.getElementById(key).value = t[key];
+        }
+      }
     }
 
-    const t = trips[currentIndex];
-    invoiceBox.style.display = "block";
+    function shareWhatsApp() {
+      const f = id => document.getElementById(id).value || "-";
 
-    custName.value = t.custName || "";
-    custNumber.value = t.custNumber || "";
-    tripDate.value = t.date || "";
-    pickup.value = t.pickup || "";
-    drop.value = t.drop || "";
-    driverName.value = t.driverName || "";
-    driverNumber.value = t.driverNumber || "";
-    vehicleModel.value = t.vehicleModel || "";
-    vehicleNo.value = t.vehicleNo || "";
-    start.value = t.start || "";
-    end.value = t.end || "";
-    duration.value = t.duration || "";
-    extraHours.value = t.extraHours || "";
-    startKM.value = t.startKM || "";
-    endKM.value = t.endKM || "";
-    totalKM.value = t.totalKM || "";
-    extraKM.value = t.extraKM || "";
-    parking.value = t.parking || 0;
-    toll.value = t.toll || 0;
-    totalAmount.value = t.totalAmount || 0;
-    paymentStatus.value = t.paymentStatus || "";
-    note.value = t.note || "";
-  }
+      const msg = `📋 *NST TRIP SUMMARY*\n\n` +
+        `🗓️ *TRIP DETAILS*\n• *Trip ID:* ${f("tripId")}\n• *Date:* ${f("tripDate")}\n\n` +
+        `📍 *LOCATIONS*\n• *Pickup:* ${f("pickupLocation")}\n• *Drop:* ${f("dropLocation")}\n\n` +
+        `👤 *CUSTOMER INFO*\n• *Name:* ${f("custName")}\n• *Number:* ${f("custNumber")}\n\n` +
+        `👨‍✈️ *DRIVER INFO*\n• *Name:* ${f("driverName")}\n• *Number:* ${f("driverNumber")}\n\n` +
+        `🚘 *VEHICLE INFO*\n• *Model:* ${f("vehicleModel")}\n• *Number:* ${f("vehicleNo")}\n\n` +
+        `🕒 *TIME DETAILS*\n• *Start Time:* ${f("startTime")}\n• *End Time:* ${f("endTime")}\n• *Duration:* ${f("duration")} hrs\n• *Extra Hours:* ${f("extraHours")}\n\n` +
+        `📏 *DISTANCE DETAILS*\n• *Start KM:* ${f("startKM")}\n• *End KM:* ${f("endKM")}\n• *Total KM:* ${f("totalKM")} km\n• *Extra KM:* ${f("extraKM")} km\n\n` +
+        `💰 *FARE DETAILS*\n• *Parking:* ₹${f("parking")}\n• *Toll:* ₹${f("toll")}\n• *Total Amount:* ₹${f("totalAmount")}\n• *Payment Status:* ${f("paymentStatus")}\n\n` +
+        `📝 *NOTE*\n${f("note")}`;
 
-  function updateTotal() {
-    let parkingVal = parseFloat(parking.value || 0);
-    let tollVal = parseFloat(toll.value || 0);
-    let base = parseFloat(totalAmount.value || 0);
-    totalAmount.value = (base + parkingVal + tollVal).toFixed(2);
-  }
-
-  function saveInvoice() {
-    if (currentIndex === -1) return;
-
-    trips[currentIndex] = {
-      ...trips[currentIndex],
-      custName: custName.value,
-      custNumber: custNumber.value,
-      date: tripDate.value,
-      pickup: pickup.value,
-      drop: drop.value,
-      driverName: driverName.value,
-      driverNumber: driverNumber.value,
-      vehicleModel: vehicleModel.value,
-      vehicleNo: vehicleNo.value,
-      start: start.value,
-      end: end.value,
-      duration: duration.value,
-      extraHours: extraHours.value,
-      startKM: startKM.value,
-      endKM: endKM.value,
-      totalKM: totalKM.value,
-      extraKM: extraKM.value,
-      parking: parking.value,
-      toll: toll.value,
-      totalAmount: totalAmount.value,
-      paymentStatus: paymentStatus.value,
-      note: note.value
-    };
-
-    localStorage.setItem("shared-trips", JSON.stringify(trips));
-    alert("✅ Invoice updated successfully.");
-  }
-
-  function shareWhatsApp() {
-    const t = trips[currentIndex];
-    if (!t) return;
-
-    let msg = `📋 *NST TRIP SUMMARY*\n\n`;
-
-    function add(label, value) {
-      if (value && value.trim()) msg += `• *${label}:* ${value}\n`;
+      window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
     }
-
-    msg += `🗓️ *TRIP DETAILS*\n`;
-    add("Trip ID", t.id);
-    add("Date", t.date);
-
-    msg += `\n📍 *LOCATIONS*\n`;
-    add("Pickup", t.pickup);
-    add("Drop", t.drop);
-
-    msg += `\n👤 *CUSTOMER INFO*\n`;
-    add("Name", t.custName);
-    add("Number", t.custNumber);
-
-    msg += `\n👨‍✈️ *DRIVER INFO*\n`;
-    add("Name", t.driverName);
-    add("Number", t.driverNumber);
-
-    msg += `\n🚘 *VEHICLE INFO*\n`;
-    add("Model", t.vehicleModel);
-    add("Number", t.vehicleNo);
-
-    msg += `\n🕒 *TIME DETAILS*\n`;
-    add("Start Time", t.start);
-    add("End Time", t.end);
-    add("Duration", t.duration + " hrs");
-    add("Extra Hours", t.extraHours);
-
-    msg += `\n📏 *DISTANCE DETAILS*\n`;
-    add("Start KM", t.startKM);
-    add("End KM", t.endKM);
-    add("Total KM", t.totalKM + " km");
-    add("Extra KM", t.extraKM + " km");
-
-    msg += `\n💰 *FARE DETAILS*\n`;
-    add("Parking", "₹" + t.parking);
-    add("Toll", "₹" + t.toll);
-    add("Total Amount", "₹" + t.totalAmount);
-    add("Payment Status", t.paymentStatus);
-
-    msg += `\n📝 *NOTE*\n${t.note || "-"}`;
-
-    window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
-  }
-
-  window.onload = loadTripIDs;
-</script>
-
+  </script>
 </body>
 </html>
