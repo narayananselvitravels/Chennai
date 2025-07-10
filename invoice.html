@@ -10,20 +10,17 @@
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 40px;
       background: #f9f9fc;
       color: #333;
     }
     .invoice-container {
-      width: 794px;
-      min-height: 1123px;
-      margin: 20px auto;
+      max-width: 794px; /* A4 width at 96 DPI */
+      margin: auto;
       background: white;
       padding: 30px;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      box-sizing: border-box;
     }
     .invoice-header {
       display: flex;
@@ -83,7 +80,7 @@
     }
     .topbar {
       text-align: center;
-      margin: 20px 0;
+      margin-bottom: 20px;
     }
     .topbar select {
       padding: 8px 12px;
@@ -190,9 +187,9 @@
   </div>
 
   <div style="text-align:center;">
-    <button class="btn" onclick="window.print()">🖨️ Print</button>
-    <button class="btn" onclick="downloadPDF()">💾 PDF</button>
-    <button class="btn" onclick="downloadImage()">🖼️ Image</button>
+    <button class="btn" onclick="window.print()">🖨️ Print Invoice</button>
+    <button class="btn" onclick="downloadPDF()">💾 Download PDF</button>
+    <button class="btn" onclick="downloadImage()">🖼️ Download Image</button>
   </div>
 </div>
 
@@ -204,7 +201,7 @@ function getFileName() {
 }
 
 function downloadPDF() {
-  const element = document.querySelector(".invoice-container");
+  const element = document.getElementById("invoice");
   html2pdf().from(element).set({
     margin: 0,
     filename: getFileName() + ".pdf",
@@ -215,11 +212,11 @@ function downloadPDF() {
 }
 
 function downloadImage() {
-  const element = document.querySelector(".invoice-container");
+  const element = document.getElementById("invoice");
   html2canvas(element, {
     scale: 2,
-    scrollY: 0,
-    useCORS: true
+    width: 794,
+    height: 1123
   }).then(canvas => {
     const link = document.createElement("a");
     link.download = getFileName() + ".png";
