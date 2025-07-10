@@ -10,198 +10,134 @@
     body {
       font-family: 'Poppins', sans-serif;
       background: #f4f6f9;
-      max-width: 800px;
-      margin: 0 auto;
+      max-width: 900px;
+      margin: 30px auto;
       padding: 20px;
     }
     h2 { color: #4b2aad; }
     .section {
       background: white;
       padding: 20px;
-      border-radius: 10px;
+      border-radius: 8px;
       box-shadow: 0 0 5px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
+      margin-bottom: 25px;
     }
     button {
       background: #4b2aad;
       color: white;
       border: none;
-      padding: 14px 20px;
-      border-radius: 6px;
+      padding: 12px 20px;
+      border-radius: 5px;
       font-size: 16px;
       cursor: pointer;
-      margin-top: 10px;
+      margin: 8px 10px 8px 0;
     }
     button:hover { background: #3a208b; }
     .danger { background: #dc3545; }
     .danger:hover { background: #b02a37; }
-    .links a {
-      display: inline-block;
-      margin: 8px 10px 0 0;
-      color: #4b2aad;
-      text-decoration: none;
-      font-weight: 600;
-    }
-    .links a:hover { text-decoration: underline; }
-    #loginOverlay {
-      position: fixed; top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: #fff;
-      z-index: 9999;
+    .grid-buttons {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 15px;
     }
-    #adminPass {
-      padding: 12px; font-size: 16px;
-      width: 90%; max-width: 300px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
+    .grid-buttons button {
+      flex: 1 1 45%;
+      white-space: nowrap;
     }
-    @media (max-width: 600px) {
-      h2 { font-size: 22px; }
-      button { width: 100%; }
+    p { font-size: 16px; margin: 10px 0; }
+    code {
+      background: #eaeaea;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
-
-<div id="loginOverlay">
-  <h2>🔐 NST Admin Login</h2>
-  <input id="adminPass" type="password" placeholder="Enter Admin Password" />
-  <button onclick="checkPassword()">Login</button>
-  <p id="loginError" style="color:red;margin-top:10px;"></p>
-</div>
-
-<div id="adminPanel" style="display:none">
   <h2>🛠️ NST Admin Panel</h2>
 
   <div class="section">
+    <h3>🔗 Sub Pages</h3>
+    <div class="grid-buttons">
+      <button onclick="window.location.href='master.html'">📘 Master</button>
+      <button onclick="window.location.href='whatsapp.html'">📤 WhatsApp</button>
+      <button onclick="window.location.href='trip.html'">🧾 Trip Form</button>
+      <button onclick="window.location.href='dashboard.html'">📊 Dashboard</button>
+      <button onclick="window.location.href='backup.html'">☁️ Backup</button>
+      <button onclick="window.location.href='invoice.html'">🧾 Invoice</button>
+      <button onclick="window.location.href='view-trips.html'">📋 View Trips</button>
+    </div>
+  </div>
+
+  <div class="section">
     <h3>📊 Shared Trip Stats</h3>
-    <p><strong>Trips Shared:</strong> <span id="tripCount">0</span></p>
+    <p><strong>Total Shared Trips:</strong> <span id="tripCount">0</span></p>
     <p><strong>Current Trip ID:</strong> <span id="currentId">#NST001</span></p>
-    <button onclick="exportTrips()">📥 Export Shared Trips (Excel)</button>
+    <button onclick="exportTrips()">📥 Export Trips (Excel)</button>
+    <button onclick="resetTripId()">🔄 Reset Trip ID Only</button>
   </div>
 
   <div class="section">
-    <h3>🧹 Reset Trip ID</h3>
-    <p>This will reset Trip ID to <strong>#NST001</strong> without deleting trips.</p>
-    <button onclick="resetTripId()">🔁 Reset Trip ID</button>
-  </div>
-
-  <div class="section">
-    <h3>⚠️ Reset All Data</h3>
-    <p>This will erase all trip data and reset everything.</p>
+    <h3>⚠️ Full System Reset</h3>
+    <p>This will remove <strong>all saved trip data</strong> and reset Trip ID to <code>#NST001</code>.</p>
     <button class="danger" onclick="resetAll()">🗑️ Reset All Data</button>
   </div>
 
-  <div class="section links">
-    <h3>🔗 Admin Pages</h3>
-    <a href="master.html">📋 Master</a>
-    <a href="whatsapp.html">📤 WhatsApp</a>
-    <a href="trip.html">🧾 Trip</a>
-    <a href="dashboard.html">📊 Dashboard</a>
-    <a href="view-trip.html">📁 View Trips</a>
-    <a href="invoice.html">🧾 Invoice</a>
-    <a href="backup.html">☁️ Backup</a>
-  </div>
-</div>
+  <script>
+    const SHKEY = "shared-trips";
 
-<script>
-  const SHKEY = "shared-trips";
-  const PASS_HASH = "dcf20884229f5925b4a80195a1ce07db3b1cb6461583ef798c37a76dbac9ec32"; // hash of nstadmin123
-
-  async function hash(str) {
-    const buf = new TextEncoder().encode(str);
-    const digest = await crypto.subtle.digest("SHA-256", buf);
-    return Array.from(new Uint8Array(digest)).map(x => x.toString(16).padStart(2, '0')).join('');
-  }
-
-  async function checkPassword() {
-    const pass = document.getElementById("adminPass").value;
-    const hashed = await hash(pass);
-    if (hashed === PASS_HASH) {
-      sessionStorage.setItem("nst-logged-in", "yes");
-      document.getElementById("loginOverlay").style.display = "none";
-      document.getElementById("adminPanel").style.display = "block";
-      startAdmin();
-    } else {
-      document.getElementById("loginError").innerText = "❌ Incorrect password.";
+    function getTripCount() {
+      const trips = JSON.parse(localStorage.getItem(SHKEY) || "[]");
+      document.getElementById("tripCount").innerText = trips.length;
     }
-  }
 
-  function startAdmin() {
+    function getCurrentId() {
+      let c = localStorage.getItem("trip-seq") || "1";
+      document.getElementById("currentId").innerText = "#NST" + String(c).padStart(3, "0");
+    }
+
+    function exportTrips() {
+      const data = JSON.parse(localStorage.getItem(SHKEY) || "[]");
+      if (!data.length) return alert("No shared trips to export.");
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "SharedTrips");
+      XLSX.writeFile(wb, "NST_Shared_Trips.xlsx");
+    }
+
+    function resetTripId() {
+      if (confirm("Reset Trip ID to #NST001 without deleting trips?")) {
+        let usedIds = Object.keys(localStorage)
+          .filter(k => k.startsWith("#NST"))
+          .map(k => parseInt(k.replace("#NST", "")))
+          .sort((a, b) => a - b);
+
+        let nextId = 1;
+        while (usedIds.includes(nextId)) {
+          nextId++;
+        }
+        localStorage.setItem("trip-seq", nextId.toString());
+        alert(`✅ Trip ID reset. Next Trip ID will be #NST${String(nextId).padStart(3, '0')}`);
+        getCurrentId();
+      }
+    }
+
+    function resetAll() {
+      if (confirm("This will erase all saved trips and reset Trip ID to #NST001. Proceed?")) {
+        localStorage.removeItem("trip-seq");
+        localStorage.removeItem("shared-trips");
+        Object.keys(localStorage).forEach(k => {
+          if (k.startsWith("#NST")) localStorage.removeItem(k);
+        });
+        alert("✅ All data cleared. Trip ID reset.");
+        getTripCount();
+        getCurrentId();
+      }
+    }
+
     getTripCount();
     getCurrentId();
-    setAutoLock();
-  }
-
-  function getTripCount() {
-    let shared = JSON.parse(localStorage.getItem(SHKEY) || "[]");
-    document.getElementById("tripCount").innerText = shared.length;
-  }
-
-  function getCurrentId() {
-    let c = localStorage.getItem("trip-seq") || "1";
-    document.getElementById("currentId").innerText = "#NST" + String(c).padStart(3, "0");
-  }
-
-  function exportTrips() {
-    const data = JSON.parse(localStorage.getItem(SHKEY) || "[]");
-    if (!data.length) return alert("No shared trips to export.");
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "SharedTrips");
-    XLSX.writeFile(wb, "NST_Shared_Trips.xlsx");
-  }
-
-  function resetTripId() {
-    if (confirm("Reset Trip ID to #NST001?")) {
-      localStorage.setItem("trip-seq", "1");
-      alert("✅ Trip ID reset to #NST001");
-      getCurrentId();
-    }
-  }
-
-  function resetAll() {
-    if (confirm("Are you sure? This will erase all trip data and reset everything.")) {
-      localStorage.removeItem("trip-seq");
-      localStorage.removeItem("shared-trips");
-      for (let key in localStorage) {
-        if (key.startsWith("#NST")) localStorage.removeItem(key);
-      }
-      alert("✅ Data cleared and system reset.");
-      getTripCount();
-      getCurrentId();
-    }
-  }
-
-  function setAutoLock() {
-    let timer;
-    const logout = () => {
-      sessionStorage.removeItem("nst-logged-in");
-      location.reload();
-    };
-    const resetTimer = () => {
-      clearTimeout(timer);
-      timer = setTimeout(logout, 5 * 60 * 1000); // 5 min
-    };
-    window.addEventListener("mousemove", resetTimer);
-    window.addEventListener("keydown", resetTimer);
-    resetTimer();
-  }
-
-  // On load
-  window.onload = () => {
-    if (sessionStorage.getItem("nst-logged-in") === "yes") {
-      document.getElementById("loginOverlay").style.display = "none";
-      document.getElementById("adminPanel").style.display = "block";
-      startAdmin();
-    }
-  }
-</script>
-
+  </script>
 </body>
 </html>
