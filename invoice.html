@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -16,9 +17,9 @@
     }
     .invoice-container {
       max-width: 794px;
-      margin: 0 auto;
+      margin: 10px auto;
       background: white;
-      padding: 20px 30px 30px;
+      padding: 20px 30px 30px 30px;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
@@ -35,6 +36,7 @@
       font-size: 28px;
       margin: 0;
     }
+    .invoice-details { margin-bottom: 20px; }
     .row { display: flex; justify-content: space-between; margin-bottom: 10px; }
     .label { font-weight: 600; width: 150px; }
     .table {
@@ -58,15 +60,19 @@
     }
     .totals .row {
       justify-content: space-between;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
     .note {
       margin-top: 30px;
       font-size: 14px;
       color: #555;
     }
-    .btn {
-      margin: 10px 5px;
+    .buttons {
+      margin-top: 40px;
+      text-align: center;
+    }
+    .buttons button {
+      margin: 5px;
       padding: 10px 20px;
       background: #4b2aad;
       color: white;
@@ -75,149 +81,139 @@
       font-size: 16px;
       cursor: pointer;
     }
-    .btn:hover {
+    .buttons button:hover {
       background: #3a208b;
     }
-    .topbar {
-      text-align: center;
-      margin: 10px 0;
-    }
-    .topbar select {
-      padding: 8px 12px;
-      font-size: 16px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      width: 220px;
-    }
-    [contenteditable="true"]:focus {
-      outline: 2px dashed #4b2aad;
-      background: #f4f2ff;
-    }
     @media print {
-      .topbar, .btn { display: none !important; }
-      body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .buttons { display: none; }
     }
   </style>
 </head>
-<body><div class="topbar">
-  <select id="tripSelect">
-    <option value="">Select Trip ID</option>
-  </select>
-  <button class="btn" onclick="loadTrip()">🔍 Load Trip</button>
-</div><div class="invoice-container" id="invoice">
+<body>
+
+<div class="invoice-container" id="invoice">
   <div class="invoice-header">
     <h1>🚖 NST Travels</h1>
     <div>
-      <p><strong>Invoice No:</strong> <span id="invId" contenteditable="true">xxxxxxxxx</span></p>
-      <p><strong>Date:</strong> <span id="invDate" contenteditable="true">--</span></p>
+      <p><strong>Invoice No:</strong> <span id="invId">#NST001</span></p>
+      <p><strong>Date:</strong> <span id="invDate">10-July-2025</span></p>
     </div>
-  </div>  <div class="row">
-    <div>
-      <h3>👤 Customer</h3>
-      <p><strong>Name:</strong> <span id="custName" contenteditable="true">xxxxxxxxx</span></p>
-      <p><strong>Phone:</strong> <span id="custNumber" contenteditable="true">xxxxxxxxx</span></p>
+  </div>
+
+  <div class="invoice-details">
+    <div class="row">
+      <div>
+        <h3>👤 Customer</h3>
+        <p><strong>Name:</strong> <span id="custName">John Doe</span></p>
+        <p><strong>Phone:</strong> <span id="custNumber">9876543210</span></p>
+      </div>
+      <div>
+        <h3>👨‍✈️ Driver</h3>
+        <p><strong>Name:</strong> <span id="driverName">Perumal</span></p>
+        <p><strong>Phone:</strong> <span id="driverNumber">9699994563</span></p>
+      </div>
     </div>
-    <div>
-      <h3>👨‍✈️ Driver</h3>
-      <p><strong>Name:</strong> <span id="driverName" contenteditable="true">xxxxxxxxx</span></p>
-      <p><strong>Phone:</strong> <span id="driverNumber" contenteditable="true">xxxxxxxxx</span></p>
+
+    <div class="row">
+      <div>
+        <h3>🚘 Trip Info</h3>
+        <p><strong>Model:</strong> <span id="vehicleModel">Innova Crysta</span></p>
+        <p><strong>Vehicle No:</strong> <span id="vehicleNo">PY05N0505</span></p>
+      </div>
+      <div>
+        <p><strong>Pickup:</strong> <span id="pickup">Auroville</span></p>
+        <p><strong>Drop:</strong> <span id="drop">Chennai Airport</span></p>
+      </div>
     </div>
-  </div>  <div class="row">
-    <div>
-      <h3>🚘 Trip Info</h3>
-      <p><strong>Model:</strong> <span id="vehicleModel" contenteditable="true">xxxxxxxxx</span></p>
-      <p><strong>Vehicle No:</strong> <span id="vehicleNo" contenteditable="true">xxxxxxxxx</span></p>
-    </div>
-    <div>
-      <p><strong>Pickup:</strong> <span id="pickup" contenteditable="true">xxxxxxxxx</span></p>
-      <p><strong>Drop:</strong> <span id="drop" contenteditable="true">xxxxxxxxx</span></p>
-    </div>
-  </div>  <table class="table">
+  </div>
+
+  <table class="table">
     <thead>
       <tr><th>Item</th><th>Details</th><th>Amount (₹)</th></tr>
     </thead>
     <tbody id="chargeDetails">
-      <!-- Editable Rows -->
-      <tr>
-        <td contenteditable="true">Package</td>
-        <td contenteditable="true">Innova Crysta – 8 hrs / 80 KM</td>
-        <td contenteditable="true">7500</td>
-      </tr>
-      <tr>
-        <td contenteditable="true">Extra Hours</td>
-        <td contenteditable="true">2 hrs × ₹1000</td>
-        <td contenteditable="true">--</td>
-      </tr>
-      <tr>
-        <td contenteditable="true">Extra KM</td>
-        <td contenteditable="true">10 km × ₹20</td>
-        <td contenteditable="true">--</td>
-      </tr>
-      <tr>
-        <td contenteditable="true">Toll</td>
-        <td contenteditable="true">–</td>
-        <td contenteditable="true">150</td>
-      </tr>
-      <tr>
-        <td contenteditable="true">Parking</td>
-        <td contenteditable="true">–</td>
-        <td contenteditable="true">100</td>
-      </tr>
+      <tr><td>Package</td><td>Innova Crysta – 8 hrs / 80 KM</td><td>7500</td></tr>
+      <tr><td>Extra Hours</td><td>2 hrs × ₹1000/hr</td><td class="auto-calc">auto</td></tr>
+      <tr><td>Extra KM</td><td>10 km × ₹20/km</td><td class="auto-calc">auto</td></tr>
+      <tr><td>Toll</td><td>–</td><td>150</td></tr>
+      <tr><td>Parking</td><td>–</td><td>100</td></tr>
     </tbody>
-  </table>  <div class="totals">
-    <div class="row"><div class="label">Subtotal:</div><div id="subtotal">₹0</div></div>
-    <div class="row"><div class="label">Discount:</div><div id="discount" contenteditable="true">₹0</div></div>
+  </table>
+
+  <div class="totals">
+    <div class="row"><div class="label">Subtotal:</div><div id="subtotal">--</div></div>
+    <div class="row"><div class="label">Discount:</div><div id="discount">₹0</div></div>
     <hr>
-    <div class="row"><div class="label"><strong>Total:</strong></div><div id="total"><strong>₹0</strong></div></div>
-  </div>  <div class="note">
-    <p>📝 Note: <span id="note" contenteditable="true">Thank you for choosing NST Travels. For queries, call +91-9876543210.</span></p>
-  </div>  <div style="text-align:center;">
-    <button class="btn" onclick="window.print()">🖶️ Print Invoice</button>
-    <button class="btn" onclick="downloadPDF()">📄 Download PDF</button>
-    <button class="btn" onclick="downloadImage()">🖼️ Download Image</button>
+    <div class="row"><div class="label"><strong>Total:</strong></div><div id="total"><strong>--</strong></div></div>
   </div>
-</div><script>
-function getFileName() {
-  const id = document.getElementById("invId").innerText.trim().replace(/#/g, "");
-  const date = document.getElementById("invDate").innerText.trim().replace(/\s+/g, "-");
-  return `Invoice_${id}_${date}`;
+
+  <div class="note">
+    <p>📝 Note: Thank you for choosing NST Travels. For any queries, contact us at +91-9876543210.</p>
+  </div>
+
+  <div class="buttons">
+    <button onclick="window.print()">🖨️ Print Invoice</button>
+    <button onclick="downloadPDF()">📄 Download PDF</button>
+    <button onclick="downloadImage()">🖼️ Download Image</button>
+  </div>
+</div>
+
+<script>
+function parseCalc(text) {
+  const match = text.match(/([\d.]+)\s*(?:hr|km)[\s×x*₹]*(?:₹)?([\d.]+)/i);
+  return match ? parseFloat(match[1]) * parseFloat(match[2]) : parseFloat(text) || 0;
 }
-function parseDetail(text) {
-  const match = text.match(/(\d+)\s*(hrs|km)?\s*[x×]\s*₹?(\d+)/i);
-  if (match) return parseInt(match[1]) * parseInt(match[3]);
-  const num = text.match(/₹?\s?(\d+)/);
-  return num ? parseInt(num[1]) : 0;
-}
-function recalculateAmounts() {
+
+function calculateTotals() {
+  const rows = document.querySelectorAll("#chargeDetails tr");
   let subtotal = 0;
-  document.querySelectorAll("#chargeDetails tr").forEach(row => {
-    const detail = row.children[1].innerText;
-    const cell = row.children[2];
-    const val = parseDetail(detail);
-    cell.innerText = val;
-    subtotal += val;
+  rows.forEach(row => {
+    const detail = row.cells[1].innerText.trim();
+    const amountCell = row.cells[2];
+    if (amountCell.classList.contains("auto-calc")) {
+      const amt = parseCalc(detail);
+      amountCell.innerText = amt.toFixed(0);
+      subtotal += amt;
+    } else {
+      const amt = parseFloat(amountCell.innerText) || 0;
+      subtotal += amt;
+    }
   });
   document.getElementById("subtotal").innerText = "₹" + subtotal;
-  const discount = parseInt(document.getElementById("discount").innerText.replace(/[^\d]/g, "")) || 0;
-  document.getElementById("total").innerHTML = `<strong>₹${subtotal - discount}</strong>`;
+  document.getElementById("total").innerHTML = "<strong>₹" + subtotal + "</strong>";
 }
+
+function getFileName() {
+  const id = document.getElementById("invId").innerText.replace("#", "");
+  const date = document.getElementById("invDate").innerText.replace(/[\s,]/g, "-");
+  return `Invoice_${id}_${date}`;
+}
+
 function downloadPDF() {
   const element = document.getElementById("invoice");
-  html2pdf().from(element).set({
+  const opt = {
     margin: 0,
     filename: getFileName() + ".pdf",
-    image: { type: 'jpeg', quality: 1 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  }).save();
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      scrollY: -window.scrollY,
+      width: 794,
+      height: 1123
+    },
+    jsPDF: { unit: 'px', format: 'a4', orientation: 'portrait' }
+  };
+  html2pdf().from(element).set(opt).save();
 }
+
 function downloadImage() {
   const element = document.getElementById("invoice");
   html2canvas(element, {
     scale: 2,
     scrollY: -window.scrollY,
     width: 794,
-    height: 1123
+    height: 1123,
+    useCORS: true
   }).then(canvas => {
     const link = document.createElement("a");
     link.download = getFileName() + ".png";
@@ -225,8 +221,9 @@ function downloadImage() {
     link.click();
   });
 }
-document.addEventListener("input", e => {
-  if (e.target.closest("#chargeDetails") || e.target.id === "discount") recalculateAmounts();
-});
-</script></body>
+
+window.onload = calculateTotals;
+</script>
+
+</body>
 </html>
