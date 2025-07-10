@@ -6,137 +6,119 @@
   <title>Admin Panel – NST Travels</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Poppins', sans-serif; background: #f4f6f9; max-width: 800px; margin: 30px auto; padding: 20px; }
-    h2 { color: #4b2aad; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f4f6f9;
+      margin: 0 auto;
+      padding: 20px;
+      max-width: 700px;
+    }
+    h2 { color: #4b2aad; text-align: center; }
     .section {
-      background: white; padding: 20px; border-radius: 8px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1); margin-bottom: 20px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.05);
+    }
+    .section h3 {
+      margin-top: 0;
+      color: #4b2aad;
+      font-size: 20px;
     }
     button {
-      background: #4b2aad; color: white; border: none;
-      padding: 12px 18px; border-radius: 5px;
-      font-size: 15px; cursor: pointer; margin: 6px 6px 10px 0;
+      display: block;
+      width: 100%;
+      background: #4b2aad;
+      color: white;
+      border: none;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 6px;
+      margin: 8px 0;
+      cursor: pointer;
     }
     button:hover { background: #3a208b; }
     .danger { background: #dc3545; }
     .danger:hover { background: #b02a37; }
-    #loginSection { text-align: center; padding: 40px 20px; }
-    input { padding: 10px; font-size: 16px; width: 100%; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; }
-    .hidden { display: none; }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      font-size: 16px;
+    }
+    #loginBox { max-width: 400px; margin: 50px auto; }
+    #panelBox { display: none; }
   </style>
 </head>
 <body>
 
-<div id="loginSection">
-  <h2>🔐 Admin Login</h2>
-  <input type="text" id="username" placeholder="Username">
-  <input type="password" id="password" placeholder="Password">
+<div id="loginBox">
+  <h2>🔐 NST Admin Login</h2>
+  <input id="adminUser" placeholder="Username" />
+  <input id="adminPass" type="password" placeholder="Password" />
   <button onclick="login()">Login</button>
-  <p id="loginError" style="color:red;"></p>
 </div>
 
-<div id="adminPanel" class="hidden">
+<div id="panelBox">
   <h2>🛠️ NST Admin Panel</h2>
 
   <div class="section">
-    <h3>🔧 Manage Modules</h3>
-    <button onclick="location.href='master.html'">🧑‍✈️ Driver & Vehicle Master</button>
-    <button onclick="location.href='trip.html'">📝 Trip Entry</button>
-    <button onclick="location.href='whatsapp.html'">📤 WhatsApp Summary</button>
-    <button onclick="location.href='dashboard.html'">📊 Dashboard</button>
-    <button onclick="location.href='backup.html'">💾 Backup</button>
-    <button onclick="location.href='invoice.html'">🧾 Invoice</button>
-    <button onclick="location.href='view-trips.html'">📁 View Trips</button>
-    <button onclick="location.href='duty.html'">📋 Duty Master</button>
+    <h3>📂 Pages</h3>
+    <button onclick="openPage('master.html')">🧑‍🔧 Driver & Vehicle Master</button>
+    <button onclick="openPage('duty.html')">📌 Duty Type Master</button>
+    <button onclick="openPage('whatsapp.html')">📤 WhatsApp Summary</button>
+    <button onclick="openPage('trip.html')">📝 Trip Entry Form</button>
+    <button onclick="openPage('dashboard.html')">📊 Dashboard</button>
+    <button onclick="openPage('backup.html')">💾 Backup & Restore</button>
+    <button onclick="openPage('invoice.html')">🧾 Invoice Generator</button>
+    <button onclick="openPage('view-trips.html')">📋 View All Trips</button>
   </div>
 
   <div class="section">
-    <h3>📊 Shared Trip Stats</h3>
-    <p><strong>Trips Shared:</strong> <span id="tripCount">0</span></p>
-    <p><strong>Current Trip ID:</strong> <span id="currentId">#NST001</span></p>
-    <button onclick="exportTrips()">📥 Export Shared Trips (Excel)</button>
-  </div>
-
-  <div class="section">
-    <h3>🧹 Reset System</h3>
-    <p><strong>Reset Trip ID only:</strong></p>
-    <button onclick="resetTripId()">🔁 Reset Trip ID to #NST001</button>
-    <hr />
-    <p><strong>Full Reset (Clear All Data):</strong></p>
-    <button class="danger" onclick="resetAll()">🗑️ Delete All Trips + Reset ID</button>
+    <h3>🔄 System Tools</h3>
+    <button onclick="resetTripId()">♻️ Reset Trip ID Counter</button>
+    <button class="danger" onclick="logout()">🚪 Logout</button>
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-  const SHKEY = "shared-trips";
-
-  const adminUser = "Nst";
-  const adminPass = "1007"; // change as needed
+  const USER = "admin", PASS = "1234";
 
   function login() {
-    const u = document.getElementById("username").value.trim();
-    const p = document.getElementById("password").value.trim();
-    if (u === adminUser && p === adminPass) {
-      sessionStorage.setItem("loggedIn", "true");
-      showAdminPanel();
+    const u = document.getElementById("adminUser").value;
+    const p = document.getElementById("adminPass").value;
+    if (u === USER && p === PASS) {
+      localStorage.setItem("adminLogged", "yes");
+      document.getElementById("loginBox").style.display = "none";
+      document.getElementById("panelBox").style.display = "block";
     } else {
-      document.getElementById("loginError").innerText = "❌ Invalid credentials";
+      alert("❌ Invalid credentials");
     }
   }
 
-  function showAdminPanel() {
-    document.getElementById("loginSection").classList.add("hidden");
-    document.getElementById("adminPanel").classList.remove("hidden");
-    getTripCount();
-    getCurrentId();
+  function logout() {
+    localStorage.removeItem("adminLogged");
+    location.reload();
   }
 
-  function checkLogin() {
-    if (sessionStorage.getItem("loggedIn") === "true") showAdminPanel();
-  }
-
-  function getTripCount() {
-    const trips = JSON.parse(localStorage.getItem(SHKEY) || "[]");
-    document.getElementById("tripCount").innerText = trips.length;
-  }
-
-  function getCurrentId() {
-    let n = parseInt(localStorage.getItem("trip-seq") || "1");
-    document.getElementById("currentId").innerText = "#NST" + String(n).padStart(3, "0");
-  }
-
-  function exportTrips() {
-    const trips = JSON.parse(localStorage.getItem(SHKEY) || "[]");
-    if (!trips.length) return alert("No trips to export.");
-    const ws = XLSX.utils.json_to_sheet(trips);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "SharedTrips");
-    XLSX.writeFile(wb, "NST_Shared_Trips.xlsx");
+  function openPage(page) {
+    window.location.href = page;
   }
 
   function resetTripId() {
-    if (confirm("Reset Trip ID to #NST001 without deleting data?")) {
-      localStorage.setItem("trip-seq", "1");
-      alert("✅ Trip ID reset to #NST001");
-      getCurrentId();
-    }
+    localStorage.setItem("trip-seq", "1");
+    alert("✅ Trip ID reset to #NST001 successfully");
   }
 
-  function resetAll() {
-    if (confirm("⚠️ This will delete ALL trips and reset ID to #NST001. Continue?")) {
-      localStorage.removeItem("trip-seq");
-      localStorage.removeItem(SHKEY);
-      for (let k in localStorage) {
-        if (k.startsWith("#NST")) localStorage.removeItem(k);
-      }
-      alert("✅ All data cleared. System reset.");
-      getTripCount();
-      getCurrentId();
+  // Auto-login if already authenticated (until screen off/tab closed)
+  window.onload = function() {
+    if (localStorage.getItem("adminLogged") === "yes") {
+      document.getElementById("loginBox").style.display = "none";
+      document.getElementById("panelBox").style.display = "block";
     }
-  }
-
-  checkLogin();
+  };
 </script>
+
 </body>
 </html>
