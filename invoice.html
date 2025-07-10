@@ -3,267 +3,89 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Invoice – NST Travels</title>
+  <title>Invoice - NST Travels</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      margin: 0;
-      padding: 40px;
-      background: #f9f9fc;
-      color: #333;
+    body { font-family:'Poppins',sans-serif; background:#f9f9f9; max-width:800px; margin:40px auto; padding:20px; }
+    h2 { color:#4b2aad; }
+    .invoice-box {
+      border:1px solid #ccc; padding:20px; background:#fff;
     }
-    .invoice-container {
-      max-width: 800px;
-      margin: auto;
-      background: white;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    select, button {
+      padding:10px; font-size:16px; margin-bottom:20px; width:100%;
+      border-radius:5px; border:1px solid #ccc;
     }
-    .invoice-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 2px solid #4b2aad;
-      padding-bottom: 15px;
-      margin-bottom: 20px;
-    }
-    .invoice-header h1 {
-      color: #4b2aad;
-      font-size: 28px;
-      margin: 0;
-    }
-    .invoice-details {
-      margin-bottom: 20px;
-    }
-    .row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    .label {
-      font-weight: 600;
-      width: 150px;
-    }
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    .table th, .table td {
-      padding: 10px;
-      border: 1px solid #ccc;
-      text-align: left;
-    }
-    .table th {
-      background: #4b2aad;
-      color: white;
-    }
-    .totals {
-      margin-top: 20px;
-      float: right;
-      width: 300px;
-    }
-    .totals .row {
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    .note {
-      margin-top: 30px;
-      font-size: 14px;
-      color: #555;
-    }
-    .buttons {
-      margin-top: 40px;
-      text-align: center;
-    }
-    .buttons button {
-      margin: 5px;
-      padding: 10px 20px;
-      background: #4b2aad;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .buttons button:hover {
-      background: #3a208b;
-    }
-    input[type="number"], textarea {
-      font-family: 'Poppins';
-      padding: 4px;
-      font-size: 14px;
-      width: 100px;
-    }
+    table { width:100%; border-collapse:collapse; margin-top:20px }
+    th, td { text-align:left; padding:8px; border-bottom:1px solid #ddd }
+    th { background:#4b2aad; color:#fff }
   </style>
 </head>
 <body>
 
-<div class="invoice-container" id="invoice">
-  <div class="invoice-header">
-    <h1>🚖 NST Travels</h1>
-    <div>
-      <p><strong>Invoice No:</strong> <span id="invId">#NST000</span></p>
-      <p><strong>Date:</strong> <span id="invDate">--</span></p>
-    </div>
-  </div>
+<h2>🧾 NST Travels - Invoice</h2>
 
-  <div class="invoice-details">
-    <div class="row">
-      <div>
-        <h3>👤 Customer</h3>
-        <p><strong>Name:</strong> <span id="custName">--</span></p>
-        <p><strong>Phone:</strong> <span id="custNumber">--</span></p>
-      </div>
-      <div>
-        <h3>👨‍✈️ Driver</h3>
-        <p><strong>Name:</strong> <span id="driverName">--</span></p>
-        <p><strong>Phone:</strong> <span id="driverNumber">--</span></p>
-      </div>
-    </div>
+<select id="tripSelect" onchange="generateInvoice()">
+  <option value="">-- Select Trip ID --</option>
+</select>
 
-    <div class="row">
-      <div>
-        <h3>🚘 Trip Info</h3>
-        <p><strong>Model:</strong> <span id="vehicleModel">--</span></p>
-        <p><strong>Vehicle No:</strong> <span id="vehicleNo">--</span></p>
-      </div>
-      <div>
-        <p><strong>Pickup:</strong> <span id="pickup">--</span></p>
-        <p><strong>Drop:</strong> <span id="drop">--</span></p>
-      </div>
-    </div>
-  </div>
-
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Item</th><th>Details</th><th>Amount (₹)</th>
-      </tr>
-    </thead>
-    <tbody id="chargeDetails"></tbody>
-  </table>
-
-  <div class="totals">
-    <div class="row"><div class="label">Subtotal:</div><div id="subtotal">--</div></div>
-    <div class="row"><div class="label">Toll:</div><input type="number" id="tollCharge" value="0" onchange="updateTotal()"></div>
-    <div class="row"><div class="label">Parking:</div><input type="number" id="parkingCharge" value="0" onchange="updateTotal()"></div>
-    <div class="row"><div class="label">Discount:</div><input type="number" id="discount" value="0" onchange="updateTotal()"></div>
-    <hr>
-    <div class="row"><div class="label"><strong>Total:</strong></div><div id="total"><strong>--</strong></div></div>
-  </div>
-
-  <div class="note">
-    <p>📝 <strong>Note:</strong>
-      <textarea id="note" rows="2" oninput="updateTotal()">Thank you for choosing NST Travels. For any queries, contact us at +91-9876543210.</textarea>
-    </p>
-  </div>
-
-  <div class="buttons">
-    <button onclick="printInvoice()">🖨️ Print Invoice</button>
-    <button onclick="downloadPDF()">💾 Download PDF</button>
-    <button onclick="shareInvoice()">📤 Share via WhatsApp</button>
-  </div>
+<div class="invoice-box" id="invoiceContent">
+  <p>Select a Trip ID to generate invoice.</p>
 </div>
 
 <script>
-  function getParam(key) {
-    const url = new URL(window.location.href);
-    return url.searchParams.get(key);
-  }
+  const key = "shared-trips";
 
-  function baseRate(model) {
-    return { "Innova Crysta": 7500, "Innova Hycross": 8500, "Force Urbania": 9500 }[model] || 0;
-  }
-
-  function hourRate(model) {
-    return { "Innova Crysta": 1000, "Innova Hycross": 1200, "Force Urbania": 1500 }[model] || 0;
-  }
-
-  function kmRate(model) {
-    return { "Innova Crysta": 20, "Innova Hycross": 24, "Force Urbania": 26 }[model] || 0;
-  }
-
-  function formatDate(dateStr) {
-    if (!dateStr) return "--";
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
-  }
-
-  function loadInvoice() {
-    const id = getParam('id');
-    const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
-    const data = trips.find(t => t.id === id);
-    if (!data) return alert("Trip not found.");
-
-    document.getElementById("invId").innerText = data.id;
-    document.getElementById("invDate").innerText = formatDate(data.date);
-    document.getElementById("custName").innerText = data.custName;
-    document.getElementById("custNumber").innerText = data.custNumber;
-    document.getElementById("driverName").innerText = data.driverName;
-    document.getElementById("driverNumber").innerText = data.driverNumber;
-    document.getElementById("vehicleModel").innerText = data.vehicleModel;
-    document.getElementById("vehicleNo").innerText = data.vehicleNo;
-    document.getElementById("pickup").innerText = data.pickup;
-    document.getElementById("drop").innerText = data.drop;
-    document.getElementById("note").value = data.note || "-";
-
-    const charges = [
-      { item: "Package", detail: `${data.vehicleModel} – Base Package`, amount: baseRate(data.vehicleModel) },
-      { item: "Extra Hours", detail: `${data.extraHours} hrs × ₹${hourRate(data.vehicleModel)}`, amount: data.extraHours * hourRate(data.vehicleModel) },
-      { item: "Extra KM", detail: `${data.extraKM} km × ₹${kmRate(data.vehicleModel)}`, amount: data.extraKM * kmRate(data.vehicleModel) }
-    ];
-
-    let tbody = "";
-    let subtotal = 0;
-    charges.forEach(row => {
-      subtotal += row.amount;
-      tbody += `<tr><td>${row.item}</td><td>${row.detail}</td><td>${row.amount}</td></tr>`;
+  function loadTripIDs() {
+    const trips = JSON.parse(localStorage.getItem(key) || "[]");
+    const select = document.getElementById("tripSelect");
+    trips.forEach((trip, index) => {
+      const opt = document.createElement("option");
+      opt.value = index;
+      opt.text = `${trip.id} - ${trip.date}`;
+      select.appendChild(opt);
     });
-    document.getElementById("chargeDetails").innerHTML = tbody;
-    document.getElementById("subtotal").innerText = `₹${subtotal}`;
-    updateTotal();
   }
 
-  function updateTotal() {
-    let subtotal = parseInt(document.getElementById("subtotal").innerText.replace("₹", "")) || 0;
-    let toll = parseInt(document.getElementById("tollCharge").value) || 0;
-    let parking = parseInt(document.getElementById("parkingCharge").value) || 0;
-    let discount = parseInt(document.getElementById("discount").value) || 0;
-    let total = subtotal + toll + parking - discount;
-    document.getElementById("total").innerHTML = `<strong>₹${total}</strong>`;
+  function generateInvoice() {
+    const index = document.getElementById("tripSelect").value;
+    if (index === "") {
+      document.getElementById("invoiceContent").innerHTML = "<p>Select a Trip ID to generate invoice.</p>";
+      return;
+    }
+
+    const trips = JSON.parse(localStorage.getItem(key) || "[]");
+    const trip = trips[index];
+    if (!trip) return;
+
+    const html = `
+      <h3>Invoice for ${trip.id}</h3>
+      <p><strong>Date:</strong> ${trip.date}</p>
+      <p><strong>Customer:</strong> ${trip.custName} (${trip.custNumber})</p>
+      <p><strong>Duty:</strong> ${trip.duty || "-"}</p>
+      <p><strong>Pickup:</strong> ${trip.pickup}</p>
+      <p><strong>Drop:</strong> ${trip.drop}</p>
+      <p><strong>Driver:</strong> ${trip.driverName} (${trip.driverNumber})</p>
+      <p><strong>Vehicle:</strong> ${trip.vehicleModel} (${trip.vehicleNo})</p>
+
+      <table>
+        <tr><th>Description</th><th>Details</th></tr>
+        <tr><td>Time</td><td>${trip.start} - ${trip.end} (${trip.duration} hrs)</td></tr>
+        <tr><td>Extra Hours</td><td>${trip.extraHours || 0}</td></tr>
+        <tr><td>KM</td><td>${trip.startKM} - ${trip.endKM} = ${trip.totalKM} km</td></tr>
+        <tr><td>Extra KM</td><td>${trip.extraKM || 0}</td></tr>
+        <tr><td>Parking</td><td>₹${trip.parking || 0}</td></tr>
+        <tr><td>Toll</td><td>₹${trip.toll || 0}</td></tr>
+        <tr><td><strong>Total Amount</strong></td><td><strong>₹${trip.totalAmount}</strong></td></tr>
+        <tr><td>Payment Status</td><td>${trip.paymentStatus}</td></tr>
+      </table>
+
+      <p><strong>Note:</strong> ${trip.note || "-"}</p>
+    `;
+
+    document.getElementById("invoiceContent").innerHTML = html;
   }
 
-  function printInvoice() {
-    window.print();
-  }
-
-  function downloadPDF() {
-    const element = document.getElementById("invoice");
-    html2pdf().from(element).save(`Invoice_${document.getElementById("invId").innerText}.pdf`);
-  }
-
-  function shareInvoice() {
-    const id = document.getElementById("invId").innerText;
-    const customer = document.getElementById("custName").innerText;
-    const vehicle = document.getElementById("vehicleModel").innerText;
-    const total = document.getElementById("total").innerText.replace("₹", "").trim();
-    const note = document.getElementById("note").value;
-
-    const msg = `🧾 *NST Travels Invoice*\n\n` +
-                `*Invoice No:* ${id}\n` +
-                `*Customer:* ${customer}\n` +
-                `*Vehicle:* ${vehicle}\n` +
-                `*Total Amount:* ₹${total}\n\n` +
-                `📝 *Note:* ${note}\n\n` +
-                `Thank you for choosing NST Travels!`;
-    window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
-  }
-
-  window.onload = loadInvoice;
+  window.onload = loadTripIDs;
 </script>
 
 </body>
