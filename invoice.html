@@ -52,15 +52,18 @@
       background: #f9f9fc;
       padding: 10px 15px;
       border-radius: 4px;
+      font-weight: 600;
     }
     .box strong {
       display: block;
       margin-top: 5px;
+      color: #4b2aad;
     }
     .details-table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 10px;
+      font-weight: 600;
     }
     .details-table th, .details-table td {
       border: 1px solid #ccc;
@@ -82,14 +85,16 @@
       justify-content: space-between;
       margin-bottom: 8px;
       font-size: 14px;
+      font-weight: 600;
     }
     .summary .line strong {
-      font-weight: 600;
+      font-weight: 700;
     }
     .note {
       margin-top: 40px;
       font-size: 13px;
       color: #555;
+      font-weight: 600;
     }
     .buttons {
       margin-top: 20px;
@@ -103,6 +108,7 @@
       border-radius: 5px;
       margin: 5px;
       font-size: 14px;
+      font-weight: 600;
       cursor: pointer;
     }
     .buttons button:hover {
@@ -112,6 +118,7 @@
       width: 100%;
       font-family: 'Poppins';
       font-size: 14px;
+      font-weight: 600;
       border: none;
       background: transparent;
       resize: none;
@@ -130,41 +137,41 @@
   <div class="header">
     <h1>🚖 NST Travels</h1>
     <div>
-      <div><strong>Trip ID:</strong> <span id="invId">#NST000</span></div>
-      <div><strong>Date:</strong> <span id="invDate">--</span></div>
+      <div><strong>Trip ID:</strong> <input id="invId" value="#NST000"/></div>
+      <div><strong>Date:</strong> <input id="invDate" value="--"/></div>
     </div>
   </div>  <div class="section row">
     <div class="box">
       <strong>👤 Customer</strong>
-      <div>Name: <input id="custName" /></div>
-      <div>Phone: <input id="custNumber" /></div>
+      <div>Name: <input id="custName" value=""/></div>
+      <div>Phone: <input id="custNumber" value=""/></div>
     </div>
     <div class="box">
       <strong>👨‍✈️ Driver</strong>
-      <div>Name: <input id="driverName" /></div>
-      <div>Phone: <input id="driverNumber" /></div>
+      <div>Name: <input id="driverName" value=""/></div>
+      <div>Phone: <input id="driverNumber" value=""/></div>
     </div>
   </div>  <div class="section row">
     <div class="box">
       <strong>🚘 Vehicle Info</strong>
-      <div>Model: <input id="vehicleModel" /></div>
-      <div>Number: <input id="vehicleNo" /></div>
+      <div>Model: <input id="vehicleModel" value=""/></div>
+      <div>Number: <input id="vehicleNo" value=""/></div>
     </div>
     <div class="box">
       <strong>📍 Trip Details</strong>
-      <div>Pickup: <input id="pickup" /></div>
-      <div>Drop: <input id="drop" /></div>
+      <div>Pickup: <input id="pickup" value=""/></div>
+      <div>Drop: <input id="drop" value=""/></div>
     </div>
   </div>  <table class="details-table" id="chargesTable">
     <thead>
       <tr><th>Item</th><th>Details</th><th>Amount (₹)</th></tr>
     </thead>
     <tbody id="chargeDetails">
-      <tr><td>Package</td><td><input value="Innova Crysta – 8 hrs / 80 KM"/></td><td><input value="7500" class="amount" /></td></tr>
-      <tr><td>Extra Hours</td><td><input value="2 hrs × ₹1000/hr" /></td><td><input value="2000" class="amount" /></td></tr>
-      <tr><td>Extra KM</td><td><input value="10 km × ₹20/km" /></td><td><input value="200" class="amount" /></td></tr>
-      <tr><td>Toll</td><td><input value="--" /></td><td><input value="150" class="amount" /></td></tr>
-      <tr><td>Parking</td><td><input value="--" /></td><td><input value="100" class="amount" /></td></tr>
+      <tr><td>Package</td><td><input class="details" value="Innova Crysta – 8 hrs / 80 KM"/></td><td><input class="amount" value="7500" /></td></tr>
+      <tr><td>Extra Hours</td><td><input class="details" value="2 hrs × ₹1000" /></td><td><input class="amount" value="" /></td></tr>
+      <tr><td>Extra KM</td><td><input class="details" value="10 km × ₹20" /></td><td><input class="amount" value="" /></td></tr>
+      <tr><td>Toll</td><td><input class="details" value="--" /></td><td><input class="amount" value="150" /></td></tr>
+      <tr><td>Parking</td><td><input class="details" value="--" /></td><td><input class="amount" value="100" /></td></tr>
     </tbody>
   </table>  <div class="summary">
     <div class="line"><span>Subtotal:</span><span id="subtotal">₹0</span></div>
@@ -180,30 +187,37 @@
     <button onclick="shareWhatsApp()">📤 Share via WhatsApp</button>
   </div>
 </div><script>
-function parseAmount(str) {
-  const parts = str.match(/(\d+)\s*(hrs|km)?\s*[×x]\s*₹?(\d+)/);
-  if (parts) return parseInt(parts[1]) * parseInt(parts[3]);
-  return parseInt(str.replace(/[^\d]/g, '')) || 0;
+function parseAmount(detail) {
+  const match = detail.match(/(\d+)\s*[^\d]*×[^\d]*₹?(\d+)/);
+  if (match) return parseInt(match[1]) * parseInt(match[2]);
+  return 0;
 }
 
 function calculateTotal() {
-  let total = 0;
-  document.querySelectorAll(".amount").forEach(input => {
-    const detail = input.parentElement.previousElementSibling.querySelector("input").value;
-    const value = parseAmount(detail);
-    input.value = value;
-    total += value;
+  let subtotal = 0;
+  const rows = document.querySelectorAll('#chargesTable tbody tr');
+  rows.forEach(row => {
+    const detailInput = row.querySelector('.details');
+    const amountInput = row.querySelector('.amount');
+    const detail = detailInput.value.trim();
+    let amount = parseInt(amountInput.value);
+    if (!amount || amount === 0) {
+      amount = parseAmount(detail);
+      amountInput.value = amount;
+    }
+    subtotal += amount;
   });
-  document.getElementById("subtotal").innerText = `₹${total}`;
+  document.getElementById("subtotal").innerText = `₹${subtotal}`;
   const discount = parseInt(document.getElementById("discount").value) || 0;
-  document.getElementById("total").innerText = `₹${total - discount}`;
+  const total = subtotal - discount;
+  document.getElementById("total").innerText = `₹${total}`;
 }
 
 function downloadPDF() {
   const element = document.getElementById("invoice");
   const opt = {
     margin: 0,
-    filename: `Invoice_${document.getElementById("invId").innerText}_${document.getElementById("invDate").innerText}.pdf`,
+    filename: `Invoice_${document.getElementById("invId").value}_${document.getElementById("invDate").value}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2 },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -214,14 +228,14 @@ function downloadPDF() {
 function downloadImage() {
   html2canvas(document.getElementById("invoice")).then(canvas => {
     const link = document.createElement('a');
-    link.download = `Invoice_${document.getElementById("invId").innerText}_${document.getElementById("invDate").innerText}.png`;
+    link.download = `Invoice_${document.getElementById("invId").value}_${document.getElementById("invDate").value}.png`;
     link.href = canvas.toDataURL();
     link.click();
   });
 }
 
 function shareWhatsApp() {
-  const msg = `🧾 *NST Invoice*\nTrip ID: ${document.getElementById("invId").innerText}\nCustomer: ${document.getElementById("custName").value}\nTotal: ${document.getElementById("total").innerText}\n\n${document.getElementById("note").value}`;
+  const msg = `🧾 *NST Invoice*\nTrip ID: ${document.getElementById("invId").value}\nCustomer: ${document.getElementById("custName").value}\nTotal: ${document.getElementById("total").innerText}\n\n${document.getElementById("note").value}`;
   window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
 }
 
