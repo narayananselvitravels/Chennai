@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Invoice – NST Travels</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -67,7 +66,7 @@
       color: #555;
     }
     .btn {
-      margin: 10px 5px 0;
+      margin-top: 30px;
       padding: 10px 20px;
       background: #4b2aad;
       color: white;
@@ -95,8 +94,10 @@
       width: 220px;
       margin-right: 10px;
     }
+
     @media print {
-      .topbar, .export-buttons {
+      .topbar,
+      .btn {
         display: none !important;
       }
     }
@@ -154,7 +155,31 @@
       </tr>
     </thead>
     <tbody id="chargeDetails">
-      <!-- Filled via JS -->
+      <tr>
+        <td contenteditable="true">Package</td>
+        <td contenteditable="true">Innova Crysta – 8 hrs / 80 KM</td>
+        <td contenteditable="true">7500</td>
+      </tr>
+      <tr>
+        <td contenteditable="true">Extra Hours</td>
+        <td contenteditable="true">2 hrs × ₹1000</td>
+        <td contenteditable="true">--</td>
+      </tr>
+      <tr>
+        <td contenteditable="true">Extra KM</td>
+        <td contenteditable="true">10 km × ₹20</td>
+        <td contenteditable="true">--</td>
+      </tr>
+      <tr>
+        <td contenteditable="true">Toll</td>
+        <td contenteditable="true">–</td>
+        <td contenteditable="true">150</td>
+      </tr>
+      <tr>
+        <td contenteditable="true">Parking</td>
+        <td contenteditable="true">–</td>
+        <td contenteditable="true">100</td>
+      </tr>
     </tbody>
   </table>
 
@@ -169,14 +194,10 @@
     <p>📝 Note: <span id="note" contenteditable="true">Thank you for choosing NST Travels. For queries, call +91-9876543210.</span></p>
   </div>
 
-  <div class="export-buttons" style="text-align:center;">
-    <button class="btn" onclick="window.print()">🖨️ Print Invoice</button>
-    <button class="btn" onclick="downloadPDF()">💾 Download PDF</button>
-    <button class="btn" onclick="shareInvoice()">📤 Share WhatsApp</button>
-    <button class="btn" onclick="exportToExcel()">📊 Export Excel</button>
-  </div>
+  <button class="btn" onclick="window.print()">🖨️ Print Invoice</button>
 </div>
 
+<script>
 function parseDetail(text) {
   const match = text.match(/(\d+)\s*(hrs|km)?\s*[x×]\s*₹?(\d+)/i);
   if (match) {
@@ -247,48 +268,6 @@ function loadTrip() {
   recalculateAmounts();
 }
 
-function downloadPDF() {
-  const element = document.getElementById("invoice");
-  const opt = {
-    margin: 0.5,
-    filename: `${document.getElementById("invId").innerText}_Invoice.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-  };
-  html2pdf().from(element).set(opt).save();
-}
-
-function shareInvoice() {
-  const id = document.getElementById("invId").innerText;
-  const customer = document.getElementById("custName").innerText;
-  const vehicle = document.getElementById("vehicleModel").innerText;
-  const total = document.getElementById("total").innerText.replace("₹", "").trim();
-  const note = document.getElementById("note").innerText;
-  const msg = `🧾 *NST Travels Invoice*\n\n` +
-              `*Invoice No:* ${id}\n` +
-              `*Customer:* ${customer}\n` +
-              `*Vehicle:* ${vehicle}\n` +
-              `*Total Amount:* ₹${total}\n\n` +
-              `📝 *Note:* ${note}\n\n` +
-              `Thank you for choosing NST Travels!`;
-  window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
-}
-
-function exportToExcel() {
-  let rows = [["Item", "Details", "Amount"]];
-  document.querySelectorAll("#chargeDetails tr").forEach(tr => {
-    const cells = [...tr.children].map(td => td.innerText);
-    rows.push(cells);
-  });
-  const csv = rows.map(r => r.join(",")).join("\n");
-  const blob = new Blob([csv], { type: "text/csv" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = `${document.getElementById("invId").innerText}_Invoice.csv`;
-  link.click();
-}
-
 window.onload = () => {
   const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
   const dropdown = document.getElementById("tripSelect");
@@ -306,3 +285,7 @@ document.addEventListener("input", (e) => {
     recalculateAmounts();
   }
 });
+</script>
+
+</body>
+</html>
