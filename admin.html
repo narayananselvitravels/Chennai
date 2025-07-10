@@ -3,154 +3,124 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NST Admin Panel</title>
+  <title>Admin Panel – NST Travels</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body {
       font-family: 'Poppins', sans-serif;
       background: #f4f6f9;
-      margin: 0 auto;
+      max-width: 800px;
+      margin: 30px auto;
       padding: 20px;
-      max-width: 850px;
       display: none;
     }
     h2 { color: #4b2aad; }
     .section {
       background: white;
       padding: 20px;
-      border-radius: 10px;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
       margin-bottom: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
     button {
       background: #4b2aad;
       color: white;
       border: none;
-      padding: 12px 18px;
+      padding: 12px 20px;
+      border-radius: 5px;
       font-size: 16px;
-      border-radius: 6px;
-      margin: 8px 8px 8px 0;
       cursor: pointer;
+      margin: 8px 8px 8px 0;
     }
     button:hover { background: #3a208b; }
     .danger { background: #dc3545; }
     .danger:hover { background: #b02a37; }
-
-    /* Login Modal */
     .login-modal {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.45);
+      background: #ffffff;
+      z-index: 9999;
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 9999;
     }
-    .login-card {
-      background: #fff;
+    .login-box {
+      background: white;
       padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.15);
       text-align: center;
-      width: 320px;
-      max-width: 90%;
-      border-top: 6px solid #4b2aad;
+      max-width: 300px;
+      width: 100%;
     }
-    .login-card h2 {
-      margin: 0 0 10px;
+    .login-box h2 {
       color: #4b2aad;
-      font-size: 22px;
-    }
-    .login-card .sub {
-      font-size: 14px;
-      color: #666;
       margin-bottom: 20px;
     }
-    .login-card input {
+    .login-box input {
       width: 100%;
-      padding: 12px 15px;
+      padding: 10px;
       margin-bottom: 15px;
       font-size: 16px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      outline: none;
+      border: 1px solid #ccc;
+      border-radius: 6px;
     }
-    .login-card input:focus { border-color: #4b2aad; }
-    .login-card button {
+    .login-box button {
       width: 100%;
-      padding: 12px;
       background: #4b2aad;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-    .login-card button:hover { background: #3a208b; }
-    .login-card .error {
-      color: #dc3545;
-      font-size: 14px;
-      margin-top: 8px;
     }
   </style>
 </head>
 <body>
 
-  <h2>🛠️ NST Admin Panel</h2>
-
-  <div class="section">
-    <h3>🔗 Sub Pages</h3>
-    <button onclick="window.location.href='master.html'">📋 Master Data</button>
-    <button onclick="window.location.href='whatsapp.html'">📤 WhatsApp Share</button>
-    <button onclick="window.location.href='trip.html'">📝 Trip Sheet</button>
-    <button onclick="window.location.href='dashboard.html'">📊 Dashboard</button>
-    <button onclick="window.location.href='backup.html'">📁 Backup</button>
-    <button onclick="window.location.href='invoice.html'">🧾 Invoice</button>
-    <button onclick="window.location.href='view-trips.html'">🔍 View Trips</button>
-  </div>
-
-  <div class="section">
-    <h3>📈 Trip Stats</h3>
-    <p><strong>Shared Trips Count:</strong> <span id="tripCount">0</span></p>
-    <p><strong>Current Trip ID:</strong> <span id="currentId">#NST001</span></p>
-    <button onclick="exportTrips()">⬇️ Export Shared Trips (Excel)</button>
-  </div>
-
-  <div class="section">
-    <h3>⚙️ Trip ID Control</h3>
-    <p>This will reset Trip ID counter back to <strong>#NST001</strong> without deleting trips.</p>
-    <button onclick="resetTripId()">🔁 Reset Trip ID</button>
-  </div>
-
-  <div class="section">
-    <h3>⚠️ Full Reset</h3>
-    <p>This will delete <strong>all saved trips</strong> and reset everything.</p>
-    <button class="danger" onclick="resetAll()">🗑️ Full Reset</button>
-  </div>
-
-  <!-- LOGIN POPUP -->
   <div class="login-modal" id="loginModal">
-    <div class="login-card">
+    <div class="login-box">
       <h2>NST – Admin Login</h2>
-      <p class="sub">Secure access for authorized admin only</p>
-      <input type="text" id="loginUser" placeholder="👤 Username" />
-      <input type="password" id="loginPass" placeholder="🔒 Password" />
-      <button onclick="validateLogin()">🔓 Login</button>
-      <div class="error" id="loginError"></div>
+      <input type="text" id="adminUser" placeholder="Username" />
+      <input type="password" id="adminPass" placeholder="Password" />
+      <button onclick="validateLogin()">🔐 Login</button>
     </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <h2>🛠️ NST Admin Panel</h2>
+
+  <div class="section">
+    <h3>📂 Quick Access</h3>
+    <button onclick="location.href='master.html'">👥 Driver & Vehicle Master</button>
+    <button onclick="location.href='whatsapp.html'">📤 WhatsApp Summary</button>
+    <button onclick="location.href='trip.html'">🧾 Trip Entry Form</button>
+    <button onclick="location.href='dashboard.html'">📊 Dashboard</button>
+    <button onclick="location.href='backup.html'">🔄 Backup & Restore</button>
+    <button onclick="location.href='invoice.html'">🧾 Invoice Generator</button>
+    <button onclick="location.href='view-trip.html'">📋 View Trips</button>
+  </div>
+
+  <div class="section">
+    <h3>📊 Shared Trip Stats</h3>
+    <p><strong>Trips Shared:</strong> <span id="tripCount">0</span></p>
+    <p><strong>Current Trip ID:</strong> <span id="currentId">#NST001</span></p>
+    <button onclick="exportTrips()">📥 Export Shared Trips (Excel)</button>
+    <button onclick="resetTripId()">🔁 Reset Trip ID Counter</button>
+  </div>
+
+  <div class="section">
+    <h3>⚠️ Reset System</h3>
+    <p>This will remove all trip data and reset the Trip ID to <strong>#NST001</strong>.</p>
+    <button class="danger" onclick="resetAll()">🗑️ Reset All Data</button>
+  </div>
+
   <script>
     const SHKEY = "shared-trips";
 
     function getTripCount() {
-      const shared = JSON.parse(localStorage.getItem(SHKEY) || "[]");
+      let shared = JSON.parse(localStorage.getItem(SHKEY) || "[]");
       document.getElementById("tripCount").innerText = shared.length;
     }
 
     function getCurrentId() {
-      const n = parseInt(localStorage.getItem("trip-seq") || "1");
-      document.getElementById("currentId").innerText = "#NST" + String(n).padStart(3, "0");
+      let c = localStorage.getItem("trip-seq") || "1";
+      document.getElementById("currentId").innerText = "#NST" + String(c).padStart(3, "0");
     }
 
     function exportTrips() {
@@ -169,7 +139,7 @@
     }
 
     function resetAll() {
-      if (confirm("Are you sure? This will ERASE all trip data and reset everything!")) {
+      if (confirm("Are you sure? This will erase all trip data and reset everything.")) {
         localStorage.removeItem("trip-seq");
         localStorage.removeItem(SHKEY);
         for (let key in localStorage) {
@@ -182,26 +152,21 @@
     }
 
     function validateLogin() {
-      const user = document.getElementById("loginUser").value.trim();
-      const pass = document.getElementById("loginPass").value.trim();
-      const errorBox = document.getElementById("loginError");
-
+      const user = document.getElementById("adminUser").value.trim();
+      const pass = document.getElementById("adminPass").value.trim();
       if (user === "Siva" && pass === "1007") {
         document.getElementById("loginModal").style.display = "none";
         document.body.style.display = "block";
         getTripCount();
         getCurrentId();
       } else {
-        errorBox.textContent = "❌ Invalid credentials. Try again.";
+        alert("❌ Invalid username or password");
       }
     }
 
-    // Auto show login on load
     window.onload = () => {
-      document.body.style.display = "none";
-      document.getElementById("loginModal").style.display = "flex";
+      // loginModal stays until login
     };
   </script>
-
 </body>
 </html>
