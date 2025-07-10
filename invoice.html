@@ -176,3 +176,135 @@
     <button class="btn" onclick="exportToExcel()">📊 Export Excel</button>
   </div>
 </div>
+
+<script>
+function parseDetail(text) {
+  const match = text.match(/(\d+)\s*(hrs|km)?\s*[x×]\s*₹?(\d+)/i);
+  if (match) {
+    const qty = parseInt(match[1]);
+    const rate = parseInt(match[3]);
+    return qty * rate;
+  }
+  const direct = text.match(/₹?\s?(\d+)/);
+  return direct ? parseInt(direct[1]) : 0;
+}
+
+function recalculateAmounts() {
+  let subtotal = 0;
+  const rows = document.querySelectorAll("#chargeDetails tr");
+  rows.forEach(row => {
+    const detailCell = row.children[1];
+    const amountCell = row.children[2];
+    const detail = detailCell.innerText.trim();
+    const value = parseDetail(detail);
+    amountCell.innerText = value;
+    subtotal += value;
+  });
+  document.getElementById("subtotal").innerText = `₹${subtotal}`;
+  const discountText = document.getElementById("discount").innerText;
+  const discount = parseInt(discountText.replace(/[^\d]/g, "")) || 0;
+  const total = subtotal - discount;
+  document.getElementById("total").innerHTML = `<strong>₹${total}</strong>`;
+}
+
+function loadTrip() {
+  const id = document.getElementById("tripSelect").value;
+  if (!id) return alert("Select a Trip ID");
+
+  const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
+  const trip = trips.find(t => t.id === id);
+  if (!trip) return alert("Trip not found!");
+
+  document.getElementById("invId").innerText = trip.id || "--";
+  document.getElementById("invDate").innerText = trip.date || "--";
+  document.getElementById("custName").innerText = trip.custName || "";
+  document.getElementById("custNumber").innerText = trip.custNumber || "";
+  document.getElementById("driverName").innerText = trip.driverName || "";
+  document.getElementById("driverNumber").innerText = trip.driverNumber || "";
+  document.getElementById("vehicleModel").innerText = trip.vehicleModel || "";
+  document.getElementById("vehicleNo").innerText = trip.vehicleNo || "";
+  document.getElementById("pickup").innerText = trip.pickup || "";
+  document.getElementById("drop").innerText = trip.drop || "";
+  document.getElementById("note").innerText = trip.note || "";
+
+  const pkg = { "Innova Crysta": 7500, "Innova Hycross": 8500, "Force Urbania": 9500 }[trip.vehicleModel] || 0;
+  const hr = { "Innova Crysta": 1000, "Innova Hycross": 1200, "Force Urbania": 1500 }[trip.vehicleModel] || 0;
+  const km = { "Innova Crysta": 20, "Innova Hycross": 24, "Force Urbania": 26 }[trip.vehicleModel] || 0;
+
+  const hrs = parseInt(trip.extraHours || 0);
+  const kms = parseInt(trip.extraKM || 0);
+  const toll = parseInt(trip.toll || 0);
+  const parking = parseInt(trip.parking || 0);
+
+  const rows = `
+    <tr><td contenteditable="true">Package</td><td contenteditable="true">${trip.vehicleModel} – Base Package</td><td contenteditable="true">${pkg}</td></tr>
+    <tr><td contenteditable="true">Extra Hours</td><td contenteditable="true">${hrs} hrs × ₹${hr}</td><td contenteditable="true">--</td></tr>
+    <tr><td contenteditable="true">Extra KM</td><td contenteditable="true">${kms} km × ₹${km}</td><td contenteditable="true">--</td></tr>
+    <tr><td contenteditable="true">Toll</td><td contenteditable="true">–</td><td contenteditable="true">${toll}</td></tr>
+    <tr><td contenteditable="true">Parking</td><td contenteditable="true">–</td><td contenteditable="true">${parking}</td></tr>
+  `;
+  document.getElementById("chargeDetails").innerHTML = rows;
+  document.getElementById("discount").innerText = `₹${trip.discount || 0}`;
+  recalculateAmounts();
+}
+
+function downloadPDF() {
+  const element = document.getElementById("invoice");
+  const opt = {
+    margin: 0.5,
+    filename: `${document.getElementById("invId").innerText}_Invoice.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+  };
+  html2pdf().from(element).set(opt).save();
+}
+
+function shareInvoice() {
+  const id = document.getElementById("invId").innerText;
+  const customer = document.getElementById("custName").innerText;
+  const vehicle = document.getElementById("vehicleModel").innerText;
+  const total = document.getElementById("total").innerText.replace("₹", "").trim();
+  const note = document.getElementById("note").innerText;
+  const msg = `🧾 *NST Travels Invoice*\n\n` +
+              `*Invoice No:* ${id}\n` +
+              `*Customer:* ${customer}\n` +
+              `*Vehicle:* ${vehicle}\n` +
+              `*Total Amount:* ₹${total}\n\n` +
+              `📝 *Note:* ${note}\n\n` +
+              `Thank you for choosing NST Travels!`;
+  window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
+}
+
+function exportToExcel() {
+  let rows = [["Item", "Details", "Amount"]];
+  document.querySelectorAll("#chargeDetails tr").forEach(tr => {
+    const cells = [...tr.children].map(td => td.innerText);
+    rows.push(cells);
+  });
+  const csv = rows.map(r => r.join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `${document.getElementById("invId").innerText}_Invoice.csv`;
+  link.click();
+}
+
+window.onload = () => {
+  const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
+  const dropdown = document.getElementById("tripSelect");
+  trips.forEach(t => {
+    const opt = document.createElement("option");
+    opt.value = t.id;
+    opt.innerText = t.id;
+    dropdown.appendChild(opt);
+  });
+  recalculateAmounts();
+};
+
+document.addEventListener("input", (e) => {
+  if (e.target.closest("#chargeDetails") || e.target.id === "discount") {
+    recalculateAmounts();
+  }
+});
+</script>
