@@ -43,7 +43,7 @@
     #loginModal {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.4);
+      background: rgba(0, 0, 0, 0.5);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -77,6 +77,7 @@
   </style>
 </head>
 <body>
+
   <div class="section">
     <h2>🛠️ NST Admin Panel</h2>
     <h3>📊 Trip Stats</h3>
@@ -92,7 +93,7 @@
     <button class="danger" onclick="resetAll()">🗑️ Reset All Data</button>
   </div>
 
-  <!-- LOGIN MODAL -->
+  <!-- Login Modal -->
   <div id="loginModal">
     <div class="login-box">
       <h2>🔐 NST – Admin Login</h2>
@@ -158,7 +159,7 @@
 
     window.onload = () => {
       document.getElementById("loginModal").style.display = "flex";
-      document.body.style.display = "none";
+      // Wait for login before showing body
     };
   </script>
 </body>
