@@ -166,55 +166,82 @@
     }
   }
 
-  function shareWhatsApp() {
-    const msg =
-`📋 *NST TRIP SUMMARY*
+  <script>
+function shareWhatsApp() {
+  const fields = {
+    "📋 *NST TRIP SUMMARY*": "",
 
-🗓️ *TRIP DETAILS*
-• *Trip ID:* ${tripId.value}
-• *Date:* ${tripDateDisplay.value || '-'}
+    "🗓️ *TRIP DETAILS*": {
+      "• *Trip ID:*": tripId.value,
+      "• *Date:*": tripDateDisplay.value
+    },
 
-📍 *LOCATIONS*
-• *Pickup:* ${pickupLocation.value || '-'}
-• *Drop:* ${dropLocation.value || '-'}
+    "📍 *LOCATIONS*": {
+      "• *Pickup:*": pickupLocation.value,
+      "• *Drop:*": dropLocation.value
+    },
 
-👤 *CUSTOMER INFO*
-• *Name:* ${custName.value || '-'}
-• *Number:* ${custNumber.value || '-'}
+    "👤 *CUSTOMER INFO*": {
+      "• *Name:*": custName.value,
+      "• *Number:*": custNumber.value
+    },
 
-👨‍✈️ *DRIVER INFO*
-• *Name:* ${driverName.value || '-'}
-• *Number:* ${driverNumber.value || '-'}
+    "👨‍✈️ *DRIVER INFO*": {
+      "• *Name:*": driverName.value,
+      "• *Number:*": driverNumber.value
+    },
 
-🚘 *VEHICLE INFO*
-• *Model:* ${vehicleModel.value || '-'}
-• *Number:* ${vehicleNo.value || '-'}
+    "🚘 *VEHICLE INFO*": {
+      "• *Model:*": vehicleModel.value,
+      "• *Number:*": vehicleNo.value
+    },
 
-🕒 *TIME DETAILS*
-• *Start Time:* ${startTime.value || '-'}
-• *End Time:* ${endTime.value || '-'}
-• *Duration:* ${duration.value || '0'} hrs
-• *Extra Hours:* ${extraHours.value || '0'}
+    "🕒 *TIME DETAILS*": {
+      "• *Start Time:*": startTime.value,
+      "• *End Time:*": endTime.value,
+      "• *Duration:*": duration.value ? `${duration.value} hrs` : "",
+      "• *Extra Hours:*": extraHours.value
+    },
 
-📏 *DISTANCE DETAILS*
-• *Start KM:* ${startKM.value || '0'}
-• *End KM:* ${endKM.value || '0'}
-• *Total KM:* ${totalKM.value || '0'} km
-• *Extra KM:* ${extraKM.value || '0'} km
+    "📏 *DISTANCE DETAILS*": {
+      "• *Start KM:*": startKM.value,
+      "• *End KM:*": endKM.value,
+      "• *Total KM:*": totalKM.value ? `${totalKM.value} km` : "",
+      "• *Extra KM:*": extraKM.value ? `${extraKM.value} km` : ""
+    },
 
-💰 *FARE DETAILS*
-• *Parking:* ₹${parking.value || '0'}
-• *Toll:* ₹${toll.value || '0'}
-• *Total Amount:* ₹${totalAmount.value || '0'}
-• *Payment Status:* ${paymentStatus.value || '-'}
+    "💰 *FARE DETAILS*": {
+      "• *Parking:*": parking?.value ? `₹${parking.value}` : "",
+      "• *Toll:*": toll?.value ? `₹${toll.value}` : "",
+      "• *Total Amount:*": totalAmount?.value ? `₹${totalAmount.value}` : "",
+      "• *Payment Status:*": paymentStatus.value
+    },
 
-📝 *NOTE*
-${note.value || '-'}`;
+    "📝 *NOTE*": note.value
+  };
 
-    window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
-    reserveId();
-    tripId.value = genId();
+  let msg = "";
+
+  for (const [section, data] of Object.entries(fields)) {
+    if (typeof data === "string") {
+      if (data.trim()) msg += `${section}\n${data.trim()}\n\n`;
+      else if (section.includes("*NOTE*")) msg += `${section}\n-\n\n`;
+      else msg += `${section}\n\n`;
+    } else {
+      let lines = Object.entries(data)
+        .filter(([_, val]) => val && val.trim())
+        .map(([label, val]) => `${label} ${val.trim()}`);
+      if (lines.length) {
+        msg += `${section}\n${lines.join("\n")}\n\n`;
+      }
+    }
   }
+
+  window.open("https://wa.me/?text=" + encodeURIComponent(msg.trim()), "_blank");
+  reserveId();
+  tripId.value = genId();
+}
+</script>
 
   function showSharedTrips() {
     const arr = JSON.parse(localStorage.getItem(SHKEY) || "[]");
