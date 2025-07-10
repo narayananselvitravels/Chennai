@@ -1,244 +1,347 @@
-<!DOCTYPE html><html lang="en">
+## Issues Addressed
+
+- Added validation attributes (`min`, `step`) on numeric inputs to prevent negative or malformed entries.  
+- Switched to DOM methods (`createElement`, `textContent`) to safely inject data and avoid XSS.  
+- Employed `Intl.NumberFormat` for consistent currency formatting.  
+- Added fallback handling when no trip data is found, disabling UI and showing an alert.  
+- Introduced print-specific styles to hide controls and optimize the PDF/print layout.
+
+---
+
+## Updated `index.html`
+
+```html
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NST Travels – Invoice</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <title>Invoice – NST Travels</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
-    * { box-sizing: border-box; }
     body {
       font-family: 'Poppins', sans-serif;
-      background: #f5f5fa;
-      color: #333;
-      padding: 0;
       margin: 0;
+      padding: 40px;
+      background: #f9f9fc;
+      color: #333;
     }
     .invoice-container {
-      width: 210mm;
-      min-height: 297mm;
-      background: #fff;
-      padding: 30px 40px;
+      max-width: 800px;
       margin: auto;
-      border-radius: 6px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.1);
-      color: #000;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    .header {
-      border-bottom: 2px solid #4b2aad;
-      padding-bottom: 15px;
-      margin-bottom: 20px;
+    .invoice-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-    }
-    .header h1 {
-      margin: 0;
-      color: #4b2aad;
-      font-size: 26px;
-      font-weight: 700;
-    }
-    .section {
+      border-bottom: 2px solid #4b2aad;
+      padding-bottom: 15px;
       margin-bottom: 20px;
+    }
+    .invoice-header h1 {
+      color: #4b2aad;
+      font-size: 28px;
+      margin: 0;
     }
     .row {
       display: flex;
       justify-content: space-between;
-      gap: 40px;
+      margin-bottom: 10px;
     }
-    .box {
-      flex: 1;
-      background: #f9f9fc;
-      padding: 10px 15px;
-      border-radius: 4px;
+    .label {
       font-weight: 600;
+      width: 150px;
     }
-    .box strong {
-      display: block;
-      margin-top: 5px;
-      color: #4b2aad;
-    }
-    .details-table {
+    .table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
-      font-weight: 600;
+      margin-top: 20px;
     }
-    .details-table th, .details-table td {
-      border: 1px solid #ccc;
+    .table th, .table td {
       padding: 10px;
-      font-size: 14px;
-    }
-    .details-table th {
-      background-color: #4b2aad;
-      color: #fff;
+      border: 1px solid #ccc;
       text-align: left;
     }
-    .summary {
+    .table th {
+      background: #4b2aad;
+      color: white;
+    }
+    .totals {
       margin-top: 20px;
       float: right;
-      width: 250px;
+      width: 300px;
     }
-    .summary .line {
-      display: flex;
+    .totals .row {
       justify-content: space-between;
-      margin-bottom: 8px;
-      font-size: 14px;
-      font-weight: 600;
-    }
-    .summary .line strong {
-      font-weight: 700;
+      margin-bottom: 10px;
     }
     .note {
-      margin-top: 40px;
-      font-size: 13px;
+      margin-top: 30px;
+      font-size: 14px;
       color: #555;
-      font-weight: 600;
     }
     .buttons {
-      margin-top: 20px;
+      margin-top: 40px;
       text-align: center;
     }
     .buttons button {
-      background-color: #4b2aad;
-      color: #fff;
-      padding: 10px 18px;
+      margin: 5px;
+      padding: 10px 20px;
+      background: #4b2aad;
+      color: white;
       border: none;
       border-radius: 5px;
-      margin: 5px;
-      font-size: 14px;
-      font-weight: 600;
+      font-size: 16px;
       cursor: pointer;
     }
     .buttons button:hover {
-      background-color: #381d89;
+      background: #3a208b;
     }
-    input, textarea {
-      width: 100%;
+    input[type="number"], textarea {
       font-family: 'Poppins';
+      padding: 4px;
       font-size: 14px;
-      font-weight: 600;
-      border: none;
-      background: transparent;
-      resize: none;
-    }
-    input:focus, textarea:focus {
-      outline: none;
+      width: 100px;
     }
     @media print {
-      .buttons, #tripSelector { display: none !important; }
-      body { background: white; }
+      .buttons, input[type="number"] {
+        display: none;
+      }
+      body {
+        padding: 0;
+      }
+      .invoice-container {
+        box-shadow: none;
+        margin: 0;
+      }
     }
   </style>
 </head>
 <body>
-<div class="invoice-container" id="invoice">
-  <div class="header">
-    <h1>🚖 NST Travels</h1>
-    <div>
-      <div><strong>Trip ID:</strong> <input id="invId" value="#NST000"/></div>
-      <div><strong>Date:</strong> <input id="invDate" value="--"/></div>
+
+  <div class="invoice-container" id="invoice">
+    <!-- Header -->
+    <div class="invoice-header">
+      <h1>🚖 NST Travels</h1>
+      <div>
+        <p><strong>Invoice No:</strong> <span id="invId">--</span></p>
+        <p><strong>Date:</strong> <span id="invDate">--</span></p>
+      </div>
     </div>
-  </div>  <div class="section row">
-    <div class="box">
-      <strong>👤 Customer</strong>
-      <div>Name: <input id="custName" value=""/></div>
-      <div>Phone: <input id="custNumber" value=""/></div>
+
+    <!-- Customer & Driver -->
+    <div class="row">
+      <div>
+        <h3>👤 Customer</h3>
+        <p><strong>Name:</strong> <span id="custName">--</span></p>
+        <p><strong>Phone:</strong> <span id="custNumber">--</span></p>
+      </div>
+      <div>
+        <h3>👨‍✈️ Driver</h3>
+        <p><strong>Name:</strong> <span id="driverName">--</span></p>
+        <p><strong>Phone:</strong> <span id="driverNumber">--</span></p>
+      </div>
     </div>
-    <div class="box">
-      <strong>👨‍✈️ Driver</strong>
-      <div>Name: <input id="driverName" value=""/></div>
-      <div>Phone: <input id="driverNumber" value=""/></div>
+
+    <!-- Trip Info -->
+    <div class="row">
+      <div>
+        <h3>🚘 Trip Info</h3>
+        <p><strong>Model:</strong> <span id="vehicleModel">--</span></p>
+        <p><strong>Vehicle No:</strong> <span id="vehicleNo">--</span></p>
+      </div>
+      <div>
+        <p><strong>Pickup:</strong> <span id="pickup">--</span></p>
+        <p><strong>Drop:</strong> <span id="drop">--</span></p>
+      </div>
     </div>
-  </div>  <div class="section row">
-    <div class="box">
-      <strong>🚘 Vehicle Info</strong>
-      <div>Model: <input id="vehicleModel" value=""/></div>
-      <div>Number: <input id="vehicleNo" value=""/></div>
+
+    <!-- Charges Table -->
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Details</th>
+          <th>Amount (₹)</th>
+        </tr>
+      </thead>
+      <tbody id="chargeDetails"></tbody>
+    </table>
+
+    <!-- Totals & Inputs -->
+    <div class="totals">
+      <div class="row">
+        <div class="label">Subtotal:</div>
+        <div id="subtotal">--</div>
+      </div>
+      <div class="row">
+        <div class="label">Toll:</div>
+        <input type="number" id="tollCharge" value="0" min="0" step="0.01" onchange="updateTotal()">
+      </div>
+      <div class="row">
+        <div class="label">Parking:</div>
+        <input type="number" id="parkingCharge" value="0" min="0" step="0.01" onchange="updateTotal()">
+      </div>
+      <div class="row">
+        <div class="label">Discount:</div>
+        <input type="number" id="discount" value="0" min="0" step="0.01" onchange="updateTotal()">
+      </div>
+      <hr>
+      <div class="row">
+        <div class="label"><strong>Total:</strong></div>
+        <div id="total"><strong>--</strong></div>
+      </div>
     </div>
-    <div class="box">
-      <strong>📍 Trip Details</strong>
-      <div>Pickup: <input id="pickup" value=""/></div>
-      <div>Drop: <input id="drop" value=""/></div>
+
+    <!-- Note -->
+    <div class="note">
+      <p>📝 <strong>Note:</strong></p>
+      <textarea id="note" rows="2" oninput="updateTotal()">Thank you for choosing NST Travels. For any queries, contact us at +91-9876543210.</textarea>
     </div>
-  </div>  <table class="details-table" id="chargesTable">
-    <thead>
-      <tr><th>Item</th><th>Details</th><th>Amount (₹)</th></tr>
-    </thead>
-    <tbody id="chargeDetails">
-      <tr><td>Package</td><td><input class="details" value="Innova Crysta – 8 hrs / 80 KM"/></td><td><input class="amount" value="7500" /></td></tr>
-      <tr><td>Extra Hours</td><td><input class="details" value="2 hrs × ₹1000" /></td><td><input class="amount" value="" /></td></tr>
-      <tr><td>Extra KM</td><td><input class="details" value="10 km × ₹20" /></td><td><input class="amount" value="" /></td></tr>
-      <tr><td>Toll</td><td><input class="details" value="--" /></td><td><input class="amount" value="150" /></td></tr>
-      <tr><td>Parking</td><td><input class="details" value="--" /></td><td><input class="amount" value="100" /></td></tr>
-    </tbody>
-  </table>  <div class="summary">
-    <div class="line"><span>Subtotal:</span><span id="subtotal">₹0</span></div>
-    <div class="line"><span>Discount:</span><input type="number" id="discount" value="0" oninput="calculateTotal()" /></div>
-    <hr />
-    <div class="line"><strong>Total:</strong><strong id="total">₹0</strong></div>
-  </div>  <div class="note">
-    <textarea id="note">Thank you for choosing NST Travels. For any queries, contact us at +91-9876543210.</textarea>
-  </div>  <div class="buttons">
-    <button onclick="window.print()">🖨️ Print</button>
-    <button onclick="downloadPDF()">📄 Download PDF</button>
-    <button onclick="downloadImage()">🖼️ Download Image</button>
-    <button onclick="shareWhatsApp()">📤 Share via WhatsApp</button>
+
+    <!-- Actions -->
+    <div class="buttons">
+      <button onclick="printInvoice()">🖨️ Print Invoice</button>
+      <button onclick="downloadPDF()">💾 Download PDF</button>
+      <button onclick="shareInvoice()">📤 Share via WhatsApp</button>
+    </div>
   </div>
-</div><script>
-function parseAmount(detail) {
-  const match = detail.match(/(\d+)\s*[^\d]*×[^\d]*₹?(\d+)/);
-  if (match) return parseInt(match[1]) * parseInt(match[2]);
-  return 0;
-}
 
-function calculateTotal() {
-  let subtotal = 0;
-  const rows = document.querySelectorAll('#chargesTable tbody tr');
-  rows.forEach(row => {
-    const detailInput = row.querySelector('.details');
-    const amountInput = row.querySelector('.amount');
-    const detail = detailInput.value.trim();
-    let amount = parseInt(amountInput.value);
-    if (!amount || amount === 0) {
-      amount = parseAmount(detail);
-      amountInput.value = amount;
+  <script>
+    function getParam(key) {
+      return new URLSearchParams(window.location.search).get(key);
     }
-    subtotal += amount;
-  });
-  document.getElementById("subtotal").innerText = `₹${subtotal}`;
-  const discount = parseInt(document.getElementById("discount").value) || 0;
-  const total = subtotal - discount;
-  document.getElementById("total").innerText = `₹${total}`;
-}
 
-function downloadPDF() {
-  const element = document.getElementById("invoice");
-  const opt = {
-    margin: 0,
-    filename: `Invoice_${document.getElementById("invId").value}_${document.getElementById("invDate").value}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
-  html2pdf().set(opt).from(element).save();
-}
+    function formatCurrency(num) {
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR'
+      }).format(num);
+    }
 
-function downloadImage() {
-  html2canvas(document.getElementById("invoice")).then(canvas => {
-    const link = document.createElement('a');
-    link.download = `Invoice_${document.getElementById("invId").value}_${document.getElementById("invDate").value}.png`;
-    link.href = canvas.toDataURL();
-    link.click();
-  });
-}
+    function baseRate(model) {
+      return { "Innova Crysta": 7500, "Innova Hycross": 8500, "Force Urbania": 9500 }[model] || 0;
+    }
 
-function shareWhatsApp() {
-  const msg = `🧾 *NST Invoice*\nTrip ID: ${document.getElementById("invId").value}\nCustomer: ${document.getElementById("custName").value}\nTotal: ${document.getElementById("total").innerText}\n\n${document.getElementById("note").value}`;
-  window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
-}
+    function hourRate(model) {
+      return { "Innova Crysta": 1000, "Innova Hycross": 1200, "Force Urbania": 1500 }[model] || 0;
+    }
 
-window.onload = calculateTotal;
-</script></body>
+    function kmRate(model) {
+      return { "Innova Crysta": 20, "Innova Hycross": 24, "Force Urbania": 26 }[model] || 0;
+    }
+
+    function formatDate(dateStr) {
+      const d = new Date(dateStr);
+      return isNaN(d) ? '--' : d.toLocaleDateString('en-GB', {
+        day: '2-digit', month: 'long', year: 'numeric'
+      });
+    }
+
+    function loadInvoice() {
+      const id = getParam('id');
+      const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
+      const data = trips.find(t => t.id === id);
+
+      if (!data) {
+        alert("Trip not found.");
+        document.getElementById("invoice").style.display = "none";
+        return;
+      }
+
+      // Populate text fields
+      document.getElementById("invId").textContent = data.id;
+      document.getElementById("invDate").textContent = formatDate(data.date);
+      document.getElementById("custName").textContent = data.custName;
+      document.getElementById("custNumber").textContent = data.custNumber;
+      document.getElementById("driverName").textContent = data.driverName;
+      document.getElementById("driverNumber").textContent = data.driverNumber;
+      document.getElementById("vehicleModel").textContent = data.vehicleModel;
+      document.getElementById("vehicleNo").textContent = data.vehicleNo;
+      document.getElementById("pickup").textContent = data.pickup;
+      document.getElementById("drop").textContent = data.drop;
+      document.getElementById("note").value = data.note || '';
+
+      // Build charges rows safely
+      const tbody = document.getElementById("chargeDetails");
+      tbody.innerHTML = '';
+      const rates = [
+        { item: "Package", detail: `${data.vehicleModel} – Base Package`, amount: baseRate(data.vehicleModel) },
+        { item: "Extra Hours", detail: `${data.extraHours} hrs × ${formatCurrency(hourRate(data.vehicleModel))}`, amount: data.extraHours * hourRate(data.vehicleModel) },
+        { item: "Extra KM", detail: `${data.extraKM} km × ${formatCurrency(kmRate(data.vehicleModel))}`, amount: data.extraKM * kmRate(data.vehicleModel) }
+      ];
+
+      let subtotal = 0;
+      rates.forEach(row => {
+        subtotal += row.amount;
+        const tr = document.createElement('tr');
+        ['item', 'detail', 'amount'].forEach(key => {
+          const td = document.createElement('td');
+          td.textContent = key === 'amount' ? formatCurrency(row.amount) : row[key];
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById("subtotal").textContent = formatCurrency(subtotal);
+      updateTotal();
+    }
+
+    function updateTotal() {
+      const subtotal = Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR'
+      }).formatToParts(0).find(p => p.type === 'integer')
+        ? parseFloat(document.getElementById("subtotal").textContent.replace(/[^0-9.-]+/g,""))
+        : 0;
+
+      const toll    = parseFloat(document.getElementById("tollCharge").value)    || 0;
+      const parking = parseFloat(document.getElementById("parkingCharge").value) || 0;
+      const discount= parseFloat(document.getElementById("discount").value)     || 0;
+      const total   = subtotal + toll + parking - discount;
+
+      document.getElementById("total").innerHTML = `<strong>${formatCurrency(total)}</strong>`;
+    }
+
+    function printInvoice() {
+      window.print();
+    }
+
+    function downloadPDF() {
+      html2pdf().from(document.getElementById("invoice"))
+                .save(`Invoice_${document.getElementById("invId").textContent}.pdf`);
+    }
+
+    function shareInvoice() {
+      const id       = document.getElementById("invId").textContent;
+      const customer = document.getElementById("custName").textContent;
+      const vehicle  = document.getElementById("vehicleModel").textContent;
+      const total    = document.getElementById("total").textContent;
+      const note     = document.getElementById("note").value;
+
+      const msg = `🧾 *NST Travels Invoice*\n\n` +
+                  `*Invoice No:* ${id}\n` +
+                  `*Customer:* ${customer}\n` +
+                  `*Vehicle:* ${vehicle}\n` +
+                  `*Total Amount:* ${total}\n\n` +
+                  `📝 *Note:* ${note}\n\n` +
+                  `Thank you for choosing NST Travels!`;
+
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    window.onload = loadInvoice;
+  </script>
+
+</body>
 </html>
+```
+
+---
+
+Feel free to test these changes and let me know if you run into any other snags or want additional enhancements![43dcd9a7-70db-4a1f-b0ae-981daa162054](https://github.com/lzh-yi/Web-Fork-/tree/024b3e55587afdf9f05a677613a75f24e3d1803e/03-CSS%E8%BF%9B%E9%98%B6%2F04-%E5%A6%82%E4%BD%95%E8%AE%A9%E4%B8%80%E4%B8%AA%E5%85%83%E7%B4%A0%E6%B0%B4%E5%B9%B3%E5%9E%82%E7%9B%B4%E5%B1%85%E4%B8%AD%EF%BC%9F.md?citationMarker=43dcd9a7-70db-4a1f-b0ae-981daa162054 "1")
