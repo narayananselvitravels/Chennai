@@ -3,90 +3,106 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Share Trip via WhatsApp – NST Travels</title>
+  <title>WhatsApp Share - NST Trips</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family:'Poppins',sans-serif;
-      padding: 20px; max-width: 800px; margin: auto;
+      font-family: 'Poppins', sans-serif;
+      padding: 20px;
       background: #f4f6f9;
+      max-width: 800px;
+      margin: auto;
     }
     h2 { color: #4b2aad }
-    select, textarea, button {
-      width: 100%; padding: 12px;
-      font-size: 16px; margin: 10px 0;
-      border: 1px solid #ccc; border-radius: 5px;
-    }
     button {
-      background: #4b2aad; color: #fff;
-      border: none; cursor: pointer;
+      background: #4b2aad;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-right: 10px;
     }
-    button:hover { background: #3a208b }
-    textarea { height: 250px; resize: vertical; }
-    .nav-buttons {
-      display: flex; gap: 10px; margin-top: 10px;
+    button:hover {
+      background: #3a208b;
     }
-    .nav-buttons button {
-      flex: 1;
+    select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    label { font-weight: bold; display: block; margin-top: 15px; }
+    .msg-box {
+      white-space: pre-line;
+      background: #fff;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-family: monospace;
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
 
-<h2>📤 Share Trip via WhatsApp</h2>
+<h2>📤 WhatsApp Trip Summary</h2>
 
-<label for="tripSelector">Select a Trip</label>
-<select id="tripSelector" onchange="generateMessage()">
-  <option value="">-- Choose Trip --</option>
-</select>
+<label>Select Trip</label>
+<select id="tripSelect" onchange="generateMessage()"></select>
 
-<label for="whatsappMsg">Preview Message</label>
-<textarea id="whatsappMsg" readonly></textarea>
+<label>Preview Message</label>
+<div class="msg-box" id="whatsAppMsg">Select a trip to preview message...</div>
 
-<div class="nav-buttons">
-  <button onclick="shareNow()">📲 Send via WhatsApp</button>
-  <button onclick="window.location.href='index.html'">⬅️ Back to Trip Sheet</button>
-</div>
+<button onclick="copyMsg()">📋 Copy</button>
+<button onclick="sendWhatsApp()">🟢 Send via WhatsApp</button>
+<button onclick="window.location.href='index.html'">⬅️ Back to Trip Sheet</button>
 
 <script>
-  const tripSelector = document.getElementById("tripSelector");
-  const whatsappMsg = document.getElementById("whatsappMsg");
-  const savedTrips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
-
-  function populateDropdown() {
-    savedTrips.forEach((trip, index) => {
-      const option = document.createElement("option");
-      option.value = index;
-      option.textContent = `${trip.id} | ${trip.date} | ${trip.custName}`;
-      tripSelector.appendChild(option);
+  let trips = [];
+  function init() {
+    trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
+    const select = document.getElementById("tripSelect");
+    select.innerHTML = `<option value="">-- Select Trip --</option>`;
+    trips.forEach((t, i) => {
+      select.innerHTML += `<option value="${i}">${t.id} - ${t.date}</option>`;
     });
   }
 
   function generateMessage() {
-    const i = tripSelector.value;
-    if (i === "") return whatsappMsg.value = "";
+    const i = tripSelect.value;
+    if (i === "") return whatsAppMsg.textContent = "Select a trip to preview message...";
 
-    const t = savedTrips[i];
-
-    whatsappMsg.value =
-`📋 *TRIP SUMMARY*\n\n*Trip ID:* ${t.id}\n*Date:* ${t.date}\n\n` +
-`📍 *Pickup:* ${t.pickup}\n📍 *Drop:* ${t.drop}\n\n` +
-`👤 *Customer:* ${t.custName} (${t.custNumber})\n` +
-`👨‍✈️ *Driver:* ${t.driverName} (${t.driverNumber})\n` +
-`🚘 *Vehicle:* ${t.vehicleModel} (${t.vehicleNo})\n\n` +
-`🕒 *Time:* ${t.start} - ${t.end} (${t.duration} hrs, Extra ${t.extraHours} hrs)\n` +
-`📏 *KM:* ${t.startKM} - ${t.endKM} = ${t.totalKM} km (Extra ${t.extraKM} km)\n` +
-`💰 *Amount:* ₹${t.totalAmount} | *Status:* ${t.paymentStatus}\n\n` +
-`📝 *Note:* ${t.note || '-'}`;
+    const t = trips[i];
+    const msg = `📋 *TRIP SUMMARY*\n\n*Trip ID:* ${t.id}\n*Date:* ${t.date}\n*Duty:* ${t.duty || "-"}\n\n` +
+      `📍 *Pickup:* ${t.pickup}\n📍 *Drop:* ${t.drop}\n\n` +
+      `👤 *Customer:* ${t.custName} (${t.custNumber})\n` +
+      `🚖 *Driver:* ${t.driverName} (${t.driverNumber})\n` +
+      `🚘 *Vehicle:* ${t.vehicleModel} (${t.vehicleNo})\n\n` +
+      `🕒 *Time:* ${t.start} - ${t.end} (${t.duration} hrs, Extra ${t.extraHours} hrs)\n` +
+      `📍 *KM:* ${t.startKM} - ${t.endKM} = ${t.totalKM} km (Extra ${t.extraKM} km)\n` +
+      `💰 *Total Amount:* ₹${t.totalAmount} | *Status:* ${t.paymentStatus}\n\n` +
+      `📝 *Note:* ${t.note || '-'}`;
+    document.getElementById("whatsAppMsg").textContent = msg;
   }
 
-  function shareNow() {
-    if (!whatsappMsg.value.trim()) return alert("Please select a trip to share.");
-    const link = "https://wa.me/?text=" + encodeURIComponent(whatsappMsg.value);
-    window.open(link, '_blank');
+  function copyMsg() {
+    const text = document.getElementById("whatsAppMsg").textContent;
+    navigator.clipboard.writeText(text);
+    alert("✅ Copied to clipboard");
   }
 
-  window.onload = populateDropdown;
+  function sendWhatsApp() {
+    const text = document.getElementById("whatsAppMsg").textContent;
+    if (!text || text.startsWith("Select")) return alert("⚠️ Please select a trip first.");
+    const url = "https://wa.me/?text=" + encodeURIComponent(text);
+    window.open(url, '_blank');
+  }
+
+  window.onload = init;
 </script>
 
 </body>
