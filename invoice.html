@@ -65,7 +65,7 @@
       font-size: 14px;
       color: #555;
     }
-    .print-btn, .load-btn {
+    .btn {
       margin-top: 30px;
       padding: 10px 20px;
       background: #4b2aad;
@@ -75,7 +75,7 @@
       font-size: 16px;
       cursor: pointer;
     }
-    .print-btn:hover, .load-btn:hover {
+    .btn:hover {
       background: #3a208b;
     }
     [contenteditable="true"]:focus {
@@ -86,12 +86,12 @@
       text-align: center;
       margin-bottom: 20px;
     }
-    .topbar input {
+    .topbar select {
       padding: 8px 12px;
       font-size: 16px;
       border-radius: 5px;
       border: 1px solid #ccc;
-      width: 200px;
+      width: 220px;
       margin-right: 10px;
     }
   </style>
@@ -99,16 +99,18 @@
 <body>
 
 <div class="topbar">
-  <input type="text" id="tripIdInput" placeholder="Enter Trip ID (e.g. #NST001)">
-  <button class="load-btn" onclick="loadTripById()">🔍 Load Trip</button>
+  <select id="tripSelect">
+    <option value="">Select Trip ID</option>
+  </select>
+  <button class="btn" onclick="loadTrip()">🔍 Load Trip</button>
 </div>
 
 <div class="invoice-container" id="invoice">
   <div class="invoice-header">
     <h1>🚖 NST Travels</h1>
     <div>
-      <p><strong>Invoice No:</strong> <span id="invId" contenteditable="true">#NST001</span></p>
-      <p><strong>Date:</strong> <span id="invDate" contenteditable="true">07-July-2025</span></p>
+      <p><strong>Invoice No:</strong> <span id="invId" contenteditable="true">xxxxxxxxx</span></p>
+      <p><strong>Date:</strong> <span id="invDate" contenteditable="true">--</span></p>
     </div>
   </div>
 
@@ -116,25 +118,25 @@
     <div class="row">
       <div>
         <h3>👤 Customer</h3>
-        <p><strong>Name:</strong> <span id="custName" contenteditable="true">John Doe</span></p>
-        <p><strong>Phone:</strong> <span id="custNumber" contenteditable="true">9876543210</span></p>
+        <p><strong>Name:</strong> <span id="custName" contenteditable="true">xxxxxxxxx</span></p>
+        <p><strong>Phone:</strong> <span id="custNumber" contenteditable="true">xxxxxxxxx</span></p>
       </div>
       <div>
         <h3>👨‍✈️ Driver</h3>
-        <p><strong>Name:</strong> <span id="driverName" contenteditable="true">Perumal</span></p>
-        <p><strong>Phone:</strong> <span id="driverNumber" contenteditable="true">9699994563</span></p>
+        <p><strong>Name:</strong> <span id="driverName" contenteditable="true">xxxxxxxxx</span></p>
+        <p><strong>Phone:</strong> <span id="driverNumber" contenteditable="true">xxxxxxxxx</span></p>
       </div>
     </div>
 
     <div class="row">
       <div>
         <h3>🚘 Trip Info</h3>
-        <p><strong>Model:</strong> <span id="vehicleModel" contenteditable="true">Innova Crysta</span></p>
-        <p><strong>Vehicle No:</strong> <span id="vehicleNo" contenteditable="true">PY05N0505</span></p>
+        <p><strong>Model:</strong> <span id="vehicleModel" contenteditable="true">xxxxxxxxx</span></p>
+        <p><strong>Vehicle No:</strong> <span id="vehicleNo" contenteditable="true">xxxxxxxxx</span></p>
       </div>
       <div>
-        <p><strong>Pickup:</strong> <span id="pickup" contenteditable="true">Auroville</span></p>
-        <p><strong>Drop:</strong> <span id="drop" contenteditable="true">Chennai Airport</span></p>
+        <p><strong>Pickup:</strong> <span id="pickup" contenteditable="true">xxxxxxxxx</span></p>
+        <p><strong>Drop:</strong> <span id="drop" contenteditable="true">xxxxxxxxx</span></p>
       </div>
     </div>
   </div>
@@ -146,80 +148,92 @@
       </tr>
     </thead>
     <tbody id="chargeDetails">
-      <tr><td contenteditable="true">Package</td><td contenteditable="true">Innova Crysta – 8 hrs / 80 KM</td><td contenteditable="true">7500</td></tr>
-      <tr><td contenteditable="true">Extra Hours</td><td contenteditable="true">2 hrs × ₹1000/hr</td><td contenteditable="true">2000</td></tr>
-      <tr><td contenteditable="true">Extra KM</td><td contenteditable="true">10 km × ₹20/km</td><td contenteditable="true">200</td></tr>
-      <tr><td contenteditable="true">Toll</td><td contenteditable="true">–</td><td contenteditable="true">150</td></tr>
-      <tr><td contenteditable="true">Parking</td><td contenteditable="true">–</td><td contenteditable="true">100</td></tr>
+      <!-- dynamically inserted -->
     </tbody>
   </table>
 
   <div class="totals">
-    <div class="row">
-      <div class="label">Subtotal:</div>
-      <div id="subtotal" contenteditable="true">₹9,950</div>
-    </div>
-    <div class="row">
-      <div class="label">Discount:</div>
-      <div id="discount" contenteditable="true">₹0</div>
-    </div>
+    <div class="row"><div class="label">Subtotal:</div><div id="subtotal">₹0</div></div>
+    <div class="row"><div class="label">Discount:</div><div id="discount" contenteditable="true">₹0</div></div>
     <hr>
-    <div class="row">
-      <div class="label"><strong>Total:</strong></div>
-      <div id="total" contenteditable="true"><strong>₹9,950</strong></div>
-    </div>
+    <div class="row"><div class="label"><strong>Total:</strong></div><div id="total"><strong>₹0</strong></div></div>
   </div>
 
   <div class="note">
-    <p>📝 Note: <span id="note" contenteditable="true">Thank you for choosing NST Travels. For any queries, contact us at +91-9876543210.</span></p>
+    <p>📝 Note: <span id="note" contenteditable="true">Thank you for choosing NST Travels. For queries, call +91-9876543210.</span></p>
   </div>
 
-  <button class="print-btn" onclick="window.print()">🖨️ Print Invoice</button>
+  <button class="btn" onclick="window.print()">🖨️ Print Invoice</button>
 </div>
 
 <script>
-function loadTripById() {
-  const tripId = document.getElementById("tripIdInput").value.trim();
-  if (!tripId) return alert("Please enter a Trip ID.");
+  function formatAmount(amount) {
+    return `₹${parseInt(amount || 0)}`;
+  }
 
-  const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
-  const trip = trips.find(t => t.id === tripId);
-  if (!trip) return alert("Trip not found!");
+  function updateTotals(pkg, extraHrs, hrRate, extraKM, kmRate, toll, parking, discount) {
+    const subtotal = pkg + (extraHrs * hrRate) + (extraKM * kmRate) + toll + parking;
+    const total = subtotal - discount;
+    document.getElementById("subtotal").innerText = formatAmount(subtotal);
+    document.getElementById("total").innerHTML = `<strong>${formatAmount(total)}</strong>`;
+  }
 
-  document.getElementById("invId").innerText = trip.id || tripId;
-  document.getElementById("invDate").innerText = trip.date || "--";
-  document.getElementById("custName").innerText = trip.custName || "";
-  document.getElementById("custNumber").innerText = trip.custNumber || "";
-  document.getElementById("driverName").innerText = trip.driverName || "";
-  document.getElementById("driverNumber").innerText = trip.driverNumber || "";
-  document.getElementById("vehicleModel").innerText = trip.vehicleModel || "";
-  document.getElementById("vehicleNo").innerText = trip.vehicleNo || "";
-  document.getElementById("pickup").innerText = trip.pickup || "";
-  document.getElementById("drop").innerText = trip.drop || "";
-  document.getElementById("note").innerText = trip.note || "";
+  function loadTrip() {
+    const id = document.getElementById("tripSelect").value;
+    if (!id) return alert("Select a Trip ID");
 
-  // Charges (simple calculation)
-  const base = { "Innova Crysta": 7500, "Innova Hycross": 8500, "Force Urbania": 9500 }[trip.vehicleModel] || 0;
-  const hourRate = { "Innova Crysta": 1000, "Innova Hycross": 1200, "Force Urbania": 1500 }[trip.vehicleModel] || 0;
-  const kmRate = { "Innova Crysta": 20, "Innova Hycross": 24, "Force Urbania": 26 }[trip.vehicleModel] || 0;
+    const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
+    const trip = trips.find(t => t.id === id);
+    if (!trip) return alert("Trip not found!");
 
-  const eh = trip.extraHours || 0;
-  const ek = trip.extraKM || 0;
+    // Fill Header
+    document.getElementById("invId").innerText = trip.id || "--";
+    document.getElementById("invDate").innerText = trip.date || "--";
+    document.getElementById("custName").innerText = trip.custName || "";
+    document.getElementById("custNumber").innerText = trip.custNumber || "";
+    document.getElementById("driverName").innerText = trip.driverName || "";
+    document.getElementById("driverNumber").innerText = trip.driverNumber || "";
+    document.getElementById("vehicleModel").innerText = trip.vehicleModel || "";
+    document.getElementById("vehicleNo").innerText = trip.vehicleNo || "";
+    document.getElementById("pickup").innerText = trip.pickup || "";
+    document.getElementById("drop").innerText = trip.drop || "";
+    document.getElementById("note").innerText = trip.note || "";
 
-  const subtotal = base + (eh * hourRate) + (ek * kmRate) + (trip.toll || 0) + (trip.parking || 0);
-  const total = subtotal - (trip.discount || 0);
+    // Rates
+    const pkgRate = { "Innova Crysta": 7500, "Innova Hycross": 8500, "Force Urbania": 9500 }[trip.vehicleModel] || 0;
+    const hrRate = { "Innova Crysta": 1000, "Innova Hycross": 1200, "Force Urbania": 1500 }[trip.vehicleModel] || 0;
+    const kmRate = { "Innova Crysta": 20, "Innova Hycross": 24, "Force Urbania": 26 }[trip.vehicleModel] || 0;
 
-  document.getElementById("chargeDetails").innerHTML = `
-    <tr><td contenteditable="true">Package</td><td contenteditable="true">${trip.vehicleModel} – Base</td><td contenteditable="true">${base}</td></tr>
-    <tr><td contenteditable="true">Extra Hours</td><td contenteditable="true">${eh} hrs × ₹${hourRate}/hr</td><td contenteditable="true">${eh * hourRate}</td></tr>
-    <tr><td contenteditable="true">Extra KM</td><td contenteditable="true">${ek} km × ₹${kmRate}/km</td><td contenteditable="true">${ek * kmRate}</td></tr>
-    <tr><td contenteditable="true">Toll</td><td contenteditable="true">–</td><td contenteditable="true">${trip.toll || 0}</td></tr>
-    <tr><td contenteditable="true">Parking</td><td contenteditable="true">–</td><td contenteditable="true">${trip.parking || 0}</td></tr>
-  `;
-  document.getElementById("subtotal").innerText = `₹${subtotal}`;
-  document.getElementById("discount").innerText = `₹${trip.discount || 0}`;
-  document.getElementById("total").innerHTML = `<strong>₹${total}</strong>`;
-}
+    const extraHrs = parseInt(trip.extraHours || 0);
+    const extraKM = parseInt(trip.extraKM || 0);
+    const toll = parseInt(trip.toll || 0);
+    const parking = parseInt(trip.parking || 0);
+    const discount = parseInt(trip.discount || 0);
+
+    const rows = [
+      `<tr><td contenteditable="true">Package</td><td contenteditable="true">${trip.vehicleModel} – Base Package</td><td contenteditable="true">${pkgRate}</td></tr>`,
+      `<tr><td contenteditable="true">Extra Hours</td><td contenteditable="true">${extraHrs} hrs × ₹${hrRate}</td><td contenteditable="true">${extraHrs * hrRate}</td></tr>`,
+      `<tr><td contenteditable="true">Extra KM</td><td contenteditable="true">${extraKM} km × ₹${kmRate}</td><td contenteditable="true">${extraKM * kmRate}</td></tr>`,
+      `<tr><td contenteditable="true">Toll</td><td contenteditable="true">–</td><td contenteditable="true">${toll}</td></tr>`,
+      `<tr><td contenteditable="true">Parking</td><td contenteditable="true">–</td><td contenteditable="true">${parking}</td></tr>`
+    ];
+    document.getElementById("chargeDetails").innerHTML = rows.join("");
+
+    updateTotals(pkgRate, extraHrs, hrRate, extraKM, kmRate, toll, parking, discount);
+    document.getElementById("discount").innerText = `₹${discount}`;
+  }
+
+  // On Load: populate Trip ID list
+  window.onload = () => {
+    const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
+    const dropdown = document.getElementById("tripSelect");
+    trips.forEach(t => {
+      const opt = document.createElement("option");
+      opt.value = t.id;
+      opt.innerText = t.id;
+      dropdown.appendChild(opt);
+    });
+  };
 </script>
 
 </body>
