@@ -1,91 +1,235 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>Invoice - NST Travels</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body { font-family:'Poppins',sans-serif; background:#f9f9f9; max-width:800px; margin:40px auto; padding:20px; }
-    h2 { color:#4b2aad; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f4f6f9;
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+    }
+    h2 {
+      color: #4b2aad;
+      margin-bottom: 10px;
+    }
+    select, input {
+      padding: 10px;
+      margin-bottom: 15px;
+      width: 100%;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
     .invoice-box {
-      border:1px solid #ccc; padding:20px; background:#fff;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    select, button {
-      padding:10px; font-size:16px; margin-bottom:20px; width:100%;
-      border-radius:5px; border:1px solid #ccc;
+    .group { display: flex; gap: 20px; flex-wrap: wrap; }
+    .group > div { flex: 1; min-width: 250px; }
+    label { font-weight: 600; display: block; margin-top: 10px; }
+    button {
+      background: #4b2aad;
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 5px;
+      font-size: 15px;
+      margin-right: 10px;
+      cursor: pointer;
     }
-    table { width:100%; border-collapse:collapse; margin-top:20px }
-    th, td { text-align:left; padding:8px; border-bottom:1px solid #ddd }
-    th { background:#4b2aad; color:#fff }
+    button:hover { background: #3a208b; }
+    .btns { margin-top: 20px; }
   </style>
 </head>
 <body>
 
-<h2>🧾 NST Travels - Invoice</h2>
+<h2>🧾 NST Invoice Generator</h2>
 
-<select id="tripSelect" onchange="generateInvoice()">
-  <option value="">-- Select Trip ID --</option>
+<label>Select Trip ID</label>
+<select id="tripSelect" onchange="fillInvoice()">
+  <option value="">-- Select --</option>
 </select>
 
-<div class="invoice-box" id="invoiceContent">
-  <p>Select a Trip ID to generate invoice.</p>
+<div class="invoice-box" id="invoiceArea">
+  <h3 style="text-align:center;">NST Travels – Invoice</h3>
+  <div class="group">
+    <div>
+      <label>Trip ID</label>
+      <input id="tripId" />
+    </div>
+    <div>
+      <label>Date</label>
+      <input id="tripDate" />
+    </div>
+  </div>
+
+  <div class="group">
+    <div>
+      <label>Customer Name</label>
+      <input id="custName" />
+    </div>
+    <div>
+      <label>Customer Number</label>
+      <input id="custNumber" />
+    </div>
+  </div>
+
+  <div class="group">
+    <div>
+      <label>Driver Name</label>
+      <input id="driverName" />
+    </div>
+    <div>
+      <label>Driver Number</label>
+      <input id="driverNumber" />
+    </div>
+  </div>
+
+  <div class="group">
+    <div>
+      <label>Vehicle Model</label>
+      <input id="vehicleModel" />
+    </div>
+    <div>
+      <label>Vehicle Number</label>
+      <input id="vehicleNo" />
+    </div>
+  </div>
+
+  <div class="group">
+    <div>
+      <label>Pickup Location</label>
+      <input id="pickup" />
+    </div>
+    <div>
+      <label>Drop Location</label>
+      <input id="drop" />
+    </div>
+  </div>
+
+  <div class="group">
+    <div>
+      <label>Duration (hrs)</label>
+      <input id="duration" />
+    </div>
+    <div>
+      <label>Extra Hours</label>
+      <input id="extraHours" />
+    </div>
+  </div>
+
+  <div class="group">
+    <div>
+      <label>Total KM</label>
+      <input id="totalKM" />
+    </div>
+    <div>
+      <label>Extra KM</label>
+      <input id="extraKM" />
+    </div>
+  </div>
+
+  <div class="group">
+    <div>
+      <label>Toll ₹</label>
+      <input id="toll" type="number" value="0" oninput="recalcTotal()" />
+    </div>
+    <div>
+      <label>Parking ₹</label>
+      <input id="parking" type="number" value="0" oninput="recalcTotal()" />
+    </div>
+  </div>
+
+  <div class="group">
+    <div>
+      <label>Total Amount ₹</label>
+      <input id="totalAmount" type="number" value="0" oninput="recalcTotal()" />
+    </div>
+    <div>
+      <label>Payment Status</label>
+      <input id="paymentStatus" />
+    </div>
+  </div>
+</div>
+
+<div class="btns">
+  <button onclick="generatePDF()">📄 Export PDF</button>
+  <button onclick="saveImage()">🖼️ Save as Image</button>
+  <button onclick="window.print()">🖨️ Print</button>
 </div>
 
 <script>
-  const key = "shared-trips";
-
-  function loadTripIDs() {
-    const trips = JSON.parse(localStorage.getItem(key) || "[]");
-    const select = document.getElementById("tripSelect");
-    trips.forEach((trip, index) => {
+  function loadTrips() {
+    let trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
+    const sel = document.getElementById("tripSelect");
+    trips.forEach(t => {
       const opt = document.createElement("option");
-      opt.value = index;
-      opt.text = `${trip.id} - ${trip.date}`;
-      select.appendChild(opt);
+      opt.value = t.id;
+      opt.textContent = t.id;
+      sel.appendChild(opt);
     });
   }
 
-  function generateInvoice() {
-    const index = document.getElementById("tripSelect").value;
-    if (index === "") {
-      document.getElementById("invoiceContent").innerHTML = "<p>Select a Trip ID to generate invoice.</p>";
-      return;
-    }
+  function fillInvoice() {
+    const tripId = tripSelect.value;
+    if (!tripId) return;
+    const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
+    const trip = trips.find(t => t.id === tripId);
+    if (!trip) return alert("Trip not found");
 
-    const trips = JSON.parse(localStorage.getItem(key) || "[]");
-    const trip = trips[index];
-    if (!trip) return;
-
-    const html = `
-      <h3>Invoice for ${trip.id}</h3>
-      <p><strong>Date:</strong> ${trip.date}</p>
-      <p><strong>Customer:</strong> ${trip.custName} (${trip.custNumber})</p>
-      <p><strong>Duty:</strong> ${trip.duty || "-"}</p>
-      <p><strong>Pickup:</strong> ${trip.pickup}</p>
-      <p><strong>Drop:</strong> ${trip.drop}</p>
-      <p><strong>Driver:</strong> ${trip.driverName} (${trip.driverNumber})</p>
-      <p><strong>Vehicle:</strong> ${trip.vehicleModel} (${trip.vehicleNo})</p>
-
-      <table>
-        <tr><th>Description</th><th>Details</th></tr>
-        <tr><td>Time</td><td>${trip.start} - ${trip.end} (${trip.duration} hrs)</td></tr>
-        <tr><td>Extra Hours</td><td>${trip.extraHours || 0}</td></tr>
-        <tr><td>KM</td><td>${trip.startKM} - ${trip.endKM} = ${trip.totalKM} km</td></tr>
-        <tr><td>Extra KM</td><td>${trip.extraKM || 0}</td></tr>
-        <tr><td>Parking</td><td>₹${trip.parking || 0}</td></tr>
-        <tr><td>Toll</td><td>₹${trip.toll || 0}</td></tr>
-        <tr><td><strong>Total Amount</strong></td><td><strong>₹${trip.totalAmount}</strong></td></tr>
-        <tr><td>Payment Status</td><td>${trip.paymentStatus}</td></tr>
-      </table>
-
-      <p><strong>Note:</strong> ${trip.note || "-"}</p>
-    `;
-
-    document.getElementById("invoiceContent").innerHTML = html;
+    tripIdInput.value = trip.id;
+    tripDate.value = trip.date || "";
+    custName.value = trip.custName || "";
+    custNumber.value = trip.custNumber || "";
+    driverName.value = trip.driverName || "";
+    driverNumber.value = trip.driverNumber || "";
+    vehicleModel.value = trip.vehicleModel || "";
+    vehicleNo.value = trip.vehicleNo || "";
+    pickup.value = trip.pickup || "";
+    drop.value = trip.drop || "";
+    duration.value = trip.duration || "";
+    extraHours.value = trip.extraHours || "";
+    totalKM.value = trip.totalKM || "";
+    extraKM.value = trip.extraKM || "";
+    totalAmount.value = trip.totalAmount || "0";
+    paymentStatus.value = trip.paymentStatus || "";
+    toll.value = trip.toll || "0";
+    parking.value = trip.parking || "0";
   }
 
-  window.onload = loadTripIDs;
+  function recalcTotal() {
+    let amt = parseFloat(totalAmount.value) || 0;
+    let t = parseFloat(toll.value) || 0;
+    let p = parseFloat(parking.value) || 0;
+    totalAmount.value = amt + t + p;
+  }
+
+  function generatePDF() {
+    const element = document.getElementById("invoiceArea");
+    html2pdf().from(element).save("NST_Invoice.pdf");
+  }
+
+  function saveImage() {
+    html2canvas(document.getElementById("invoiceArea")).then(canvas => {
+      const a = document.createElement("a");
+      a.href = canvas.toDataURL("image/png");
+      a.download = "NST_Invoice.png";
+      a.click();
+    });
+  }
+
+  window.onload = () => {
+    window.tripIdInput = document.getElementById("tripId");
+    loadTrips();
+  };
 </script>
 
 </body>
