@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -10,15 +9,16 @@
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      margin: 0; padding: 40px;
+      margin: 0;
+      padding: 0;
       background: #f9f9fc;
       color: #333;
     }
     .invoice-container {
-      max-width: 794px; /* A4 width at 96 DPI */
-      margin: auto;
+      max-width: 794px;
+      margin: 0 auto;
       background: white;
-      padding: 30px;
+      padding: 20px 30px 30px;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
@@ -80,7 +80,7 @@
     }
     .topbar {
       text-align: center;
-      margin-bottom: 20px;
+      margin: 10px 0;
     }
     .topbar select {
       padding: 8px 12px;
@@ -99,25 +99,19 @@
     }
   </style>
 </head>
-<body>
-
-<div class="topbar">
+<body><div class="topbar">
   <select id="tripSelect">
     <option value="">Select Trip ID</option>
   </select>
   <button class="btn" onclick="loadTrip()">🔍 Load Trip</button>
-</div>
-
-<div class="invoice-container" id="invoice">
+</div><div class="invoice-container" id="invoice">
   <div class="invoice-header">
     <h1>🚖 NST Travels</h1>
     <div>
       <p><strong>Invoice No:</strong> <span id="invId" contenteditable="true">xxxxxxxxx</span></p>
       <p><strong>Date:</strong> <span id="invDate" contenteditable="true">--</span></p>
     </div>
-  </div>
-
-  <div class="row">
+  </div>  <div class="row">
     <div>
       <h3>👤 Customer</h3>
       <p><strong>Name:</strong> <span id="custName" contenteditable="true">xxxxxxxxx</span></p>
@@ -128,9 +122,7 @@
       <p><strong>Name:</strong> <span id="driverName" contenteditable="true">xxxxxxxxx</span></p>
       <p><strong>Phone:</strong> <span id="driverNumber" contenteditable="true">xxxxxxxxx</span></p>
     </div>
-  </div>
-
-  <div class="row">
+  </div>  <div class="row">
     <div>
       <h3>🚘 Trip Info</h3>
       <p><strong>Model:</strong> <span id="vehicleModel" contenteditable="true">xxxxxxxxx</span></p>
@@ -140,13 +132,12 @@
       <p><strong>Pickup:</strong> <span id="pickup" contenteditable="true">xxxxxxxxx</span></p>
       <p><strong>Drop:</strong> <span id="drop" contenteditable="true">xxxxxxxxx</span></p>
     </div>
-  </div>
-
-  <table class="table">
+  </div>  <table class="table">
     <thead>
       <tr><th>Item</th><th>Details</th><th>Amount (₹)</th></tr>
     </thead>
     <tbody id="chargeDetails">
+      <!-- Editable Rows -->
       <tr>
         <td contenteditable="true">Package</td>
         <td contenteditable="true">Innova Crysta – 8 hrs / 80 KM</td>
@@ -173,65 +164,30 @@
         <td contenteditable="true">100</td>
       </tr>
     </tbody>
-  </table>
-
-  <div class="totals">
+  </table>  <div class="totals">
     <div class="row"><div class="label">Subtotal:</div><div id="subtotal">₹0</div></div>
     <div class="row"><div class="label">Discount:</div><div id="discount" contenteditable="true">₹0</div></div>
     <hr>
     <div class="row"><div class="label"><strong>Total:</strong></div><div id="total"><strong>₹0</strong></div></div>
-  </div>
-
-  <div class="note">
+  </div>  <div class="note">
     <p>📝 Note: <span id="note" contenteditable="true">Thank you for choosing NST Travels. For queries, call +91-9876543210.</span></p>
-  </div>
-
-  <div style="text-align:center;">
-    <button class="btn" onclick="window.print()">🖨️ Print Invoice</button>
-    <button class="btn" onclick="downloadPDF()">💾 Download PDF</button>
+  </div>  <div style="text-align:center;">
+    <button class="btn" onclick="window.print()">🖶️ Print Invoice</button>
+    <button class="btn" onclick="downloadPDF()">📄 Download PDF</button>
     <button class="btn" onclick="downloadImage()">🖼️ Download Image</button>
   </div>
-</div>
-
-<script>
+</div><script>
 function getFileName() {
   const id = document.getElementById("invId").innerText.trim().replace(/#/g, "");
   const date = document.getElementById("invDate").innerText.trim().replace(/\s+/g, "-");
   return `Invoice_${id}_${date}`;
 }
-
-function downloadPDF() {
-  const element = document.getElementById("invoice");
-  html2pdf().from(element).set({
-    margin: 0,
-    filename: getFileName() + ".pdf",
-    image: { type: 'jpeg', quality: 1 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  }).save();
-}
-
-function downloadImage() {
-  const element = document.getElementById("invoice");
-  html2canvas(element, {
-    scale: 2,
-    width: 794,
-    height: 1123
-  }).then(canvas => {
-    const link = document.createElement("a");
-    link.download = getFileName() + ".png";
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-  });
-}
-
 function parseDetail(text) {
   const match = text.match(/(\d+)\s*(hrs|km)?\s*[x×]\s*₹?(\d+)/i);
   if (match) return parseInt(match[1]) * parseInt(match[3]);
   const num = text.match(/₹?\s?(\d+)/);
   return num ? parseInt(num[1]) : 0;
 }
-
 function recalculateAmounts() {
   let subtotal = 0;
   document.querySelectorAll("#chargeDetails tr").forEach(row => {
@@ -245,59 +201,32 @@ function recalculateAmounts() {
   const discount = parseInt(document.getElementById("discount").innerText.replace(/[^\d]/g, "")) || 0;
   document.getElementById("total").innerHTML = `<strong>₹${subtotal - discount}</strong>`;
 }
-
-function loadTrip() {
-  const id = document.getElementById("tripSelect").value;
-  if (!id) return;
-  const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
-  const trip = trips.find(t => t.id === id);
-  if (!trip) return alert("Trip not found!");
-
-  document.getElementById("invId").innerText = trip.id;
-  document.getElementById("invDate").innerText = trip.date || "--";
-  document.getElementById("custName").innerText = trip.custName || "";
-  document.getElementById("custNumber").innerText = trip.custNumber || "";
-  document.getElementById("driverName").innerText = trip.driverName || "";
-  document.getElementById("driverNumber").innerText = trip.driverNumber || "";
-  document.getElementById("vehicleModel").innerText = trip.vehicleModel || "";
-  document.getElementById("vehicleNo").innerText = trip.vehicleNo || "";
-  document.getElementById("pickup").innerText = trip.pickup || "";
-  document.getElementById("drop").innerText = trip.drop || "";
-  document.getElementById("note").innerText = trip.note || "";
-
-  const model = trip.vehicleModel;
-  const pkg = { "Innova Crysta": 7500, "Innova Hycross": 8500, "Force Urbania": 9500 }[model] || 0;
-  const hr = { "Innova Crysta": 1000, "Innova Hycross": 1200, "Force Urbania": 1500 }[model] || 0;
-  const km = { "Innova Crysta": 20, "Innova Hycross": 24, "Force Urbania": 26 }[model] || 0;
-
-  const html = `
-    <tr><td contenteditable="true">Package</td><td contenteditable="true">${model} – Base Package</td><td contenteditable="true">${pkg}</td></tr>
-    <tr><td contenteditable="true">Extra Hours</td><td contenteditable="true">${trip.extraHours || 0} hrs × ₹${hr}</td><td contenteditable="true">--</td></tr>
-    <tr><td contenteditable="true">Extra KM</td><td contenteditable="true">${trip.extraKM || 0} km × ₹${km}</td><td contenteditable="true">--</td></tr>
-    <tr><td contenteditable="true">Toll</td><td contenteditable="true">–</td><td contenteditable="true">${trip.toll || 0}</td></tr>
-    <tr><td contenteditable="true">Parking</td><td contenteditable="true">–</td><td contenteditable="true">${trip.parking || 0}</td></tr>
-  `;
-  document.getElementById("chargeDetails").innerHTML = html;
-  document.getElementById("discount").innerText = `₹${trip.discount || 0}`;
-  recalculateAmounts();
+function downloadPDF() {
+  const element = document.getElementById("invoice");
+  html2pdf().from(element).set({
+    margin: 0,
+    filename: getFileName() + ".pdf",
+    image: { type: 'jpeg', quality: 1 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  }).save();
 }
-
-window.onload = () => {
-  const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
-  const sel = document.getElementById("tripSelect");
-  trips.forEach(t => {
-    const o = document.createElement("option");
-    o.value = t.id;
-    o.innerText = t.id;
-    sel.appendChild(o);
+function downloadImage() {
+  const element = document.getElementById("invoice");
+  html2canvas(element, {
+    scale: 2,
+    scrollY: -window.scrollY,
+    width: 794,
+    height: 1123
+  }).then(canvas => {
+    const link = document.createElement("a");
+    link.download = getFileName() + ".png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
   });
-  recalculateAmounts();
-};
-
+}
 document.addEventListener("input", e => {
   if (e.target.closest("#chargeDetails") || e.target.id === "discount") recalculateAmounts();
 });
-</script>
-
-</body>
+</script></body>
 </html>
