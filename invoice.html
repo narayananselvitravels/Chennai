@@ -6,12 +6,11 @@
   <title>Invoice – NST Travels</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      margin: 0;
-      padding: 40px;
+      margin: 0; padding: 40px;
       background: #f9f9fc;
       color: #333;
     }
@@ -36,7 +35,6 @@
       font-size: 28px;
       margin: 0;
     }
-    .invoice-details { margin-bottom: 20px; }
     .row { display: flex; justify-content: space-between; margin-bottom: 10px; }
     .label { font-weight: 600; width: 150px; }
     .table {
@@ -49,96 +47,86 @@
       border: 1px solid #ccc;
       text-align: left;
     }
-    .table th {
-      background: #4b2aad;
-      color: white;
-    }
+    .table th { background: #4b2aad; color: white; }
     .totals {
       margin-top: 20px;
       float: right;
       width: 300px;
     }
-    .totals .row {
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
+    .totals .row { justify-content: space-between; }
     .note {
       margin-top: 30px;
       font-size: 14px;
       color: #555;
     }
     .btn {
-      margin-top: 20px;
-      margin-right: 10px;
+      margin: 5px;
       padding: 10px 20px;
       background: #4b2aad;
       color: white;
       border: none;
       border-radius: 5px;
-      font-size: 15px;
+      font-size: 16px;
       cursor: pointer;
     }
-    .btn:hover {
-      background: #3a208b;
-    }
-    [contenteditable="true"]:focus {
-      outline: 2px dashed #4b2aad;
-      background: #f4f2ff;
-    }
-    .signatures {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 60px;
-      font-size: 15px;
-    }
-    .signatures div {
-      text-align: center;
-      width: 45%;
-      border-top: 1px solid #999;
-      padding-top: 10px;
-    }
+    .btn:hover { background: #3a208b; }
+    .no-print { display: block; }
     @media print {
-      .btn {
-        display: none !important;
-      }
+      .no-print { display: none !important; }
+    }
+    input, textarea {
+      border: none;
+      border-bottom: 1px solid #ccc;
+      font: inherit;
+      width: 100%;
+      padding: 4px;
+    }
+    input.amount {
+      width: 80px;
+      text-align: right;
     }
   </style>
 </head>
 <body>
 
+<div class="no-print" style="text-align: center; margin-bottom: 20px;">
+  <label for="tripSelect"><strong>🔍 Select Trip ID:</strong></label>
+  <select id="tripSelect" onchange="loadTripById()">
+    <option value="">-- Select --</option>
+  </select>
+</div>
+
 <div class="invoice-container" id="invoice">
   <div class="invoice-header">
     <h1>🚖 NST Travels</h1>
     <div>
-      <p><strong>Invoice No:</strong> <span contenteditable="true">NST000</span></p>
-      <p><strong>Date:</strong> <span contenteditable="true">07 July 2025</span></p>
+      <p><strong>Invoice No:</strong> <span id="invId">#NST001</span></p>
+      <p><strong>Date:</strong> <span id="invDate">10-Jul-2025</span></p>
     </div>
   </div>
 
-  <div class="invoice-details">
-    <div class="row">
-      <div>
-        <h3>👤 Customer</h3>
-        <p><strong>Name:</strong> <span contenteditable="true">John Doe</span></p>
-        <p><strong>Phone:</strong> <span contenteditable="true">9876543210</span></p>
-      </div>
-      <div>
-        <h3>👨‍✈️ Driver</h3>
-        <p><strong>Name:</strong> <span contenteditable="true">Perumal</span></p>
-        <p><strong>Phone:</strong> <span contenteditable="true">9699994563</span></p>
-      </div>
+  <div class="row">
+    <div>
+      <h3>👤 Customer</h3>
+      <p><strong>Name:</strong> <input id="custName" value="John Doe"></p>
+      <p><strong>Phone:</strong> <input id="custPhone" value="9876543210"></p>
     </div>
+    <div>
+      <h3>👨‍✈️ Driver</h3>
+      <p><strong>Name:</strong> <input id="driverName" value="Perumal"></p>
+      <p><strong>Phone:</strong> <input id="driverPhone" value="9699994563"></p>
+    </div>
+  </div>
 
-    <div class="row">
-      <div>
-        <h3>🚘 Trip Info</h3>
-        <p><strong>Model:</strong> <span contenteditable="true">Innova Crysta</span></p>
-        <p><strong>Vehicle No:</strong> <span contenteditable="true">PY05N0505</span></p>
-      </div>
-      <div>
-        <p><strong>Pickup:</strong> <span contenteditable="true">Auroville</span></p>
-        <p><strong>Drop:</strong> <span contenteditable="true">Chennai Airport</span></p>
-      </div>
+  <div class="row">
+    <div>
+      <h3>🚘 Trip Info</h3>
+      <p><strong>Model:</strong> <input id="vehicleModel" value="Innova Crysta"></p>
+      <p><strong>Vehicle No:</strong> <input id="vehicleNo" value="PY05N0505"></p>
+    </div>
+    <div>
+      <p><strong>Pickup:</strong> <input id="pickup" value="Auroville"></p>
+      <p><strong>Drop:</strong> <input id="drop" value="Chennai Airport"></p>
     </div>
   </div>
 
@@ -148,80 +136,142 @@
         <th>Item</th><th>Details</th><th>Amount (₹)</th>
       </tr>
     </thead>
-    <tbody id="chargeDetails">
-      <tr><td contenteditable="true">Package</td><td contenteditable="true">Innova Crysta – 8 hrs / 80 KM</td><td contenteditable="true">7500</td></tr>
-      <tr><td contenteditable="true">Extra Hours</td><td contenteditable="true">2 hrs × ₹1000</td><td contenteditable="true">--</td></tr>
-      <tr><td contenteditable="true">Extra KM</td><td contenteditable="true">10 km × ₹20</td><td contenteditable="true">--</td></tr>
-      <tr><td contenteditable="true">Toll</td><td contenteditable="true">–</td><td contenteditable="true">150</td></tr>
-      <tr><td contenteditable="true">Parking</td><td contenteditable="true">–</td><td contenteditable="true">100</td></tr>
+    <tbody id="chargeTable">
+      <tr>
+        <td>Package</td>
+        <td><input id="packageDetail" value="Innova Crysta – 8 hrs / 80 KM"></td>
+        <td><input class="amount" id="packageAmt" value="7500" onchange="calculateTotal()"></td>
+      </tr>
+      <tr>
+        <td>Extra Hours</td>
+        <td><input id="extraHrDetail" value="2 hrs × ₹1000/hr" onchange="calculateTotal()"></td>
+        <td><input class="amount" id="extraHrAmt" value="2000" onchange="calculateTotal()"></td>
+      </tr>
+      <tr>
+        <td>Extra KM</td>
+        <td><input id="extraKmDetail" value="10 km × ₹20/km" onchange="calculateTotal()"></td>
+        <td><input class="amount" id="extraKmAmt" value="200" onchange="calculateTotal()"></td>
+      </tr>
+      <tr>
+        <td>Toll</td>
+        <td>–</td>
+        <td><input class="amount" id="toll" value="150" onchange="calculateTotal()"></td>
+      </tr>
+      <tr>
+        <td>Parking</td>
+        <td>–</td>
+        <td><input class="amount" id="parking" value="100" onchange="calculateTotal()"></td>
+      </tr>
     </tbody>
   </table>
 
   <div class="totals">
     <div class="row"><div class="label">Subtotal:</div><div id="subtotal">₹0</div></div>
-    <div class="row"><div class="label">Discount:</div><div id="discount" contenteditable="true">₹0</div></div>
-    <hr>
+    <div class="row"><div class="label">Discount:</div><input class="amount" id="discount" value="0" onchange="calculateTotal()"></div>
     <div class="row"><div class="label"><strong>Total:</strong></div><div id="total"><strong>₹0</strong></div></div>
   </div>
 
   <div class="note">
-    <p>📝 Note: <span contenteditable="true">Thank you for choosing NST Travels. For queries, call +91-9876543210.</span></p>
+    <p>📝 <strong>Note:</strong> <textarea id="note" rows="2">Thank you for choosing NST Travels. For any queries, contact us at +91-9551208961.</textarea></p>
   </div>
 
-  <div class="signatures">
-    <div>Customer Signature</div>
-    <div>Driver Signature</div>
-  </div>
-
-  <div style="text-align: center;">
-    <button class="btn" onclick="window.print()">🖨️ Print Invoice</button>
-    <button class="btn" onclick="shareImage()">📸 WhatsApp Image</button>
-    <button class="btn" onclick="sharePDF()">📄 WhatsApp PDF</button>
+  <div class="no-print" style="text-align: center; margin-top: 30px;">
+    <button class="btn" onclick="window.print()">🖨️ Print</button>
+    <button class="btn" onclick="downloadPDF()">📄 Download PDF</button>
+    <button class="btn" id="shareBtn" onclick="shareInvoice()">📤 Share Invoice</button>
   </div>
 </div>
 
 <script>
-function parseDetail(text) {
-  const match = text.match(/(\d+)\s*(hrs|km)?\s*[x×]\s*₹?(\d+)/i);
-  if (match) {
-    const qty = parseInt(match[1]);
-    const rate = parseInt(match[3]);
-    return qty * rate;
+  function calculateTotal() {
+    const getVal = id => parseFloat(document.getElementById(id).value) || 0;
+    const parseCalc = (str, fallback) => {
+      const match = str.match(/([\d.]+)\s*[x×*]\s*₹?\s*([\d.]+)/i);
+      return match ? (parseFloat(match[1]) * parseFloat(match[2])) : fallback;
+    };
+
+    const extraHr = parseCalc(document.getElementById("extraHrDetail").value, getVal("extraHrAmt"));
+    const extraKm = parseCalc(document.getElementById("extraKmDetail").value, getVal("extraKmAmt"));
+
+    document.getElementById("extraHrAmt").value = extraHr.toFixed(0);
+    document.getElementById("extraKmAmt").value = extraKm.toFixed(0);
+
+    const subtotal = getVal("packageAmt") + extraHr + extraKm;
+    const total = subtotal + getVal("toll") + getVal("parking") - getVal("discount");
+
+    document.getElementById("subtotal").innerText = "₹" + subtotal.toFixed(0);
+    document.getElementById("total").innerHTML = "<strong>₹" + total.toFixed(0) + "</strong>";
   }
-  const direct = text.match(/₹?\s?(\d+)/);
-  return direct ? parseInt(direct[1]) : 0;
-}
 
-function recalculate() {
-  let subtotal = 0;
-  const rows = document.querySelectorAll("#chargeDetails tr");
-  rows.forEach(row => {
-    const detail = row.children[1].innerText;
-    const amt = parseDetail(detail);
-    row.children[2].innerText = amt;
-    subtotal += amt;
+  function formatDateLabel(dateStr) {
+    const d = new Date();
+    return `${d.getDate().toString().padStart(2, '0')}-${d.toLocaleString('default',{month:'short'})}-${d.getFullYear()}`;
+  }
+
+  function updateShareButtonLabel() {
+    const id = document.getElementById("invId").innerText.trim();
+    const date = document.getElementById("invDate").innerText.trim();
+    document.getElementById("shareBtn").innerText = `📤 Share ${id} – ${formatDateLabel(date)}`;
+  }
+
+  function shareInvoice() {
+    const id = document.getElementById("invId").innerText.trim();
+    const date = formatDateLabel(document.getElementById("invDate").innerText.trim());
+    const total = document.getElementById("total").innerText.trim();
+    const note = document.getElementById("note").value;
+
+    html2canvas(document.getElementById("invoice")).then(canvas => {
+      canvas.toBlob(blob => {
+        const file = new File([blob], `${id}_${date}.png`, { type: "image/png" });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({
+            files: [file],
+            title: `NST Invoice ${id}`,
+            text: `Invoice: ${id}\nDate: ${date}\nTotal: ${total}\nContact: +91-9551208961`
+          }).catch(err => alert("Share canceled or failed."));
+        } else {
+          const msg =
+            `🧾 *NST Travels Invoice*\n\n` +
+            `*Invoice No:* ${id}\n` +
+            `*Date:* ${date}\n` +
+            `*Total:* ${total}\n` +
+            `*Note:* ${note}\n\n` +
+            `📞 For any queries, call: +91-9551208961`;
+          window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
+        }
+      });
+    });
+  }
+
+  function downloadPDF() {
+    const id = document.getElementById("invId").innerText.trim();
+    const date = formatDateLabel(document.getElementById("invDate").innerText.trim());
+    const filename = `${id}_${date}.pdf`;
+    html2pdf().from(document.getElementById("invoice")).set({ filename }).save();
+  }
+
+  function loadTripById() {
+    const id = document.getElementById("tripSelect").value;
+    alert("Loading trip data for: " + id); // Replace with actual loader logic
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    updateShareButtonLabel();
+    calculateTotal();
+
+    // Example trip IDs
+    const trips = ["#NST001", "#NST002", "#NST003"];
+    const select = document.getElementById("tripSelect");
+    trips.forEach(id => {
+      const opt = document.createElement("option");
+      opt.value = id;
+      opt.text = id;
+      select.appendChild(opt);
+    });
   });
-  document.getElementById("subtotal").innerText = `₹${subtotal}`;
-  const discount = parseInt(document.getElementById("discount").innerText.replace(/[^\d]/g, "")) || 0;
-  const total = subtotal - discount;
-  document.getElementById("total").innerHTML = `<strong>₹${total}</strong>`;
-}
-document.addEventListener("input", () => recalculate());
-window.onload = () => recalculate();
 
-function shareImage() {
-  html2canvas(document.getElementById("invoice")).then(canvas => {
-    const image = canvas.toDataURL("image/png");
-    const link = `https://wa.me/?text=${encodeURIComponent("🧾 *NST Travels Invoice*\n\nSee attached invoice image.")}`;
-    window.open(link, "_blank");
-    // Optionally you can also open the image in a new tab: window.open(image);
-  });
-}
-
-function sharePDF() {
-  const element = document.getElementById("invoice");
-  html2pdf().from(element).set({ margin: 0.5, filename: 'NST_Invoice.pdf' }).save();
-}
+  document.addEventListener("input", updateShareButtonLabel);
 </script>
 
 </body>
