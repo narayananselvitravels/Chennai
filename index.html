@@ -150,64 +150,75 @@
   }
 
   function shareWhatsApp() {
-    let msg = `📋 *NST TRIP SUMMARY*%0A`;
-
-    const fields = [
-      ['🗓️ *TRIP DETAILS*', [
-        ['Trip ID', tripId.value],
-        ['Date', tripDateDisplay.value]
-      ]],
-      ['📍 *LOCATIONS*', [
-        ['Pickup', pickupLocation.value],
-        ['Drop', dropLocation.value]
-      ]],
-      ['👤 *CUSTOMER INFO*', [
-        ['Name', custName.value],
-        ['Number', custNumber.value]
-      ]],
-      ['👨‍✈️ *DRIVER INFO*', [
-        ['Name', driverName.value],
-        ['Number', driverNumber.value]
-      ]],
-      ['🚘 *VEHICLE INFO*', [
-        ['Model', vehicleModel.value],
-        ['Number', vehicleNo.value]
-      ]],
-      ['🕒 *TIME DETAILS*', [
-        ['Start Time', startTime.value],
-        ['End Time', endTime.value],
-        ['Duration', duration.value + ' hrs'],
-        ['Extra Hours', extraHours.value]
-      ]],
-      ['📏 *DISTANCE DETAILS*', [
-        ['Start KM', startKM.value],
-        ['End KM', endKM.value],
-        ['Total KM', totalKM.value + ' km'],
-        ['Extra KM', extraKM.value]
-      ]],
-      ['💰 *FARE DETAILS*', [
-        ['Parking', '₹' + (parking.value || 0)],
-        ['Toll', '₹' + (toll.value || 0)],
-        ['Total Amount', '₹' + totalAmount.value],
-        ['Payment Status', paymentStatus.value]
-      ]],
-      ['📝 *NOTE*', [
-        [null, note.value || '-']
-      ]]
-    ];
-
-    fields.forEach(([title, pairs]) => {
-      msg += `%0A${title}%0A`;
-      pairs.forEach(([label, val]) => {
-        if (val && val !== "0" && val !== "-") {
-          msg += label ? `• *${label}:* ${val}%0A` : `${val}%0A`;
-        }
-      });
-    });
-
-    reserveId(); tripId.value = genId();
-    window.open("https://wa.me/?text=" + msg, '_blank');
+  // Save trip before sharing
+  if (!tripId.value || !tripDateDisplay.value) {
+    alert("❗ Please enter at least Trip ID and Date before sharing.");
+    return;
   }
+
+  saveTrip(true); // pass true to mark it as shared trip
+
+  // Now prepare WhatsApp message
+  const fields = {
+    "📋 *NST TRIP SUMMARY*": "",
+    "🗓️ *TRIP DETAILS*": [
+      `• *Trip ID:* ${tripId.value}`,
+      `• *Date:* ${tripDateDisplay.value}`
+    ],
+    "📍 *LOCATIONS*": [
+      pickupLocation.value && `• *Pickup:* ${pickupLocation.value}`,
+      dropLocation.value && `• *Drop:* ${dropLocation.value}`
+    ],
+    "👤 *CUSTOMER INFO*": [
+      custName.value && `• *Name:* ${custName.value}`,
+      custNumber.value && `• *Number:* ${custNumber.value}`
+    ],
+    "👨‍✈️ *DRIVER INFO*": [
+      driverName.value && `• *Name:* ${driverName.value}`,
+      driverNumber.value && `• *Number:* ${driverNumber.value}`
+    ],
+    "🚘 *VEHICLE INFO*": [
+      vehicleModel.value && `• *Model:* ${vehicleModel.value}`,
+      vehicleNo.value && `• *Number:* ${vehicleNo.value}`
+    ],
+    "🕒 *TIME DETAILS*": [
+      startTime.value && `• *Start Time:* ${startTime.value}`,
+      endTime.value && `• *End Time:* ${endTime.value}`,
+      duration.value && `• *Duration:* ${duration.value} hrs`,
+      extraHours.value && `• *Extra Hours:* ${extraHours.value}`
+    ],
+    "📏 *DISTANCE DETAILS*": [
+      startKM.value && `• *Start KM:* ${startKM.value}`,
+      endKM.value && `• *End KM:* ${endKM.value}`,
+      totalKM.value && `• *Total KM:* ${totalKM.value} km`,
+      extraKM.value && `• *Extra KM:* ${extraKM.value} km`
+    ],
+    "💰 *FARE DETAILS*": [
+      toll && `• *Toll:* ₹${toll.value || 0}`,
+      parking && `• *Parking:* ₹${parking.value || 0}`,
+      totalAmount.value && `• *Total Amount:* ₹${totalAmount.value}`,
+      paymentStatus.value && `• *Payment Status:* ${paymentStatus.value}`
+    ],
+    "📝 *NOTE*": [
+      note.value ? `- ${note.value}` : "-"
+    ]
+  };
+
+  let message = "";
+  for (let section in fields) {
+    const lines = fields[section];
+    if (Array.isArray(lines)) {
+      const validLines = lines.filter(Boolean);
+      if (validLines.length) {
+        message += `\n\n${section}\n` + validLines.join("\n");
+      }
+    } else {
+      message += `\n\n${section}`;
+    }
+  }
+
+  window.open("https://wa.me/?text=" + encodeURIComponent(message), "_blank");
+}
 
   function showSharedTrips() {
     const arr = JSON.parse(localStorage.getItem(SHKEY) || "[]");
