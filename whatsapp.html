@@ -63,12 +63,17 @@
 
 <script>
   let trips = [];
+
+  function fallback(val) {
+    return (val === undefined || val === null || val === "") ? "-" : val;
+  }
+
   function init() {
     trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
     const select = document.getElementById("tripSelect");
     select.innerHTML = `<option value="">-- Select Trip --</option>`;
     trips.forEach((t, i) => {
-      select.innerHTML += `<option value="${i}">${t.id} - ${t.date}</option>`;
+      select.innerHTML += `<option value="${i}">${t.id || ("#NST" + i + 1)} - ${fallback(t.date)}</option>`;
     });
   }
 
@@ -77,15 +82,48 @@
     if (i === "") return whatsAppMsg.textContent = "Select a trip to preview message...";
 
     const t = trips[i];
-    const msg = `📋 *TRIP SUMMARY*\n\n*Trip ID:* ${t.id}\n*Date:* ${t.date}\n*Duty:* ${t.duty || "-"}\n\n` +
-      `📍 *Pickup:* ${t.pickup}\n📍 *Drop:* ${t.drop}\n\n` +
-      `👤 *Customer:* ${t.custName} (${t.custNumber})\n` +
-      `🚖 *Driver:* ${t.driverName} (${t.driverNumber})\n` +
-      `🚘 *Vehicle:* ${t.vehicleModel} (${t.vehicleNo})\n\n` +
-      `🕒 *Time:* ${t.start} - ${t.end} (${t.duration} hrs, Extra ${t.extraHours} hrs)\n` +
-      `📍 *KM:* ${t.startKM} - ${t.endKM} = ${t.totalKM} km (Extra ${t.extraKM} km)\n` +
-      `💰 *Total Amount:* ₹${t.totalAmount} | *Status:* ${t.paymentStatus}\n\n` +
-      `📝 *Note:* ${t.note || '-'}`;
+    const msg = `📋 *NST TRIP SUMMARY*\n\n` +
+`🗓️ *TRIP DETAILS*
+• *Trip ID:* ${fallback(t.id)}
+• *Date:* ${fallback(t.date)}
+
+📍 *LOCATIONS*
+• *Pickup:* ${fallback(t.pickup)}
+• *Drop:* ${fallback(t.drop)}
+
+👤 *CUSTOMER INFO*
+• *Name:* ${fallback(t.custName)}
+• *Number:* ${fallback(t.custNumber)}
+
+👨‍✈️ *DRIVER INFO*
+• *Name:* ${fallback(t.driverName)}
+• *Number:* ${fallback(t.driverNumber)}
+
+🚘 *VEHICLE INFO*
+• *Model:* ${fallback(t.vehicleModel)}
+• *Number:* ${fallback(t.vehicleNo)}
+
+🕒 *TIME DETAILS*
+• *Start Time:* ${fallback(t.start)}
+• *End Time:* ${fallback(t.end)}
+• *Duration:* ${fallback(t.duration)} hrs
+• *Extra Hours:* ${fallback(t.extraHours)}
+
+📏 *DISTANCE DETAILS*
+• *Start KM:* ${fallback(t.startKM)}
+• *End KM:* ${fallback(t.endKM)}
+• *Total KM:* ${fallback(t.totalKM)} km
+• *Extra KM:* ${fallback(t.extraKM)} km
+
+💰 *FARE DETAILS*
+• *Parking:* ₹${fallback(t.parking)}
+• *Toll:* ₹${fallback(t.toll)}
+• *Total Amount:* ₹${fallback(t.totalAmount)}
+• *Payment Status:* ${fallback(t.paymentStatus)}
+
+📝 *NOTE*
+${fallback(t.note)}`;
+
     document.getElementById("whatsAppMsg").textContent = msg;
   }
 
