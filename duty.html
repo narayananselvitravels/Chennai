@@ -1,116 +1,94 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>Duty Master – NST</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: #f4f6f9;
-      padding: 20px;
-      max-width: 600px;
-      margin: auto;
+    body { font-family:'Poppins',sans-serif; background:#f4f6f9; max-width:700px; margin:20px auto; padding:20px; }
+    h2 { color:#4b2aad }
+    input, select, button {
+      width:100%; padding:10px; margin:5px 0 15px;
+      border:1px solid #ccc; border-radius:5px; font-size:16px;
     }
-    h2 { color: #4b2aad; }
-    input, button {
-      width: 100%; padding: 10px; margin: 10px 0;
-      font-size: 16px; border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    button {
-      background-color: #4b2aad; color: white; border: none; cursor: pointer;
-    }
-    button:hover {
-      background-color: #3a208b;
-    }
-    ul {
-      list-style: none; padding: 0;
-    }
-    li {
-      background: white;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      margin: 5px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .actions button {
-      background: transparent;
-      border: none;
-      font-size: 18px;
-      cursor: pointer;
-      margin-left: 10px;
-    }
-    .actions button.edit { color: #007bff; }
-    .actions button.delete { color: #dc3545; }
+    button { background:#4b2aad; color:white; border:none; cursor:pointer }
+    button:hover { background:#3a208b }
+    table { width:100%; border-collapse:collapse; margin-top:20px }
+    th, td { border:1px solid #ccc; padding:8px; text-align:left }
+    th { background:#4b2aad; color:white }
+    .action-btn { background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer }
   </style>
 </head>
 <body>
+  <h2>📋 Duty Master – Manage Duty Types</h2>
 
-  <h2>📋 Duty Master</h2>
+  <select id="dutyType">
+    <option value="">-- Select Type --</option>
+    <option>Client</option>
+    <option>Company</option>
+    <option>Event</option>
+  </select>
 
-  <input type="text" id="dutyInput" placeholder="Enter Duty (e.g. Client - ABC Corp)">
+  <input id="dutyName" placeholder="Enter Duty Name"/>
   <button onclick="addDuty()">➕ Add Duty</button>
 
-  <ul id="dutyList"></ul>
+  <div id="dutyList"></div>
 
   <script>
-    let duties = JSON.parse(localStorage.getItem("duty-master") || "[]");
+    let editIndex = -1;
 
-    function renderList() {
-      const list = document.getElementById("dutyList");
-      list.innerHTML = '';
-      duties.forEach((duty, index) => {
-        const li = document.createElement("li");
-        li.innerHTML = `
-          <span>${duty}</span>
-          <div class="actions">
-            <button class="edit" onclick="editDuty(${index})">✏️</button>
-            <button class="delete" onclick="deleteDuty(${index})">🗑️</button>
-          </div>
-        `;
-        list.appendChild(li);
+    function loadDuties() {
+      const arr = JSON.parse(localStorage.getItem("duty-master") || "[]");
+      let html = `<table><tr><th>Type</th><th>Name</th><th>Action</th></tr>`;
+      arr.forEach((d, i) => {
+        html += `<tr>
+          <td>${d.type}</td>
+          <td>${d.name}</td>
+          <td>
+            <button onclick="editDuty(${i})">✏️</button>
+            <button class="action-btn" onclick="deleteDuty(${i})">🗑️</button>
+          </td>
+        </tr>`;
       });
-      localStorage.setItem("duty-master", JSON.stringify(duties));
+      html += `</table>`;
+      document.getElementById("dutyList").innerHTML = html;
     }
 
     function addDuty() {
-      const input = document.getElementById("dutyInput");
-      const value = input.value.trim();
-      if (value && !duties.includes(value)) {
-        duties.push(value);
-        input.value = '';
-        renderList();
-      } else if (duties.includes(value)) {
-        alert("⚠️ Duty already exists.");
+      const type = document.getElementById("dutyType").value;
+      const name = document.getElementById("dutyName").value;
+      if (!type || !name) return alert("Please select type and enter name");
+
+      let arr = JSON.parse(localStorage.getItem("duty-master") || "[]");
+      if (editIndex >= 0) {
+        arr[editIndex] = { type, name };
+        editIndex = -1;
+      } else {
+        arr.push({ type, name });
       }
+      localStorage.setItem("duty-master", JSON.stringify(arr));
+      document.getElementById("dutyType").value = "";
+      document.getElementById("dutyName").value = "";
+      loadDuties();
     }
 
     function editDuty(index) {
-      const newDuty = prompt("Edit duty name:", duties[index]);
-      if (newDuty) {
-        duties[index] = newDuty.trim();
-        renderList();
-      }
+      const arr = JSON.parse(localStorage.getItem("duty-master") || "[]");
+      const item = arr[index];
+      document.getElementById("dutyType").value = item.type;
+      document.getElementById("dutyName").value = item.name;
+      editIndex = index;
     }
 
     function deleteDuty(index) {
-      if (confirm("Are you sure to delete this duty?")) {
-        duties.splice(index, 1);
-        renderList();
-      }
+      if (!confirm("Delete this duty?")) return;
+      let arr = JSON.parse(localStorage.getItem("duty-master") || "[]");
+      arr.splice(index, 1);
+      localStorage.setItem("duty-master", JSON.stringify(arr));
+      loadDuties();
     }
 
-    document.getElementById("dutyInput").addEventListener("keydown", e => {
-      if (e.key === "Enter") addDuty();
-    });
-
-    renderList();
+    loadDuties();
   </script>
-
 </body>
 </html>
