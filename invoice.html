@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -82,43 +83,55 @@
     }
     .download-controls {
       text-align: center;
-      margin-top: 20px;
+    }
+    [contenteditable="true"]:focus {
+      outline: 2px dashed #4b2aad;
+      background: #f4f2ff;
     }
     @media print {
-      .btn, .topbar, .download-controls { display: none !important; }
-      body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .download-controls {
+        display: none !important;
+      }
     }
   </style>
 </head>
-<body><div class="invoice-container" id="invoice">
+<body>
+
+<div class="invoice-container" id="invoice">
   <div class="invoice-header">
     <h1>🚖 NST Travels</h1>
     <div>
-      <p><strong>Invoice No:</strong> <span id="invId" contenteditable="true">#NST000</span></p>
-      <p><strong>Date:</strong> <span id="invDate" contenteditable="true">--</span></p>
+      <p><strong>Invoice No:</strong> <span id="invId" contenteditable="true">#NST001</span></p>
+      <p><strong>Date:</strong> <span id="invDate" contenteditable="true">10-July-2025</span></p>
     </div>
-  </div>  <div class="row">
+  </div>
+
+  <div class="row">
     <div>
       <h3>👤 Customer</h3>
-      <p><strong>Name:</strong> <span id="custName" contenteditable="true">xxxxxxxxx</span></p>
-      <p><strong>Phone:</strong> <span id="custNumber" contenteditable="true">xxxxxxxxx</span></p>
+      <p><strong>Name:</strong> <span id="custName" contenteditable="true">John Doe</span></p>
+      <p><strong>Phone:</strong> <span id="custNumber" contenteditable="true">9876543210</span></p>
     </div>
     <div>
       <h3>👨‍✈️ Driver</h3>
-      <p><strong>Name:</strong> <span id="driverName" contenteditable="true">xxxxxxxxx</span></p>
-      <p><strong>Phone:</strong> <span id="driverNumber" contenteditable="true">xxxxxxxxx</span></p>
+      <p><strong>Name:</strong> <span id="driverName" contenteditable="true">Perumal</span></p>
+      <p><strong>Phone:</strong> <span id="driverNumber" contenteditable="true">9699994563</span></p>
     </div>
-  </div>  <div class="row">
+  </div>
+
+  <div class="row">
     <div>
       <h3>🚘 Trip Info</h3>
-      <p><strong>Model:</strong> <span id="vehicleModel" contenteditable="true">xxxxxxxxx</span></p>
-      <p><strong>Vehicle No:</strong> <span id="vehicleNo" contenteditable="true">xxxxxxxxx</span></p>
+      <p><strong>Model:</strong> <span id="vehicleModel" contenteditable="true">Innova Crysta</span></p>
+      <p><strong>Vehicle No:</strong> <span id="vehicleNo" contenteditable="true">PY05N0505</span></p>
     </div>
     <div>
-      <p><strong>Pickup:</strong> <span id="pickup" contenteditable="true">xxxxxxxxx</span></p>
-      <p><strong>Drop:</strong> <span id="drop" contenteditable="true">xxxxxxxxx</span></p>
+      <p><strong>Pickup:</strong> <span id="pickup" contenteditable="true">Auroville</span></p>
+      <p><strong>Drop:</strong> <span id="drop" contenteditable="true">Chennai Airport</span></p>
     </div>
-  </div>  <table class="table">
+  </div>
+
+  <table class="table">
     <thead>
       <tr><th>Item</th><th>Details</th><th>Amount (₹)</th></tr>
     </thead>
@@ -140,31 +153,39 @@
       </tr>
       <tr>
         <td contenteditable="true">Toll</td>
-        <td contenteditable="true">-</td>
+        <td contenteditable="true">–</td>
         <td contenteditable="true">150</td>
       </tr>
       <tr>
         <td contenteditable="true">Parking</td>
-        <td contenteditable="true">-</td>
+        <td contenteditable="true">–</td>
         <td contenteditable="true">100</td>
       </tr>
     </tbody>
-  </table>  <div class="totals">
+  </table>
+
+  <div class="totals">
     <div class="row"><div class="label">Subtotal:</div><div id="subtotal">₹0</div></div>
     <div class="row"><div class="label">Discount:</div><div id="discount" contenteditable="true">₹0</div></div>
     <hr>
     <div class="row"><div class="label"><strong>Total:</strong></div><div id="total"><strong>₹0</strong></div></div>
-  </div>  <div class="note">
-    <p>📝 Note: <span id="note" contenteditable="true">Thank you for choosing NST Travels. For queries, call +91-9876543210.</span></p>
   </div>
-</div><div class="download-controls">
+
+  <div class="note">
+    <p>📝 Note: <span id="note" contenteditable="true">Thank you for choosing NST Travels. For any queries, contact us at +91-9876543210.</span></p>
+  </div>
+</div>
+
+<div class="download-controls">
   <button class="btn" onclick="window.print()">🖨️ Print</button>
   <button class="btn" onclick="downloadPDF()">💾 PDF</button>
   <button class="btn" onclick="downloadImage()">🖼️ Image</button>
-</div><script>
+</div>
+
+<script>
 function getFileName() {
   const id = document.getElementById("invId").innerText.trim().replace(/#/g, "");
-  const date = document.getElementById("invDate").innerText.trim().replace(/\s+/g, "-");
+  const date = document.getElementById("invDate").innerText.trim().replace(/\\s+/g, "-");
   return `Invoice_${id}_${date}`;
 }
 
@@ -201,9 +222,9 @@ function downloadImage() {
 }
 
 function parseDetail(text) {
-  const match = text.match(/(\d+)\s*(hrs|km)?\s*[x×]\s*₹?(\d+)/i);
+  const match = text.match(/(\\d+)\\s*(hrs|km)?\\s*[x×]\\s*₹?(\\d+)/i);
   if (match) return parseInt(match[1]) * parseInt(match[3]);
-  const num = text.match(/₹?\s?(\d+)/);
+  const num = text.match(/₹?\\s?(\\d+)/);
   return num ? parseInt(num[1]) : 0;
 }
 
@@ -213,11 +234,11 @@ function recalculateAmounts() {
     const detail = row.children[1].innerText;
     const cell = row.children[2];
     const val = parseDetail(detail);
-    cell.innerText = val;
-    subtotal += val;
+    cell.innerText = isNaN(val) ? \"0\" : val;
+    subtotal += isNaN(val) ? 0 : val;
   });
-  document.getElementById("subtotal").innerText = "₹" + subtotal;
-  const discount = parseInt(document.getElementById("discount").innerText.replace(/[^\d]/g, "")) || 0;
+  document.getElementById("subtotal").innerText = \"₹\" + subtotal;
+  const discount = parseInt(document.getElementById("discount").innerText.replace(/[^\\d]/g, \"\")) || 0;
   document.getElementById("total").innerHTML = `<strong>₹${subtotal - discount}</strong>`;
 }
 
@@ -226,5 +247,7 @@ document.addEventListener("input", e => {
 });
 
 window.onload = recalculateAmounts;
-</script></body>
+</script>
+
+</body>
 </html>
