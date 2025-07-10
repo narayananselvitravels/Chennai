@@ -52,9 +52,36 @@
       border-radius: 4px;
       font-size: 14px;
     }
+    #loginBox {
+      background: white;
+      max-width: 400px;
+      margin: 100px auto;
+      padding: 30px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0 15px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
   </style>
 </head>
 <body>
+
+<div id="loginBox">
+  <h2>🔐 Admin Login</h2>
+  <input type="text" id="username" placeholder="Username" />
+  <input type="password" id="password" placeholder="Password" />
+  <button onclick="login()">Login</button>
+  <p id="loginMsg" style="color:red;"></p>
+</div>
+
+<div id="panel" style="display:none;">
   <h2>🛠️ NST Admin Panel</h2>
 
   <div class="section">
@@ -83,61 +110,75 @@
     <p>This will remove <strong>all saved trip data</strong> and reset Trip ID to <code>#NST001</code>.</p>
     <button class="danger" onclick="resetAll()">🗑️ Reset All Data</button>
   </div>
+</div>
 
-  <script>
-    const SHKEY = "shared-trips";
+<script>
+  const SHKEY = "shared-trips";
+  const ADMIN_USER = "admin";
+  const ADMIN_PASS = "nst@123";
 
-    function getTripCount() {
-      const trips = JSON.parse(localStorage.getItem(SHKEY) || "[]");
-      document.getElementById("tripCount").innerText = trips.length;
+  function login() {
+    const u = document.getElementById("username").value.trim();
+    const p = document.getElementById("password").value.trim();
+    if (u === ADMIN_USER && p === ADMIN_PASS) {
+      document.getElementById("loginBox").style.display = "none";
+      document.getElementById("panel").style.display = "block";
+      getTripCount();
+      getCurrentId();
+    } else {
+      document.getElementById("loginMsg").innerText = "❌ Invalid credentials";
     }
+  }
 
-    function getCurrentId() {
-      let c = localStorage.getItem("trip-seq") || "1";
-      document.getElementById("currentId").innerText = "#NST" + String(c).padStart(3, "0");
-    }
+  function getTripCount() {
+    const trips = JSON.parse(localStorage.getItem(SHKEY) || "[]");
+    document.getElementById("tripCount").innerText = trips.length;
+  }
 
-    function exportTrips() {
-      const data = JSON.parse(localStorage.getItem(SHKEY) || "[]");
-      if (!data.length) return alert("No shared trips to export.");
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "SharedTrips");
-      XLSX.writeFile(wb, "NST_Shared_Trips.xlsx");
-    }
+  function getCurrentId() {
+    let c = localStorage.getItem("trip-seq") || "1";
+    document.getElementById("currentId").innerText = "#NST" + String(c).padStart(3, "0");
+  }
 
-    function resetTripId() {
-      if (confirm("Reset Trip ID to #NST001 without deleting trips?")) {
-        let usedIds = Object.keys(localStorage)
-          .filter(k => k.startsWith("#NST"))
-          .map(k => parseInt(k.replace("#NST", "")))
-          .sort((a, b) => a - b);
+  function exportTrips() {
+    const data = JSON.parse(localStorage.getItem(SHKEY) || "[]");
+    if (!data.length) return alert("No shared trips to export.");
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "SharedTrips");
+    XLSX.writeFile(wb, "NST_Shared_Trips.xlsx");
+  }
 
-        let nextId = 1;
-        while (usedIds.includes(nextId)) {
-          nextId++;
-        }
-        localStorage.setItem("trip-seq", nextId.toString());
-        alert(`✅ Trip ID reset. Next Trip ID will be #NST${String(nextId).padStart(3, '0')}`);
-        getCurrentId();
+  function resetTripId() {
+    if (confirm("Reset Trip ID to #NST001 without deleting trips?")) {
+      let usedIds = Object.keys(localStorage)
+        .filter(k => k.startsWith("#NST"))
+        .map(k => parseInt(k.replace("#NST", "")))
+        .sort((a, b) => a - b);
+
+      let nextId = 1;
+      while (usedIds.includes(nextId)) {
+        nextId++;
       }
+      localStorage.setItem("trip-seq", nextId.toString());
+      alert(`✅ Trip ID reset. Next Trip ID will be #NST${String(nextId).padStart(3, '0')}`);
+      getCurrentId();
     }
+  }
 
-    function resetAll() {
-      if (confirm("This will erase all saved trips and reset Trip ID to #NST001. Proceed?")) {
-        localStorage.removeItem("trip-seq");
-        localStorage.removeItem("shared-trips");
-        Object.keys(localStorage).forEach(k => {
-          if (k.startsWith("#NST")) localStorage.removeItem(k);
-        });
-        alert("✅ All data cleared. Trip ID reset.");
-        getTripCount();
-        getCurrentId();
-      }
+  function resetAll() {
+    if (confirm("This will erase all saved trips and reset Trip ID to #NST001. Proceed?")) {
+      localStorage.removeItem("trip-seq");
+      localStorage.removeItem("shared-trips");
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith("#NST")) localStorage.removeItem(k);
+      });
+      alert("✅ All data cleared. Trip ID reset.");
+      getTripCount();
+      getCurrentId();
     }
+  }
+</script>
 
-    getTripCount();
-    getCurrentId();
-  </script>
 </body>
 </html>
