@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Panel – NST Travels</title>
+  <title>NST Admin Panel</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
@@ -31,28 +31,32 @@
       border-radius: 5px;
       font-size: 16px;
       cursor: pointer;
-      margin: 8px 8px 8px 0;
+      margin-right: 10px;
     }
     button:hover { background: #3a208b; }
     .danger { background: #dc3545; }
     .danger:hover { background: #b02a37; }
-    .login-modal {
+    .secondary { background: #6c757d; }
+    .secondary:hover { background: #5a6268; }
+
+    /* Login Modal */
+    #loginModal {
       position: fixed;
       inset: 0;
-      background: #ffffff;
-      z-index: 9999;
+      background: rgba(0, 0, 0, 0.4);
       display: flex;
       align-items: center;
       justify-content: center;
+      z-index: 9999;
     }
     .login-box {
       background: white;
       padding: 30px;
       border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.15);
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 400px;
       text-align: center;
-      max-width: 300px;
-      width: 100%;
     }
     .login-box h2 {
       color: #4b2aad;
@@ -60,54 +64,42 @@
     }
     .login-box input {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
+      padding: 12px;
+      margin: 10px 0;
       font-size: 16px;
       border: 1px solid #ccc;
       border-radius: 6px;
     }
     .login-box button {
       width: 100%;
-      background: #4b2aad;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
-
-  <div class="login-modal" id="loginModal">
-    <div class="login-box">
-      <h2>NST – Admin Login</h2>
-      <input type="text" id="adminUser" placeholder="Username" />
-      <input type="password" id="adminPass" placeholder="Password" />
-      <button onclick="validateLogin()">🔐 Login</button>
-    </div>
-  </div>
-
-  <h2>🛠️ NST Admin Panel</h2>
-
   <div class="section">
-    <h3>📂 Quick Access</h3>
-    <button onclick="location.href='master.html'">👥 Driver & Vehicle Master</button>
-    <button onclick="location.href='whatsapp.html'">📤 WhatsApp Summary</button>
-    <button onclick="location.href='trip.html'">🧾 Trip Entry Form</button>
-    <button onclick="location.href='dashboard.html'">📊 Dashboard</button>
-    <button onclick="location.href='backup.html'">🔄 Backup & Restore</button>
-    <button onclick="location.href='invoice.html'">🧾 Invoice Generator</button>
-    <button onclick="location.href='view-trip.html'">📋 View Trips</button>
-  </div>
-
-  <div class="section">
-    <h3>📊 Shared Trip Stats</h3>
+    <h2>🛠️ NST Admin Panel</h2>
+    <h3>📊 Trip Stats</h3>
     <p><strong>Trips Shared:</strong> <span id="tripCount">0</span></p>
     <p><strong>Current Trip ID:</strong> <span id="currentId">#NST001</span></p>
     <button onclick="exportTrips()">📥 Export Shared Trips (Excel)</button>
-    <button onclick="resetTripId()">🔁 Reset Trip ID Counter</button>
+    <button class="secondary" onclick="resetTripId()">🔁 Reset Trip ID Only</button>
   </div>
 
   <div class="section">
-    <h3>⚠️ Reset System</h3>
-    <p>This will remove all trip data and reset the Trip ID to <strong>#NST001</strong>.</p>
+    <h3>⚠️ Reset All</h3>
+    <p>This will remove all trip data and reset everything to default.</p>
     <button class="danger" onclick="resetAll()">🗑️ Reset All Data</button>
+  </div>
+
+  <!-- LOGIN MODAL -->
+  <div id="loginModal">
+    <div class="login-box">
+      <h2>🔐 NST – Admin Login</h2>
+      <input type="text" id="adminUser" placeholder="Username" />
+      <input type="password" id="adminPass" placeholder="Password" />
+      <button onclick="validateLogin()">Login</button>
+    </div>
   </div>
 
   <script>
@@ -135,7 +127,7 @@
     function resetTripId() {
       localStorage.setItem("trip-seq", "1");
       getCurrentId();
-      alert("✅ Trip ID reset to #NST001");
+      alert("✅ Trip ID reset to #NST001 (trips not deleted)");
     }
 
     function resetAll() {
@@ -165,7 +157,8 @@
     }
 
     window.onload = () => {
-      // loginModal stays until login
+      document.getElementById("loginModal").style.display = "flex";
+      document.body.style.display = "none";
     };
   </script>
 </body>
