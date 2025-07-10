@@ -3,24 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Invoice - NST Travels</title>
+  <title>NST Travels – Invoice</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body { font-family:'Poppins',sans-serif; background:#f9f9f9; max-width:800px; margin:40px auto; padding:20px; }
-    h2 { color:#4b2aad; }
-    .invoice-box {
-      border:1px solid #ccc; padding:20px; background:#fff;
+    body { font-family: 'Poppins', sans-serif; background: #f5f5f5; padding: 30px; max-width: 850px; margin: auto; }
+    h2 { color: #4b2aad; }
+    label { font-weight: bold; margin-top: 10px; display: block; }
+    input, select, textarea {
+      width: 100%; padding: 10px; margin-bottom: 12px;
+      border: 1px solid #ccc; border-radius: 5px; font-size: 16px;
     }
-    select, input, textarea, button {
-      padding:10px; font-size:16px; margin:8px 0; width:100%;
-      border-radius:5px; border:1px solid #ccc; box-sizing:border-box;
+    button {
+      background: #4b2aad; color: white; padding: 12px 20px; border: none;
+      border-radius: 5px; cursor: pointer; font-size: 16px; margin-right: 10px;
     }
-    textarea { resize: vertical; }
-    table { width:100%; border-collapse:collapse; margin-top:20px }
-    th, td { text-align:left; padding:8px; border-bottom:1px solid #ddd }
-    th { background:#4b2aad; color:#fff }
-    button { background:#4b2aad; color:#fff; border:none; cursor:pointer; margin-top:10px; }
-    button:hover { background:#3a208b; }
+    button:hover { background: #3a208b; }
+    .invoice-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .actions { margin-top: 20px; }
+    @media print {
+      body { padding: 0; }
+      .no-print { display: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -32,76 +35,38 @@
 </select>
 
 <div class="invoice-box" id="invoiceBox" style="display:none;">
-  <label><b>Customer Name</b></label>
-  <input id="custName">
-
-  <label><b>Customer Number</b></label>
-  <input id="custNumber">
-
-  <label><b>Date</b></label>
-  <input id="tripDate">
-
-  <label><b>Pickup</b></label>
-  <input id="pickup">
-
-  <label><b>Drop</b></label>
-  <input id="drop">
-
-  <label><b>Driver Name</b></label>
-  <input id="driverName">
-
-  <label><b>Driver Number</b></label>
-  <input id="driverNumber">
-
-  <label><b>Vehicle Model</b></label>
-  <input id="vehicleModel">
-
-  <label><b>Vehicle Number</b></label>
-  <input id="vehicleNo">
-
-  <label><b>Start Time</b></label>
-  <input id="start">
-
-  <label><b>End Time</b></label>
-  <input id="end">
-
-  <label><b>Duration (hrs)</b></label>
-  <input id="duration">
-
-  <label><b>Extra Hours</b></label>
-  <input id="extraHours">
-
-  <label><b>Start KM</b></label>
-  <input id="startKM">
-
-  <label><b>End KM</b></label>
-  <input id="endKM">
-
-  <label><b>Total KM</b></label>
-  <input id="totalKM">
-
-  <label><b>Extra KM</b></label>
-  <input id="extraKM">
-
-  <label><b>Parking (₹)</b></label>
-  <input id="parking" type="number" value="0" oninput="updateTotal()">
-
-  <label><b>Toll (₹)</b></label>
-  <input id="toll" type="number" value="0" oninput="updateTotal()">
-
-  <label><b>Total Amount (₹)</b></label>
-  <input id="totalAmount" type="number">
-
-  <label><b>Payment Status</b></label>
+  <label>Customer Name</label><input id="custName">
+  <label>Customer Number</label><input id="custNumber">
+  <label>Date</label><input id="tripDate">
+  <label>Pickup Location</label><input id="pickup">
+  <label>Drop Location</label><input id="drop">
+  <label>Driver Name</label><input id="driverName">
+  <label>Driver Number</label><input id="driverNumber">
+  <label>Vehicle Model</label><input id="vehicleModel">
+  <label>Vehicle Number</label><input id="vehicleNo">
+  <label>Start Time</label><input id="start">
+  <label>End Time</label><input id="end">
+  <label>Duration (hrs)</label><input id="duration">
+  <label>Extra Hours</label><input id="extraHours">
+  <label>Start KM</label><input id="startKM">
+  <label>End KM</label><input id="endKM">
+  <label>Total KM</label><input id="totalKM">
+  <label>Extra KM</label><input id="extraKM">
+  <label>Parking ₹</label><input id="parking" type="number" value="0" oninput="updateTotal()">
+  <label>Toll ₹</label><input id="toll" type="number" value="0" oninput="updateTotal()">
+  <label>Total Amount ₹</label><input id="totalAmount" type="number">
+  <label>Payment Status</label>
   <select id="paymentStatus">
     <option>Paid</option>
     <option>Not Paid</option>
   </select>
+  <label>Note</label><textarea id="note" rows="3"></textarea>
 
-  <label><b>Note</b></label>
-  <textarea id="note" rows="3"></textarea>
-
-  <button onclick="saveInvoice()">💾 Update Trip Invoice</button>
+  <div class="actions no-print">
+    <button onclick="saveInvoice()">💾 Update Invoice</button>
+    <button onclick="print()">🖨️ Print Invoice</button>
+    <button onclick="shareWhatsApp()">📤 Share on WhatsApp</button>
+  </div>
 </div>
 
 <script>
@@ -121,46 +86,44 @@
   }
 
   function loadTrip() {
-    currentIndex = document.getElementById("tripSelect").value;
+    currentIndex = tripSelect.value;
     if (currentIndex === "") {
-      document.getElementById("invoiceBox").style.display = "none";
+      invoiceBox.style.display = "none";
       return;
     }
 
-    const trip = trips[currentIndex];
-    if (!trip) return;
+    const t = trips[currentIndex];
+    invoiceBox.style.display = "block";
 
-    document.getElementById("invoiceBox").style.display = "block";
-
-    custName.value = trip.custName || "";
-    custNumber.value = trip.custNumber || "";
-    tripDate.value = trip.date || "";
-    pickup.value = trip.pickup || "";
-    drop.value = trip.drop || "";
-    driverName.value = trip.driverName || "";
-    driverNumber.value = trip.driverNumber || "";
-    vehicleModel.value = trip.vehicleModel || "";
-    vehicleNo.value = trip.vehicleNo || "";
-    start.value = trip.start || "";
-    end.value = trip.end || "";
-    duration.value = trip.duration || "";
-    extraHours.value = trip.extraHours || "";
-    startKM.value = trip.startKM || "";
-    endKM.value = trip.endKM || "";
-    totalKM.value = trip.totalKM || "";
-    extraKM.value = trip.extraKM || "";
-    parking.value = trip.parking || 0;
-    toll.value = trip.toll || 0;
-    totalAmount.value = trip.totalAmount || 0;
-    paymentStatus.value = trip.paymentStatus || "";
-    note.value = trip.note || "";
+    custName.value = t.custName || "";
+    custNumber.value = t.custNumber || "";
+    tripDate.value = t.date || "";
+    pickup.value = t.pickup || "";
+    drop.value = t.drop || "";
+    driverName.value = t.driverName || "";
+    driverNumber.value = t.driverNumber || "";
+    vehicleModel.value = t.vehicleModel || "";
+    vehicleNo.value = t.vehicleNo || "";
+    start.value = t.start || "";
+    end.value = t.end || "";
+    duration.value = t.duration || "";
+    extraHours.value = t.extraHours || "";
+    startKM.value = t.startKM || "";
+    endKM.value = t.endKM || "";
+    totalKM.value = t.totalKM || "";
+    extraKM.value = t.extraKM || "";
+    parking.value = t.parking || 0;
+    toll.value = t.toll || 0;
+    totalAmount.value = t.totalAmount || 0;
+    paymentStatus.value = t.paymentStatus || "";
+    note.value = t.note || "";
   }
 
   function updateTotal() {
     let parkingVal = parseFloat(parking.value || 0);
     let tollVal = parseFloat(toll.value || 0);
-    let totalBase = parseFloat(totalAmount.value || 0);
-    totalAmount.value = totalBase + parkingVal + tollVal;
+    let base = parseFloat(totalAmount.value || 0);
+    totalAmount.value = (base + parkingVal + tollVal).toFixed(2);
   }
 
   function saveInvoice() {
@@ -194,6 +157,59 @@
 
     localStorage.setItem("shared-trips", JSON.stringify(trips));
     alert("✅ Invoice updated successfully.");
+  }
+
+  function shareWhatsApp() {
+    const t = trips[currentIndex];
+    if (!t) return;
+
+    let msg = `📋 *NST TRIP SUMMARY*\n\n`;
+
+    function add(label, value) {
+      if (value && value.trim()) msg += `• *${label}:* ${value}\n`;
+    }
+
+    msg += `🗓️ *TRIP DETAILS*\n`;
+    add("Trip ID", t.id);
+    add("Date", t.date);
+
+    msg += `\n📍 *LOCATIONS*\n`;
+    add("Pickup", t.pickup);
+    add("Drop", t.drop);
+
+    msg += `\n👤 *CUSTOMER INFO*\n`;
+    add("Name", t.custName);
+    add("Number", t.custNumber);
+
+    msg += `\n👨‍✈️ *DRIVER INFO*\n`;
+    add("Name", t.driverName);
+    add("Number", t.driverNumber);
+
+    msg += `\n🚘 *VEHICLE INFO*\n`;
+    add("Model", t.vehicleModel);
+    add("Number", t.vehicleNo);
+
+    msg += `\n🕒 *TIME DETAILS*\n`;
+    add("Start Time", t.start);
+    add("End Time", t.end);
+    add("Duration", t.duration + " hrs");
+    add("Extra Hours", t.extraHours);
+
+    msg += `\n📏 *DISTANCE DETAILS*\n`;
+    add("Start KM", t.startKM);
+    add("End KM", t.endKM);
+    add("Total KM", t.totalKM + " km");
+    add("Extra KM", t.extraKM + " km");
+
+    msg += `\n💰 *FARE DETAILS*\n`;
+    add("Parking", "₹" + t.parking);
+    add("Toll", "₹" + t.toll);
+    add("Total Amount", "₹" + t.totalAmount);
+    add("Payment Status", t.paymentStatus);
+
+    msg += `\n📝 *NOTE*\n${t.note || "-"}`;
+
+    window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
   }
 
   window.onload = loadTripIDs;
