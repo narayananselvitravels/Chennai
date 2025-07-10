@@ -7,90 +7,129 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    body { font-family: 'Poppins', sans-serif; background: #f4f6f9; max-width: 800px; margin: 30px auto; padding: 20px; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f4f6f9;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
     h2 { color: #4b2aad; }
-    .section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .section {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
     button {
-      background: #4b2aad; color: white; border: none; padding: 12px 20px;
-      border-radius: 5px; font-size: 16px; cursor: pointer; margin-right: 10px;
+      background: #4b2aad;
+      color: white;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
     }
     button:hover { background: #3a208b; }
     .danger { background: #dc3545; }
     .danger:hover { background: #b02a37; }
     .links a {
-      display: inline-block; margin: 5px 10px 0 0; color: #4b2aad; text-decoration: none; font-weight: 600;
+      display: inline-block;
+      margin: 8px 10px 0 0;
+      color: #4b2aad;
+      text-decoration: none;
+      font-weight: 600;
     }
     .links a:hover { text-decoration: underline; }
-
     #loginOverlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: #fff; z-index: 9999;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      font-family: 'Poppins', sans-serif;
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #fff;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    #adminPass {
+      padding: 12px; font-size: 16px;
+      width: 90%; max-width: 300px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    @media (max-width: 600px) {
+      h2 { font-size: 22px; }
+      button { width: 100%; }
     }
   </style>
 </head>
 <body>
 
 <div id="loginOverlay">
-  <h2 style="color:#4b2aad;">🔐 NST Admin Login</h2>
-  <input id="adminPass" type="password" placeholder="Enter Admin Password" style="padding:10px;font-size:16px;width:250px;border-radius:5px;border:1px solid #ccc;margin-top:10px"/>
-  <button onclick="checkPassword()" style="margin-top:15px;padding:10px 20px;background:#4b2aad;color:white;border:none;border-radius:5px;cursor:pointer">Login</button>
+  <h2>🔐 NST Admin Login</h2>
+  <input id="adminPass" type="password" placeholder="Enter Admin Password" />
+  <button onclick="checkPassword()">Login</button>
   <p id="loginError" style="color:red;margin-top:10px;"></p>
 </div>
 
-<h2>🛠️ NST Admin Panel</h2>
+<div id="adminPanel" style="display:none">
+  <h2>🛠️ NST Admin Panel</h2>
 
-<div class="section">
-  <h3>📊 Shared Trip Stats</h3>
-  <p><strong>Trips Shared:</strong> <span id="tripCount">0</span></p>
-  <p><strong>Current Trip ID:</strong> <span id="currentId">#NST001</span></p>
-  <button onclick="exportTrips()">📥 Export Shared Trips (Excel)</button>
-</div>
+  <div class="section">
+    <h3>📊 Shared Trip Stats</h3>
+    <p><strong>Trips Shared:</strong> <span id="tripCount">0</span></p>
+    <p><strong>Current Trip ID:</strong> <span id="currentId">#NST001</span></p>
+    <button onclick="exportTrips()">📥 Export Shared Trips (Excel)</button>
+  </div>
 
-<div class="section">
-  <h3>🧹 Reset Trip ID</h3>
-  <p>This will reset Trip ID to <strong>#NST001</strong> without deleting trips.</p>
-  <button onclick="resetTripId()">🔁 Reset Trip ID</button>
-</div>
+  <div class="section">
+    <h3>🧹 Reset Trip ID</h3>
+    <p>This will reset Trip ID to <strong>#NST001</strong> without deleting trips.</p>
+    <button onclick="resetTripId()">🔁 Reset Trip ID</button>
+  </div>
 
-<div class="section">
-  <h3>⚠️ Reset All Data</h3>
-  <p>This will erase all trip data and reset everything.</p>
-  <button class="danger" onclick="resetAll()">🗑️ Reset All Data</button>
-</div>
+  <div class="section">
+    <h3>⚠️ Reset All Data</h3>
+    <p>This will erase all trip data and reset everything.</p>
+    <button class="danger" onclick="resetAll()">🗑️ Reset All Data</button>
+  </div>
 
-<div class="section links">
-  <h3>🔗 Admin Pages</h3>
-  <a href="master.html">📋 Master</a>
-  <a href="whatsapp.html">📤 WhatsApp</a>
-  <a href="trip.html">🧾 Trip</a>
-  <a href="dashboard.html">📊 Dashboard</a>
-  <a href="view-trip.html">📁 View Trips</a>
-  <a href="invoice.html">🧾 Invoice</a>
-  <a href="backup.html">☁️ Backup</a>
+  <div class="section links">
+    <h3>🔗 Admin Pages</h3>
+    <a href="master.html">📋 Master</a>
+    <a href="whatsapp.html">📤 WhatsApp</a>
+    <a href="trip.html">🧾 Trip</a>
+    <a href="dashboard.html">📊 Dashboard</a>
+    <a href="view-trip.html">📁 View Trips</a>
+    <a href="invoice.html">🧾 Invoice</a>
+    <a href="backup.html">☁️ Backup</a>
+  </div>
 </div>
 
 <script>
   const SHKEY = "shared-trips";
-  const PASS_HASH = "dcf20884229f5925b4a80195a1ce07db3b1cb6461583ef798c37a76dbac9ec32"; // SHA-256 hash of "nstadmin123"
+  const PASS_HASH = "dcf20884229f5925b4a80195a1ce07db3b1cb6461583ef798c37a76dbac9ec32"; // hash of nstadmin123
 
-  function hash(str) {
+  async function hash(str) {
     const buf = new TextEncoder().encode(str);
-    return crypto.subtle.digest("SHA-256", buf).then(h => Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join(''));
+    const digest = await crypto.subtle.digest("SHA-256", buf);
+    return Array.from(new Uint8Array(digest)).map(x => x.toString(16).padStart(2, '0')).join('');
   }
 
-  function checkPassword() {
-    const entered = document.getElementById("adminPass").value;
-    hash(entered).then(hashVal => {
-      if (hashVal === PASS_HASH) {
-        sessionStorage.setItem("nst-logged-in", "1");
-        document.getElementById("loginOverlay").style.display = "none";
-        startAdmin();
-      } else {
-        document.getElementById("loginError").innerText = "❌ Incorrect password.";
-      }
-    });
+  async function checkPassword() {
+    const pass = document.getElementById("adminPass").value;
+    const hashed = await hash(pass);
+    if (hashed === PASS_HASH) {
+      sessionStorage.setItem("nst-logged-in", "yes");
+      document.getElementById("loginOverlay").style.display = "none";
+      document.getElementById("adminPanel").style.display = "block";
+      startAdmin();
+    } else {
+      document.getElementById("loginError").innerText = "❌ Incorrect password.";
+    }
   }
 
   function startAdmin() {
@@ -118,6 +157,14 @@
     XLSX.writeFile(wb, "NST_Shared_Trips.xlsx");
   }
 
+  function resetTripId() {
+    if (confirm("Reset Trip ID to #NST001?")) {
+      localStorage.setItem("trip-seq", "1");
+      alert("✅ Trip ID reset to #NST001");
+      getCurrentId();
+    }
+  }
+
   function resetAll() {
     if (confirm("Are you sure? This will erase all trip data and reset everything.")) {
       localStorage.removeItem("trip-seq");
@@ -131,33 +178,28 @@
     }
   }
 
-  function resetTripId() {
-    if (confirm("Reset Trip ID to #NST001? This won't delete trips.")) {
-      localStorage.setItem("trip-seq", "1");
-      alert("✅ Trip ID reset to #NST001");
-      getCurrentId();
-    }
-  }
-
   function setAutoLock() {
     let timer;
-    function lock() {
+    const logout = () => {
       sessionStorage.removeItem("nst-logged-in");
       location.reload();
-    }
-    function resetTimer() {
+    };
+    const resetTimer = () => {
       clearTimeout(timer);
-      timer = setTimeout(lock, 5 * 60 * 1000); // 5 mins
-    }
+      timer = setTimeout(logout, 5 * 60 * 1000); // 5 min
+    };
     window.addEventListener("mousemove", resetTimer);
     window.addEventListener("keydown", resetTimer);
     resetTimer();
   }
 
-  // Auto-login if already in session
-  if (sessionStorage.getItem("nst-logged-in") === "1") {
-    document.getElementById("loginOverlay").style.display = "none";
-    startAdmin();
+  // On load
+  window.onload = () => {
+    if (sessionStorage.getItem("nst-logged-in") === "yes") {
+      document.getElementById("loginOverlay").style.display = "none";
+      document.getElementById("adminPanel").style.display = "block";
+      startAdmin();
+    }
   }
 </script>
 
