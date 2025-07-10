@@ -148,7 +148,31 @@
       </tr>
     </thead>
     <tbody id="chargeDetails">
-      <!-- dynamically inserted -->
+      <tr>
+        <td contenteditable="true">Package</td>
+        <td contenteditable="true">Innova Crysta – 8 hrs / 80 KM</td>
+        <td contenteditable="true">7500</td>
+      </tr>
+      <tr>
+        <td contenteditable="true">Extra Hours</td>
+        <td contenteditable="true">2 hrs × ₹1000</td>
+        <td contenteditable="true">--</td>
+      </tr>
+      <tr>
+        <td contenteditable="true">Extra KM</td>
+        <td contenteditable="true">10 km × ₹20</td>
+        <td contenteditable="true">--</td>
+      </tr>
+      <tr>
+        <td contenteditable="true">Toll</td>
+        <td contenteditable="true">–</td>
+        <td contenteditable="true">150</td>
+      </tr>
+      <tr>
+        <td contenteditable="true">Parking</td>
+        <td contenteditable="true">–</td>
+        <td contenteditable="true">100</td>
+      </tr>
     </tbody>
   </table>
 
@@ -167,73 +191,93 @@
 </div>
 
 <script>
-  function formatAmount(amount) {
-    return `₹${parseInt(amount || 0)}`;
+function parseDetail(text) {
+  const match = text.match(/(\d+)\s*(hrs|km)?\s*[x×]\s*₹?(\d+)/i);
+  if (match) {
+    const qty = parseInt(match[1]);
+    const rate = parseInt(match[3]);
+    return qty * rate;
   }
+  const direct = text.match(/₹?\s?(\d+)/);
+  return direct ? parseInt(direct[1]) : 0;
+}
 
-  function updateTotals(pkg, extraHrs, hrRate, extraKM, kmRate, toll, parking, discount) {
-    const subtotal = pkg + (extraHrs * hrRate) + (extraKM * kmRate) + toll + parking;
-    const total = subtotal - discount;
-    document.getElementById("subtotal").innerText = formatAmount(subtotal);
-    document.getElementById("total").innerHTML = `<strong>${formatAmount(total)}</strong>`;
+function recalculateAmounts() {
+  let subtotal = 0;
+  const rows = document.querySelectorAll("#chargeDetails tr");
+  rows.forEach(row => {
+    const detailCell = row.children[1];
+    const amountCell = row.children[2];
+    const detail = detailCell.innerText.trim();
+    const value = parseDetail(detail);
+    amountCell.innerText = value;
+    subtotal += value;
+  });
+  document.getElementById("subtotal").innerText = `₹${subtotal}`;
+  const discountText = document.getElementById("discount").innerText;
+  const discount = parseInt(discountText.replace(/[^\d]/g, "")) || 0;
+  const total = subtotal - discount;
+  document.getElementById("total").innerHTML = `<strong>₹${total}</strong>`;
+}
+
+function loadTrip() {
+  const id = document.getElementById("tripSelect").value;
+  if (!id) return alert("Select a Trip ID");
+
+  const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
+  const trip = trips.find(t => t.id === id);
+  if (!trip) return alert("Trip not found!");
+
+  document.getElementById("invId").innerText = trip.id || "--";
+  document.getElementById("invDate").innerText = trip.date || "--";
+  document.getElementById("custName").innerText = trip.custName || "";
+  document.getElementById("custNumber").innerText = trip.custNumber || "";
+  document.getElementById("driverName").innerText = trip.driverName || "";
+  document.getElementById("driverNumber").innerText = trip.driverNumber || "";
+  document.getElementById("vehicleModel").innerText = trip.vehicleModel || "";
+  document.getElementById("vehicleNo").innerText = trip.vehicleNo || "";
+  document.getElementById("pickup").innerText = trip.pickup || "";
+  document.getElementById("drop").innerText = trip.drop || "";
+  document.getElementById("note").innerText = trip.note || "";
+
+  const pkg = { "Innova Crysta": 7500, "Innova Hycross": 8500, "Force Urbania": 9500 }[trip.vehicleModel] || 0;
+  const hr = { "Innova Crysta": 1000, "Innova Hycross": 1200, "Force Urbania": 1500 }[trip.vehicleModel] || 0;
+  const km = { "Innova Crysta": 20, "Innova Hycross": 24, "Force Urbania": 26 }[trip.vehicleModel] || 0;
+
+  const hrs = parseInt(trip.extraHours || 0);
+  const kms = parseInt(trip.extraKM || 0);
+  const toll = parseInt(trip.toll || 0);
+  const parking = parseInt(trip.parking || 0);
+
+  const rows = `
+    <tr><td contenteditable="true">Package</td><td contenteditable="true">${trip.vehicleModel} – Base Package</td><td contenteditable="true">${pkg}</td></tr>
+    <tr><td contenteditable="true">Extra Hours</td><td contenteditable="true">${hrs} hrs × ₹${hr}</td><td contenteditable="true">--</td></tr>
+    <tr><td contenteditable="true">Extra KM</td><td contenteditable="true">${kms} km × ₹${km}</td><td contenteditable="true">--</td></tr>
+    <tr><td contenteditable="true">Toll</td><td contenteditable="true">–</td><td contenteditable="true">${toll}</td></tr>
+    <tr><td contenteditable="true">Parking</td><td contenteditable="true">–</td><td contenteditable="true">${parking}</td></tr>
+  `;
+  document.getElementById("chargeDetails").innerHTML = rows;
+  document.getElementById("discount").innerText = `₹${trip.discount || 0}`;
+  recalculateAmounts();
+}
+
+window.onload = () => {
+  const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
+  const dropdown = document.getElementById("tripSelect");
+  trips.forEach(t => {
+    const opt = document.createElement("option");
+    opt.value = t.id;
+    opt.innerText = t.id;
+    dropdown.appendChild(opt);
+  });
+  recalculateAmounts();
+};
+
+document.addEventListener("input", (e) => {
+  if (e.target.closest("#chargeDetails") || e.target.id === "discount") {
+    recalculateAmounts();
   }
-
-  function loadTrip() {
-    const id = document.getElementById("tripSelect").value;
-    if (!id) return alert("Select a Trip ID");
-
-    const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
-    const trip = trips.find(t => t.id === id);
-    if (!trip) return alert("Trip not found!");
-
-    // Fill Header
-    document.getElementById("invId").innerText = trip.id || "--";
-    document.getElementById("invDate").innerText = trip.date || "--";
-    document.getElementById("custName").innerText = trip.custName || "";
-    document.getElementById("custNumber").innerText = trip.custNumber || "";
-    document.getElementById("driverName").innerText = trip.driverName || "";
-    document.getElementById("driverNumber").innerText = trip.driverNumber || "";
-    document.getElementById("vehicleModel").innerText = trip.vehicleModel || "";
-    document.getElementById("vehicleNo").innerText = trip.vehicleNo || "";
-    document.getElementById("pickup").innerText = trip.pickup || "";
-    document.getElementById("drop").innerText = trip.drop || "";
-    document.getElementById("note").innerText = trip.note || "";
-
-    // Rates
-    const pkgRate = { "Innova Crysta": 7500, "Innova Hycross": 8500, "Force Urbania": 9500 }[trip.vehicleModel] || 0;
-    const hrRate = { "Innova Crysta": 1000, "Innova Hycross": 1200, "Force Urbania": 1500 }[trip.vehicleModel] || 0;
-    const kmRate = { "Innova Crysta": 20, "Innova Hycross": 24, "Force Urbania": 26 }[trip.vehicleModel] || 0;
-
-    const extraHrs = parseInt(trip.extraHours || 0);
-    const extraKM = parseInt(trip.extraKM || 0);
-    const toll = parseInt(trip.toll || 0);
-    const parking = parseInt(trip.parking || 0);
-    const discount = parseInt(trip.discount || 0);
-
-    const rows = [
-      `<tr><td contenteditable="true">Package</td><td contenteditable="true">${trip.vehicleModel} – Base Package</td><td contenteditable="true">${pkgRate}</td></tr>`,
-      `<tr><td contenteditable="true">Extra Hours</td><td contenteditable="true">${extraHrs} hrs × ₹${hrRate}</td><td contenteditable="true">${extraHrs * hrRate}</td></tr>`,
-      `<tr><td contenteditable="true">Extra KM</td><td contenteditable="true">${extraKM} km × ₹${kmRate}</td><td contenteditable="true">${extraKM * kmRate}</td></tr>`,
-      `<tr><td contenteditable="true">Toll</td><td contenteditable="true">–</td><td contenteditable="true">${toll}</td></tr>`,
-      `<tr><td contenteditable="true">Parking</td><td contenteditable="true">–</td><td contenteditable="true">${parking}</td></tr>`
-    ];
-    document.getElementById("chargeDetails").innerHTML = rows.join("");
-
-    updateTotals(pkgRate, extraHrs, hrRate, extraKM, kmRate, toll, parking, discount);
-    document.getElementById("discount").innerText = `₹${discount}`;
-  }
-
-  // On Load: populate Trip ID list
-  window.onload = () => {
-    const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
-    const dropdown = document.getElementById("tripSelect");
-    trips.forEach(t => {
-      const opt = document.createElement("option");
-      opt.value = t.id;
-      opt.innerText = t.id;
-      dropdown.appendChild(opt);
-    });
-  };
+});
 </script>
 
 </body>
