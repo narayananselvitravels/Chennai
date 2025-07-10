@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -16,14 +15,12 @@
       color: #333;
     }
     .invoice-container {
-      width: 794px;  /* A4 width at 96dpi */
-      min-height: 1123px; /* A4 height */
+      max-width: 800px;
       margin: auto;
       background: white;
       padding: 30px;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      box-sizing: border-box;
     }
     .invoice-header {
       display: flex;
@@ -82,10 +79,6 @@
     .btn:hover {
       background: #3a208b;
     }
-    [contenteditable="true"]:focus {
-      outline: 2px dashed #4b2aad;
-      background: #f4f2ff;
-    }
     .topbar {
       text-align: center;
       margin-bottom: 20px;
@@ -98,226 +91,144 @@
       width: 220px;
       margin-right: 10px;
     }
+    [contenteditable="true"]:focus {
+      outline: 2px dashed #4b2aad;
+      background: #f4f2ff;
+    }
     @media print {
+      @page {
+        size: A4;
+        margin: 20mm;
+      }
+      body {
+        background: white;
+        margin: 0;
+        padding: 0;
+      }
       .topbar,
       .btn {
         display: none !important;
       }
+      .invoice-container {
+        box-shadow: none;
+        padding: 0;
+      }
+    }
+    @media (max-width: 600px) {
+      .row { flex-direction: column; }
+      .totals { float: none; width: 100%; }
+      .topbar select, .btn { width: 100%; margin-bottom: 10px; }
     }
   </style>
 </head>
-<body>
-
-<div class="topbar">
+<body><div class="topbar">
   <select id="tripSelect">
     <option value="">Select Trip ID</option>
   </select>
   <button class="btn" onclick="loadTrip()">🔍 Load Trip</button>
-</div>
-
-<div class="invoice-container" id="invoice">
+</div><div class="invoice-container" id="invoice">
   <div class="invoice-header">
     <h1>🚖 NST Travels</h1>
     <div>
-      <p><strong>Invoice No:</strong> <span id="invId" contenteditable="true">xxxxxxxxx</span></p>
-      <p><strong>Date:</strong> <span id="invDate" contenteditable="true">--</span></p>
+      <p><strong>Invoice No:</strong> <span id="invId" contenteditable="true">#NST001</span></p>
+      <p><strong>Date:</strong> <span id="invDate" contenteditable="true">10-July-2025</span></p>
     </div>
-  </div>
-
-  <div class="invoice-details">
+  </div>  <div class="invoice-details">
     <div class="row">
       <div>
         <h3>👤 Customer</h3>
-        <p><strong>Name:</strong> <span id="custName" contenteditable="true">xxxxxxxxx</span></p>
-        <p><strong>Phone:</strong> <span id="custNumber" contenteditable="true">xxxxxxxxx</span></p>
+        <p><strong>Name:</strong> <span id="custName" contenteditable="true">John Doe</span></p>
+        <p><strong>Phone:</strong> <span id="custNumber" contenteditable="true">9876543210</span></p>
       </div>
       <div>
         <h3>👨‍✈️ Driver</h3>
-        <p><strong>Name:</strong> <span id="driverName" contenteditable="true">xxxxxxxxx</span></p>
-        <p><strong>Phone:</strong> <span id="driverNumber" contenteditable="true">xxxxxxxxx</span></p>
+        <p><strong>Name:</strong> <span id="driverName" contenteditable="true">Perumal</span></p>
+        <p><strong>Phone:</strong> <span id="driverNumber" contenteditable="true">9699994563</span></p>
       </div>
-    </div>
-
-    <div class="row">
-      <div>
-        <h3>🚘 Trip Info</h3>
-        <p><strong>Model:</strong> <span id="vehicleModel" contenteditable="true">xxxxxxxxx</span></p>
-        <p><strong>Vehicle No:</strong> <span id="vehicleNo" contenteditable="true">xxxxxxxxx</span></p>
-      </div>
-      <div>
-        <p><strong>Pickup:</strong> <span id="pickup" contenteditable="true">xxxxxxxxx</span></p>
-        <p><strong>Drop:</strong> <span id="drop" contenteditable="true">xxxxxxxxx</span></p>
-      </div>
-    </div>
+    </div><div class="row">
+  <div>
+    <h3>🚘 Trip Info</h3>
+    <p><strong>Model:</strong> <span id="vehicleModel" contenteditable="true">Innova Crysta</span></p>
+    <p><strong>Vehicle No:</strong> <span id="vehicleNo" contenteditable="true">PY05N0505</span></p>
   </div>
+  <div>
+    <p><strong>Pickup:</strong> <span id="pickup" contenteditable="true">Auroville</span></p>
+    <p><strong>Drop:</strong> <span id="drop" contenteditable="true">Chennai Airport</span></p>
+  </div>
+</div>
 
-  <table class="table">
+  </div>  <table class="table">
     <thead>
       <tr>
         <th>Item</th><th>Details</th><th>Amount (₹)</th>
       </tr>
     </thead>
     <tbody id="chargeDetails">
-      <tr>
-        <td contenteditable="true">Package</td>
-        <td contenteditable="true">Innova Crysta – 8 hrs / 80 KM</td>
-        <td contenteditable="true">7500</td>
-      </tr>
-      <tr>
-        <td contenteditable="true">Extra Hours</td>
-        <td contenteditable="true">2 hrs × ₹1000</td>
-        <td contenteditable="true">--</td>
-      </tr>
-      <tr>
-        <td contenteditable="true">Extra KM</td>
-        <td contenteditable="true">10 km × ₹20</td>
-        <td contenteditable="true">--</td>
-      </tr>
-      <tr>
-        <td contenteditable="true">Toll</td>
-        <td contenteditable="true">–</td>
-        <td contenteditable="true">150</td>
-      </tr>
-      <tr>
-        <td contenteditable="true">Parking</td>
-        <td contenteditable="true">–</td>
-        <td contenteditable="true">100</td>
-      </tr>
+      <tr><td contenteditable="true">Package</td><td contenteditable="true">Innova Crysta – 8 hrs / 80 KM</td><td contenteditable="true">7500</td></tr>
+      <tr><td contenteditable="true">Extra Hours</td><td contenteditable="true">2 hrs × ₹1000</td><td contenteditable="true">--</td></tr>
+      <tr><td contenteditable="true">Extra KM</td><td contenteditable="true">10 km × ₹20</td><td contenteditable="true">--</td></tr>
+      <tr><td contenteditable="true">Toll</td><td contenteditable="true">–</td><td contenteditable="true">150</td></tr>
+      <tr><td contenteditable="true">Parking</td><td contenteditable="true">–</td><td contenteditable="true">100</td></tr>
     </tbody>
-  </table>
-
-  <div class="totals">
+  </table>  <div class="totals">
     <div class="row"><div class="label">Subtotal:</div><div id="subtotal">₹0</div></div>
     <div class="row"><div class="label">Discount:</div><div id="discount" contenteditable="true">₹0</div></div>
     <hr>
     <div class="row"><div class="label"><strong>Total:</strong></div><div id="total"><strong>₹0</strong></div></div>
-  </div>
-
-  <div class="note">
+  </div>  <div class="note">
     <p>📝 Note: <span id="note" contenteditable="true">Thank you for choosing NST Travels. For queries, call +91-9876543210.</span></p>
-  </div>
-
-  <div style="text-align:center;">
+  </div>  <div style="text-align:center;">
     <button class="btn" onclick="window.print()">🖨️ Print Invoice</button>
     <button class="btn" onclick="downloadPDF()">💾 Download PDF</button>
     <button class="btn" onclick="downloadImage()">🖼️ Download Image</button>
   </div>
-</div>
-
-<script>
+</div><script>
 function parseDetail(text) {
   const match = text.match(/(\d+)\s*(hrs|km)?\s*[x×]\s*₹?(\d+)/i);
-  if (match) {
-    const qty = parseInt(match[1]);
-    const rate = parseInt(match[3]);
-    return qty * rate;
-  }
+  if (match) return parseInt(match[1]) * parseInt(match[3]);
   const direct = text.match(/₹?\s?(\d+)/);
   return direct ? parseInt(direct[1]) : 0;
 }
-
 function recalculateAmounts() {
   let subtotal = 0;
-  const rows = document.querySelectorAll("#chargeDetails tr");
-  rows.forEach(row => {
-    const detailCell = row.children[1];
-    const amountCell = row.children[2];
-    const detail = detailCell.innerText.trim();
+  document.querySelectorAll("#chargeDetails tr").forEach(row => {
+    const detail = row.children[1].innerText.trim();
     const value = parseDetail(detail);
-    amountCell.innerText = value;
+    row.children[2].innerText = value;
     subtotal += value;
   });
   document.getElementById("subtotal").innerText = `₹${subtotal}`;
-  const discountText = document.getElementById("discount").innerText;
-  const discount = parseInt(discountText.replace(/[^\d]/g, "")) || 0;
+  const discount = parseInt(document.getElementById("discount").innerText.replace(/[^\d]/g, "")) || 0;
   const total = subtotal - discount;
   document.getElementById("total").innerHTML = `<strong>₹${total}</strong>`;
 }
-
-function loadTrip() {
-  const id = document.getElementById("tripSelect").value;
-  if (!id) return alert("Select a Trip ID");
-
-  const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
-  const trip = trips.find(t => t.id === id);
-  if (!trip) return alert("Trip not found!");
-
-  document.getElementById("invId").innerText = trip.id || "--";
-  document.getElementById("invDate").innerText = trip.date || "--";
-  document.getElementById("custName").innerText = trip.custName || "";
-  document.getElementById("custNumber").innerText = trip.custNumber || "";
-  document.getElementById("driverName").innerText = trip.driverName || "";
-  document.getElementById("driverNumber").innerText = trip.driverNumber || "";
-  document.getElementById("vehicleModel").innerText = trip.vehicleModel || "";
-  document.getElementById("vehicleNo").innerText = trip.vehicleNo || "";
-  document.getElementById("pickup").innerText = trip.pickup || "";
-  document.getElementById("drop").innerText = trip.drop || "";
-  document.getElementById("note").innerText = trip.note || "";
-
-  const pkg = { "Innova Crysta": 7500, "Innova Hycross": 8500, "Force Urbania": 9500 }[trip.vehicleModel] || 0;
-  const hr = { "Innova Crysta": 1000, "Innova Hycross": 1200, "Force Urbania": 1500 }[trip.vehicleModel] || 0;
-  const km = { "Innova Crysta": 20, "Innova Hycross": 24, "Force Urbania": 26 }[trip.vehicleModel] || 0;
-
-  const hrs = parseInt(trip.extraHours || 0);
-  const kms = parseInt(trip.extraKM || 0);
-  const toll = parseInt(trip.toll || 0);
-  const parking = parseInt(trip.parking || 0);
-
-  const rows = `
-    <tr><td contenteditable="true">Package</td><td contenteditable="true">${trip.vehicleModel} – Base Package</td><td contenteditable="true">${pkg}</td></tr>
-    <tr><td contenteditable="true">Extra Hours</td><td contenteditable="true">${hrs} hrs × ₹${hr}</td><td contenteditable="true">--</td></tr>
-    <tr><td contenteditable="true">Extra KM</td><td contenteditable="true">${kms} km × ₹${km}</td><td contenteditable="true">--</td></tr>
-    <tr><td contenteditable="true">Toll</td><td contenteditable="true">–</td><td contenteditable="true">${toll}</td></tr>
-    <tr><td contenteditable="true">Parking</td><td contenteditable="true">–</td><td contenteditable="true">${parking}</td></tr>
-  `;
-  document.getElementById("chargeDetails").innerHTML = rows;
-  document.getElementById("discount").innerText = `₹${trip.discount || 0}`;
-  recalculateAmounts();
-}
-
 function getFileName() {
   const id = document.getElementById("invId").innerText.trim().replace(/#/g, "");
   const date = document.getElementById("invDate").innerText.trim().replace(/\s+/g, "-");
   return `Invoice_${id}_${date}`;
 }
-
 function downloadPDF() {
-  const element = document.getElementById("invoice");
-  const opt = {
+  const el = document.getElementById("invoice");
+  html2pdf().from(el).set({
     margin: 0,
     filename: getFileName() + ".pdf",
-    html2canvas: { scale: 2, scrollY: 0 },
-    jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' }
-  };
-  html2pdf().set(opt).from(element).save();
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  }).save();
 }
-
 function downloadImage() {
-  const element = document.getElementById("invoice");
-  html2canvas(element, { scale: 2, scrollY: 0 }).then(canvas => {
+  const el = document.getElementById("invoice");
+  html2canvas(el).then(canvas => {
     const link = document.createElement("a");
     link.download = getFileName() + ".png";
     link.href = canvas.toDataURL("image/png");
     link.click();
   });
 }
-
-window.onload = function () {
-  // Load available Trip IDs
-  const select = document.getElementById("tripSelect");
-  const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
-  trips.forEach(t => {
-    const option = document.createElement("option");
-    option.value = t.id;
-    option.textContent = t.id;
-    select.appendChild(option);
-  });
-  recalculateAmounts();
-
-  // Auto recalculate on blur (after editing)
-  document.getElementById("chargeDetails").addEventListener("blur", recalculateAmounts, true);
-};
-</script>
-
-</body>
+document.addEventListener("input", e => {
+  if (e.target.closest("#chargeDetails") || e.target.id === "discount") recalculateAmounts();
+});
+window.onload = () => recalculateAmounts();
+</script></body>
 </html>
