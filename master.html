@@ -4,9 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Driver & Vehicle Master – NST</title>
+  <button onclick="location.href='home.html'">🏠 Go to Home</button>
+  <br><br>
+
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body { font-family: 'Poppins', sans-serif; background: #f4f6f9; max-width: 900px; margin: auto; padding: 20px; }
@@ -43,6 +44,8 @@
       <input id="dName" placeholder="Driver Name" />
       <input id="dMobile" placeholder="Driver Mobile" />
       <button onclick="addDriver()">➕ Add Driver</button>
+      <button onclick="exportData('driver-master')">📤 Export</button>
+      <input type="file" onchange="importData(event,'driver-master')" />
       <input placeholder="Search Driver" onkeyup="filter('driverTable',this.value)" />
       <table id="driverTable"><thead><tr><th>Name</th><th>Mobile</th><th>✏️</th><th>🗑️</th></tr></thead><tbody></tbody></table>
       <p>Total Drivers: <span id="driverCount">0</span></p>
@@ -56,6 +59,8 @@
       <input id="vModel" placeholder="Vehicle Model" />
       <input id="vNumber" placeholder="Vehicle Number" />
       <button onclick="addVehicle()">➕ Add Vehicle</button>
+      <button onclick="exportData('vehicle-master')">📤 Export</button>
+      <input type="file" onchange="importData(event,'vehicle-master')" />
       <input placeholder="Search Vehicle" onkeyup="filter('vehicleTable',this.value)" />
       <table id="vehicleTable"><thead><tr><th>Model</th><th>Number</th><th>✏️</th><th>🗑️</th></tr></thead><tbody></tbody></table>
       <p>Total Vehicles: <span id="vehicleCount">0</span></p>
@@ -72,94 +77,9 @@
   </div>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDNnQtossolWIfqFw9dM2i3TjYZXpMKTrY",
-      authDomain: "narayanan-selvi-travels-aafcc.firebaseapp.com",
-      databaseURL: "https://narayanan-selvi-travels-aafcc-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "narayanan-selvi-travels-aafcc",
-      storageBucket: "narayanan-selvi-travels-aafcc.appspot.com",
-      messagingSenderId: "439796129397",
-      appId: "1:439796129397:web:3dc531e6fc4e7a0be3a23c"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    let drivers = [], vehicles = [], assigned = [];
-
-    async function fetchData() {
-      const snap = await db.ref('masters').get();
-      const data = snap.val() || {};
-      drivers = data.drivers || [];
-      vehicles = data.vehicles || [];
-      assigned = data['assigned-map'] || [];
-      renderDrivers();
-      renderVehicles();
-      renderAssignments();
-    }
-
-    function addDriver() {
-      const name = dName.value.trim(), mobile = dMobile.value.trim();
-      if (!name || !mobile) return alert("Fill all fields");
-      if (drivers.some(d => d.name === name || d.mobile === mobile)) return alert("Duplicate driver!");
-      drivers.push({name, mobile});
-      db.ref('masters/drivers').set(drivers);
-      dName.value = dMobile.value = "";
-      renderDrivers();
-    }
-
-    function addVehicle() {
-      const model = vModel.value.trim(), number = vNumber.value.trim();
-      if (!model || !number) return alert("Fill all fields");
-      if (vehicles.some(v => v.model === model || v.number === number)) return alert("Duplicate vehicle!");
-      vehicles.push({model, number});
-      db.ref('masters/vehicles').set(vehicles);
-      vModel.value = vNumber.value = "";
-      renderVehicles();
-    }
-
-    function editDriver(i) {
-      const name = prompt("Edit name", drivers[i].name);
-      const mobile = prompt("Edit mobile", drivers[i].mobile);
-      if (name && mobile) {
-        drivers[i] = {name, mobile};
-        db.ref('masters/drivers').set(drivers);
-        renderDrivers();
-      }
-    }
-
-    function editVehicle(i) {
-      const model = prompt("Edit model", vehicles[i].model);
-      const number = prompt("Edit number", vehicles[i].number);
-      if (model && number) {
-        vehicles[i] = {model, number};
-        db.ref('masters/vehicles').set(vehicles);
-        renderVehicles();
-      }
-    }
-
-    function deleteDriver(i) {
-      if (confirm("Delete this driver?")) {
-        drivers.splice(i, 1);
-        db.ref('masters/drivers').set(drivers);
-        renderDrivers();
-      }
-    }
-
-    function deleteVehicle(i) {
-      if (confirm("Delete this vehicle?")) {
-        vehicles.splice(i, 1);
-        db.ref('masters/vehicles').set(vehicles);
-        renderVehicles();
-      }
-    }
-
-    function assignPair() {
-      const d = assignDriver.value, v = assignVehicle.value;
-      if (!d || !v) return alert("Select both");
-      assigned.push({driver: d, vehicle: v});
-      db.ref('masters/assigned-map').set(assigned);
-      renderAssignments();
-    }
+    const drivers = JSON.parse(localStorage.getItem("driver-master") || "[]");
+    const vehicles = JSON.parse(localStorage.getItem("vehicle-master") || "[]");
+    const assigned = JSON.parse(localStorage.getItem("assigned-map") || "[]");
 
     function renderDrivers() {
       const tb = document.querySelector("#driverTable tbody");
@@ -169,8 +89,8 @@
         <td><button onclick="editDriver(${i})">✏️</button></td>
         <td><button onclick="deleteDriver(${i})">🗑️</button></td></tr>`;
       });
-      driverCount.innerText = drivers.length;
-      assignDriver.innerHTML = drivers.map(d=>`<option>${d.name}</option>`).join("");
+      document.getElementById("driverCount").innerText = drivers.length;
+      document.getElementById("assignDriver").innerHTML = drivers.map(d=>`<option>${d.name}</option>`).join("");
     }
 
     function renderVehicles() {
@@ -181,8 +101,72 @@
         <td><button onclick="editVehicle(${i})">✏️</button></td>
         <td><button onclick="deleteVehicle(${i})">🗑️</button></td></tr>`;
       });
-      vehicleCount.innerText = vehicles.length;
-      assignVehicle.innerHTML = vehicles.map(v=>`<option>${v.model}</option>`).join("");
+      document.getElementById("vehicleCount").innerText = vehicles.length;
+      document.getElementById("assignVehicle").innerHTML = vehicles.map(v=>`<option>${v.model}</option>`).join("");
+    }
+
+    function addDriver() {
+      const name = dName.value.trim(), mobile = dMobile.value.trim();
+      if (!name || !mobile) return alert("Fill all fields");
+      if (drivers.some(d => d.name === name || d.mobile === mobile)) return alert("Duplicate driver!");
+      drivers.push({name, mobile});
+      localStorage.setItem("driver-master", JSON.stringify(drivers));
+      dName.value = dMobile.value = "";
+      renderDrivers();
+    }
+
+    function addVehicle() {
+      const model = vModel.value.trim(), number = vNumber.value.trim();
+      if (!model || !number) return alert("Fill all fields");
+      if (vehicles.some(v => v.model === model || v.number === number)) return alert("Duplicate vehicle!");
+      vehicles.push({model, number});
+      localStorage.setItem("vehicle-master", JSON.stringify(vehicles));
+      vModel.value = vNumber.value = "";
+      renderVehicles();
+    }
+
+    function editDriver(i) {
+      const name = prompt("Edit name", drivers[i].name);
+      const mobile = prompt("Edit mobile", drivers[i].mobile);
+      if (name && mobile) {
+        drivers[i] = {name, mobile};
+        localStorage.setItem("driver-master", JSON.stringify(drivers));
+        renderDrivers();
+      }
+    }
+
+    function editVehicle(i) {
+      const model = prompt("Edit model", vehicles[i].model);
+      const number = prompt("Edit number", vehicles[i].number);
+      if (model && number) {
+        vehicles[i] = {model, number};
+        localStorage.setItem("vehicle-master", JSON.stringify(vehicles));
+        renderVehicles();
+      }
+    }
+
+    function deleteDriver(i) {
+      if (confirm("Delete this driver?")) {
+        drivers.splice(i, 1);
+        localStorage.setItem("driver-master", JSON.stringify(drivers));
+        renderDrivers();
+      }
+    }
+
+    function deleteVehicle(i) {
+      if (confirm("Delete this vehicle?")) {
+        vehicles.splice(i, 1);
+        localStorage.setItem("vehicle-master", JSON.stringify(vehicles));
+        renderVehicles();
+      }
+    }
+
+    function assignPair() {
+      const d = assignDriver.value, v = assignVehicle.value;
+      if (!d || !v) return alert("Select both");
+      assigned.push({driver: d, vehicle: v});
+      localStorage.setItem("assigned-map", JSON.stringify(assigned));
+      renderAssignments();
     }
 
     function renderAssignments() {
@@ -198,12 +182,35 @@
       });
     }
 
+    function exportData(key) {
+      const data = JSON.parse(localStorage.getItem(key) || "[]");
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+      XLSX.writeFile(wb, key + ".xlsx");
+    }
+
+    function importData(e, key) {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const data = new Uint8Array(evt.target.result);
+        const wb = XLSX.read(data, {type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(ws);
+        localStorage.setItem(key, JSON.stringify(json));
+        location.reload();
+      };
+      reader.readAsArrayBuffer(e.target.files[0]);
+    }
+
     function toggleSection(id) {
       const div = document.getElementById(id);
       div.style.display = div.style.display === "none" ? "block" : "none";
     }
 
-    fetchData();
+    renderDrivers();
+    renderVehicles();
+    renderAssignments();
   </script>
 </body>
 </html>
