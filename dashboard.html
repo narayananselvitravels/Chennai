@@ -1,94 +1,164 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Duty Master – NST</title>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NST Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family:'Poppins',sans-serif; background:#f4f6f9; max-width:700px; margin:20px auto; padding:20px; }
-    h2 { color:#4b2aad }
-    input, select, button {
-      width:100%; padding:10px; margin:5px 0 15px;
-      border:1px solid #ccc; border-radius:5px; font-size:16px;
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f4f6f9;
+      margin: 0 auto;
+      padding: 20px;
+      max-width: 1000px;
     }
-    button { background:#4b2aad; color:white; border:none; cursor:pointer }
-    button:hover { background:#3a208b }
-    table { width:100%; border-collapse:collapse; margin-top:20px }
-    th, td { border:1px solid #ccc; padding:8px; text-align:left }
-    th { background:#4b2aad; color:white }
-    .action-btn { background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer }
+    h2 {
+      color: #4b2aad;
+      margin-bottom: 10px;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .grid .card {
+      flex: 1 1 200px;
+      text-align: center;
+    }
+    .card h3 {
+      margin: 0;
+      font-size: 18px;
+      color: #555;
+    }
+    .card p {
+      font-size: 22px;
+      font-weight: bold;
+      color: #4b2aad;
+    }
+    canvas {
+      width: 100% !important;
+      height: auto !important;
+    }
+    .nav-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .nav-buttons button {
+      background: #4b2aad;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    .nav-buttons button:hover {
+      background: #3a208b;
+    }
   </style>
 </head>
 <body>
-  <h2>📋 Duty Master – Manage Duty Types</h2>
 
-  <select id="dutyType">
-    <option value="">-- Select Type --</option>
-    <option>Client</option>
-    <option>Company</option>
-    <option>Event</option>
-  </select>
+  <h2>📊 NST Dashboard</h2>
 
-  <input id="dutyName" placeholder="Enter Duty Name"/>
-  <button onclick="addDuty()">➕ Add Duty</button>
+  <div class="grid">
+    <div class="card">
+      <h3>Total Trips</h3>
+      <p id="totalTrips">0</p>
+    </div>
+    <div class="card">
+      <h3>Paid Trips</h3>
+      <p id="paidTrips">0</p>
+    </div>
+    <div class="card">
+      <h3>Unpaid Trips</h3>
+      <p id="unpaidTrips">0</p>
+    </div>
+    <div class="card">
+      <h3>Total Revenue ₹</h3>
+      <p id="totalAmount">0</p>
+    </div>
+  </div>
 
-  <div id="dutyList"></div>
+  <div class="card">
+    <h3>💰 Payment Status Overview</h3>
+    <canvas id="paymentChart"></canvas>
+  </div>
 
-  <script>
-    let editIndex = -1;
+  <div class="card">
+    <h3>🚘 Vehicle Usage Overview</h3>
+    <canvas id="vehicleChart"></canvas>
+  </div>
 
-    function loadDuties() {
-      const arr = JSON.parse(localStorage.getItem("duty-master") || "[]");
-      let html = `<table><tr><th>Type</th><th>Name</th><th>Action</th></tr>`;
-      arr.forEach((d, i) => {
-        html += `<tr>
-          <td>${d.type}</td>
-          <td>${d.name}</td>
-          <td>
-            <button onclick="editDuty(${i})">✏️</button>
-            <button class="action-btn" onclick="deleteDuty(${i})">🗑️</button>
-          </td>
-        </tr>`;
-      });
-      html += `</table>`;
-      document.getElementById("dutyList").innerHTML = html;
+  <div class="card nav-buttons">
+    <button onclick="location.href='index.html'">📝 Trip Entry</button>
+    <button onclick="location.href='trip.html'">📋 View Trips</button>
+    <button onclick="location.href='master.html'">🧑‍✈️ Driver & Vehicle Master</button>
+    <button onclick="location.href='whatsapp.html'">📤 WhatsApp Share Log</button>
+    <button onclick="location.href='backup.html'">💾 Backup & Restore</button>
+  </div>
+
+<script>
+  const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
+
+  let paid = 0, unpaid = 0, amount = 0;
+  let vehicleCount = {};
+
+  trips.forEach(t => {
+    if (t.paymentStatus === "Paid") paid++;
+    else if (t.paymentStatus === "Not Paid") unpaid++;
+
+    let amt = parseFloat(t.totalAmount || 0);
+    if (!isNaN(amt)) amount += amt;
+
+    let model = t.vehicleModel || "Unknown";
+    vehicleCount[model] = (vehicleCount[model] || 0) + 1;
+  });
+
+  document.getElementById("totalTrips").textContent = trips.length;
+  document.getElementById("paidTrips").textContent = paid;
+  document.getElementById("unpaidTrips").textContent = unpaid;
+  document.getElementById("totalAmount").textContent = amount.toFixed(2);
+
+  new Chart(document.getElementById("paymentChart"), {
+    type: "pie",
+    data: {
+      labels: ["Paid", "Not Paid"],
+      datasets: [{
+        data: [paid, unpaid],
+        backgroundColor: ["#28a745", "#dc3545"]
+      }]
     }
+  });
 
-    function addDuty() {
-      const type = document.getElementById("dutyType").value;
-      const name = document.getElementById("dutyName").value;
-      if (!type || !name) return alert("Please select type and enter name");
-
-      let arr = JSON.parse(localStorage.getItem("duty-master") || "[]");
-      if (editIndex >= 0) {
-        arr[editIndex] = { type, name };
-        editIndex = -1;
-      } else {
-        arr.push({ type, name });
+  new Chart(document.getElementById("vehicleChart"), {
+    type: "bar",
+    data: {
+      labels: Object.keys(vehicleCount),
+      datasets: [{
+        label: "Trips by Vehicle",
+        data: Object.values(vehicleCount),
+        backgroundColor: "#4b2aad"
+      }]
+    },
+    options: {
+      scales: {
+        y: { beginAtZero: true }
       }
-      localStorage.setItem("duty-master", JSON.stringify(arr));
-      document.getElementById("dutyType").value = "";
-      document.getElementById("dutyName").value = "";
-      loadDuties();
     }
+  });
+</script>
 
-    function editDuty(index) {
-      const arr = JSON.parse(localStorage.getItem("duty-master") || "[]");
-      const item = arr[index];
-      document.getElementById("dutyType").value = item.type;
-      document.getElementById("dutyName").value = item.name;
-      editIndex = index;
-    }
-
-    function deleteDuty(index) {
-      if (!confirm("Delete this duty?")) return;
-      let arr = JSON.parse(localStorage.getItem("duty-master") || "[]");
-      arr.splice(index, 1);
-      localStorage.setItem("duty-master", JSON.stringify(arr));
-      loadDuties();
-    }
-
-    loadDuties();
-  </script>
 </body>
 </html>
