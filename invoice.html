@@ -2,166 +2,230 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>NST Travels Invoice</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NST Invoice</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
-    * { margin: 0; padding: 0; font-family: 'Poppins', sans-serif; box-sizing: border-box; }
-    body { background: #fff; padding: 20px; color: #333; }
+    * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    body { margin: 20px; background: #fff; color: #333; }
     .invoice-box {
       max-width: 850px; margin: auto; padding: 30px;
       border: 1px solid #eee; box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    .header { text-align: center; border-bottom: 4px solid #4b2aad; padding-bottom: 15px; margin-bottom: 20px; }
+    .header { text-align: center; border-bottom: 4px solid #4b2aad; padding-bottom: 10px; }
     .header h1 { color: #4b2aad; font-size: 28px; }
-    .header small { font-weight: 600; color: #666; }
-    .meta, .info-section { display: flex; justify-content: space-between; margin-bottom: 20px; }
+    .meta, .info-section {
+      display: flex; justify-content: space-between;
+      margin-top: 20px; margin-bottom: 20px;
+    }
     .info-box {
-      width: 48%; background: #f7f5fb; padding: 15px;
+      width: 48%; background: #f5f2ff; padding: 15px;
       border-left: 5px solid #4b2aad;
     }
-    .info-box strong { display: block; margin-bottom: 5px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
-    th { background-color: #4b2aad; color: #fff; }
-    td:last-child, th:last-child { text-align: right; }
-    .total-section { margin-top: 20px; text-align: right; }
-    .total-section h2 { font-size: 18px; color: #4b2aad; }
-    .footer { text-align: center; margin-top: 30px; font-size: 13px; color: #999; }
-    #tripSelect { margin-bottom: 20px; padding: 8px; font-size: 14px; width: 250px; }
-    button { padding: 10px 15px; background: #4b2aad; color: #fff; border: none; cursor: pointer; font-weight: 600; border-radius: 5px; }
-    @media print { body { padding: 0; } .invoice-box { box-shadow: none; border: none; } #tripSelect, button { display: none; } }
+    .info-box label {
+      font-weight: 600; display: block; margin-top: 5px;
+    }
+    .info-box input {
+      width: 100%; padding: 6px; margin-bottom: 5px;
+    }
+    table {
+      width: 100%; border-collapse: collapse; margin-top: 15px;
+    }
+    th, td {
+      padding: 10px; border: 1px solid #ccc;
+    }
+    th {
+      background-color: #4b2aad; color: white;
+    }
+    td input {
+      width: 100%; border: none; background: transparent;
+      font-size: 14px; text-align: right;
+    }
+    .total-section {
+      text-align: right; margin-top: 20px;
+    }
+    .total-section h2 {
+      color: #4b2aad; font-size: 20px;
+    }
+    .footer {
+      text-align: center; margin-top: 30px;
+      font-size: 13px; color: #888;
+    }
+    select, button {
+      margin-top: 10px; padding: 8px 14px;
+      font-weight: 600; background: #4b2aad; color: white;
+      border: none; border-radius: 5px; cursor: pointer;
+    }
+    .flex-top {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px;
+    }
+    #tripList {
+      font-size: 14px; background: #f1f1f1; padding: 10px; margin-top: 5px;
+      border: 1px dashed #aaa; max-height: 100px; overflow-y: auto;
+    }
+    @media print {
+      button, select, #tripList { display: none; }
+      body { margin: 0; }
+    }
   </style>
 </head>
 <body>
+<div class="invoice-box" id="invoice">
+  <div class="header">
+    <h1>NST TRAVELS</h1>
+    <small>Billing Invoice</small>
+  </div>
 
-  <div class="invoice-box">
-    <div class="header">
-      <h1>NST TRAVELS</h1>
-      <small>Billing Invoice</small>
+  <div class="flex-top">
+    <div>
+      <select id="tripSelect">
+        <option value="">🔽 Select Trip ID</option>
+      </select>
+      <div id="tripList"></div>
     </div>
-
-    <select id="tripSelect">
-      <option value="">🔽 Select Trip ID</option>
-    </select>
-    <button onclick="window.print()">🖨️ Print Invoice</button>
-
-    <div class="meta">
-      <div>Invoice No: <strong id="tripId">#NST001</strong></div>
-      <div>Date: <strong id="tripDate">--</strong></div>
-    </div>
-
-    <div class="info-section">
-      <div class="info-box">
-        <strong>Customer Details</strong>
-        Name: <span id="custName">-</span><br/>
-        Phone: <span id="custPhone">-</span><br/>
-        Pickup: <span id="pickup">-</span><br/>
-        Drop: <span id="drop">-</span><br/>
-      </div>
-      <div class="info-box">
-        <strong>Driver Details</strong>
-        Name: <span id="driverName">-</span><br/>
-        Phone: <span id="driverPhone">-</span><br/>
-        Vehicle: <span id="vehicleModel">-</span><br/>
-        Number: <span id="vehicleNumber">-</span><br/>
-      </div>
-    </div>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Description</th>
-          <th>Amount (₹)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td id="pkgLabel">Package</td>
-          <td id="pkgCost">0</td>
-        </tr>
-        <tr>
-          <td id="extraHrLabel">Extra Hours</td>
-          <td id="extraHrCost">0</td>
-        </tr>
-        <tr>
-          <td id="extraKmLabel">Extra KM</td>
-          <td id="extraKmCost">0</td>
-        </tr>
-        <tr>
-          <td id="tollLabel">Toll Charges</td>
-          <td id="tollCost">0</td>
-        </tr>
-        <tr>
-          <td id="parkingLabel">Parking</td>
-          <td id="parkingCost">0</td>
-        </tr>
-        <tr>
-          <th>Total</th>
-          <th id="totalCost">0</th>
-        </tr>
-      </tbody>
-    </table>
-
-    <div class="total-section">
-      <h2>Total Amount Payable: ₹<span id="grandTotal">0</span></h2>
-    </div>
-
-    <div class="footer">
-      Thank you for choosing NST Travels!<br/>
-      www.nsttravels.com | +91 9876543210
+    <div>
+      <button onclick="exportPDF()">📥 Export PDF</button>
     </div>
   </div>
 
-  <script>
-    const tripSelect = document.getElementById('tripSelect');
-    const trips = JSON.parse(localStorage.getItem('nst_trips')) || [];
+  <div class="meta">
+    <div>Invoice No: <input type="text" id="tripId" /></div>
+    <div>Date: <input type="text" id="tripDate" placeholder="DD-MM-YYYY" /></div>
+  </div>
 
-    // Load Trip IDs into dropdown
+  <div class="info-section">
+    <div class="info-box">
+      <label>Customer Name</label>
+      <input id="customerName" type="text" />
+      <label>Phone</label>
+      <input id="customerPhone" type="text" />
+      <label>Pickup</label>
+      <input id="pickup" type="text" />
+      <label>Drop</label>
+      <input id="drop" type="text" />
+    </div>
+    <div class="info-box">
+      <label>Driver Name</label>
+      <input id="driverName" type="text" />
+      <label>Phone</label>
+      <input id="driverPhone" type="text" />
+      <label>Vehicle Model</label>
+      <input id="vehicleModel" type="text" />
+      <label>Vehicle Number</label>
+      <input id="vehicleNumber" type="text" />
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th>Amount (₹)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Package</td>
+        <td><input id="packageCost" type="number" value="0" oninput="updateTotal()" /></td>
+      </tr>
+      <tr>
+        <td>Extra Hours</td>
+        <td><input id="extraHrCost" type="number" value="0" oninput="updateTotal()" /></td>
+      </tr>
+      <tr>
+        <td>Extra KM</td>
+        <td><input id="extraKmCost" type="number" value="0" oninput="updateTotal()" /></td>
+      </tr>
+      <tr>
+        <td>Toll Charges</td>
+        <td><input id="tollCharges" type="number" value="0" oninput="updateTotal()" /></td>
+      </tr>
+      <tr>
+        <td>Parking</td>
+        <td><input id="parkingCharges" type="number" value="0" oninput="updateTotal()" /></td>
+      </tr>
+      <tr>
+        <th>Total</th>
+        <th id="totalCost">0</th>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="total-section">
+    <h2>Total Amount Payable: ₹<span id="grandTotal">0</span></h2>
+  </div>
+
+  <div class="footer">
+    Thank you for choosing NST Travels!<br/>
+    www.nsttravels.com | +91 9876543210
+  </div>
+</div>
+
+<script>
+  const tripSelect = document.getElementById('tripSelect');
+  const tripListDiv = document.getElementById('tripList');
+  const trips = JSON.parse(localStorage.getItem('nst_trips')) || [];
+
+  function populateTrips() {
+    tripListDiv.innerHTML = "<strong>Available Trips:</strong><br/>";
     trips.forEach(trip => {
-      const opt = document.createElement('option');
-      opt.value = trip.tripId;
-      opt.textContent = trip.tripId;
-      tripSelect.appendChild(opt);
+      const option = document.createElement('option');
+      option.value = trip.tripId;
+      option.textContent = trip.tripId;
+      tripSelect.appendChild(option);
+      tripListDiv.innerHTML += trip.tripId + "<br/>";
     });
+  }
 
-    tripSelect.addEventListener('change', () => {
-      const selected = trips.find(t => t.tripId === tripSelect.value);
-      if (!selected) return;
+  function fillTripData(trip) {
+    document.getElementById('tripId').value = trip.tripId || "";
+    document.getElementById('tripDate').value = trip.tripDate || "";
+    document.getElementById('customerName').value = trip.customerName || "";
+    document.getElementById('customerPhone').value = trip.customerPhone || "";
+    document.getElementById('pickup').value = trip.pickup || "";
+    document.getElementById('drop').value = trip.drop || "";
+    document.getElementById('driverName').value = trip.driverName || "";
+    document.getElementById('driverPhone').value = trip.driverPhone || "";
+    document.getElementById('vehicleModel').value = trip.vehicleModel || "";
+    document.getElementById('vehicleNumber').value = trip.vehicleNumber || "";
+    document.getElementById('packageCost').value = trip.packageCost || 0;
+    document.getElementById('extraHrCost').value = trip.extraHourCostTotal || 0;
+    document.getElementById('extraKmCost').value = trip.extraKmCostTotal || 0;
+    document.getElementById('tollCharges').value = trip.tollCharges || 0;
+    document.getElementById('parkingCharges').value = trip.parkingCharges || 0;
+    updateTotal();
+  }
 
-      // Fill meta
-      document.getElementById('tripId').textContent = selected.tripId;
-      document.getElementById('tripDate').textContent = selected.tripDate || "--";
+  tripSelect.addEventListener('change', () => {
+    const trip = trips.find(t => t.tripId === tripSelect.value);
+    if (trip) fillTripData(trip);
+  });
 
-      // Customer & driver
-      document.getElementById('custName').textContent = selected.customerName || "-";
-      document.getElementById('custPhone').textContent = selected.customerPhone || "-";
-      document.getElementById('pickup').textContent = selected.pickup || "-";
-      document.getElementById('drop').textContent = selected.drop || "-";
-      document.getElementById('driverName').textContent = selected.driverName || "-";
-      document.getElementById('driverPhone').textContent = selected.driverPhone || "-";
-      document.getElementById('vehicleModel').textContent = selected.vehicleModel || "-";
-      document.getElementById('vehicleNumber').textContent = selected.vehicleNumber || "-";
+  function updateTotal() {
+    const p = parseFloat(document.getElementById('packageCost').value) || 0;
+    const h = parseFloat(document.getElementById('extraHrCost').value) || 0;
+    const k = parseFloat(document.getElementById('extraKmCost').value) || 0;
+    const t = parseFloat(document.getElementById('tollCharges').value) || 0;
+    const pk = parseFloat(document.getElementById('parkingCharges').value) || 0;
+    const total = p + h + k + t + pk;
+    document.getElementById('totalCost').textContent = total.toFixed(2);
+    document.getElementById('grandTotal').textContent = total.toFixed(2);
+  }
 
-      // Charges
-      document.getElementById('pkgCost').textContent = selected.packageCost || "0";
-      document.getElementById('extraHrLabel').textContent = `Extra Hours (${selected.extraHours || 0} × ₹${selected.extraHourCost || 0})`;
-      document.getElementById('extraHrCost').textContent = selected.extraHourCostTotal || "0";
-      document.getElementById('extraKmLabel').textContent = `Extra KM (${selected.extraKM || 0} × ₹${selected.extraKmCost || 0})`;
-      document.getElementById('extraKmCost').textContent = selected.extraKmCostTotal || "0";
-      document.getElementById('tollCost').textContent = selected.tollCharges || "0";
-      document.getElementById('parkingCost').textContent = selected.parkingCharges || "0";
+  function exportPDF() {
+    const invoice = document.getElementById('invoice');
+    html2pdf().set({
+      margin: 0.5,
+      filename: document.getElementById('tripId').value + '_Invoice.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+    }).from(invoice).save();
+  }
 
-      // Total
-      let total = 0;
-      total += Number(selected.packageCost || 0);
-      total += Number(selected.extraHourCostTotal || 0);
-      total += Number(selected.extraKmCostTotal || 0);
-      total += Number(selected.tollCharges || 0);
-      total += Number(selected.parkingCharges || 0);
-      document.getElementById('totalCost').textContent = total;
-      document.getElementById('grandTotal').textContent = total;
-    });
-  </script>
+  populateTrips();
+</script>
 </body>
 </html>
