@@ -1,4 +1,5 @@
-<!DOCTYPE html> 
+<!-- Save this as index.html -->
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -40,10 +41,8 @@
 </div>
 
 <label>Duty</label><select id="duty"></select>
-
 <label>Pickup Location</label><input id="pickupLocation">
 <label>Drop Location</label><input id="dropLocation">
-
 <label>Customer Name</label><input id="custName">
 <label>Customer Number</label><input id="custNumber">
 
@@ -56,17 +55,13 @@
 <label>Start Time</label><input type="time" id="startTime" onchange="recalc()">
 <label>End Time</label><input type="time" id="endTime" onchange="recalc()">
 <label>Total Duration (hrs)</label><input id="duration">
-
 <label>Extra Hours</label><input type="number" id="extraHours">
-
 <label>Start KM</label><input type="number" id="startKM" onchange="recalc()">
 <label>End KM</label><input type="number" id="endKM" onchange="recalc()">
 <label>Total KM</label><input id="totalKM">
 <label>Extra KM</label><input type="number" id="extraKM">
-
 <label>Parking ₹</label><input type="number" id="parking">
 <label>Toll ₹</label><input type="number" id="toll">
-
 <label>Total Amount ₹</label><input type="number" id="totalAmount">
 
 <label>Payment Status</label>
@@ -95,13 +90,10 @@
 
     const dutyList = JSON.parse(localStorage.getItem("duty-master") || "[]");
     duty.innerHTML = '<option value="">-- Select --</option>';
-    dutyList.forEach(d => {
-      duty.innerHTML += `<option>${d.name}</option>`;
-    });
+    dutyList.forEach(d => { duty.innerHTML += `<option>${d.name}</option>`; });
 
     const dList = JSON.parse(localStorage.getItem("driver-master") || "[]");
-    driverName.innerHTML = '<option value="">-- Select --</option>';
-    driverNumber.innerHTML = '<option value="">-- Select --</option>';
+    driverName.innerHTML = driverNumber.innerHTML = '<option value="">-- Select --</option>';
     dList.forEach(d => {
       drivers[d.name] = d.mobile;
       driverName.innerHTML += `<option>${d.name}</option>`;
@@ -109,8 +101,7 @@
     });
 
     const vList = JSON.parse(localStorage.getItem("vehicle-master") || "[]");
-    vehicleModel.innerHTML = '<option value="">-- Select --</option>';
-    vehicleNo.innerHTML = '<option value="">-- Select --</option>';
+    vehicleModel.innerHTML = vehicleNo.innerHTML = '<option value="">-- Select --</option>';
     vList.forEach(v => {
       vehicles[v.model] = v.number;
       vehicleModel.innerHTML += `<option>${v.model}</option>`;
@@ -154,30 +145,16 @@
 
   async function saveTrip(fromShare = false) {
     const data = {
-      id: tripId.value,
-      date: tripDateDisplay.value,
-      duty: duty.value,
-      pickup: pickupLocation.value,
-      drop: dropLocation.value,
-      custName: custName.value,
-      custNumber: custNumber.value,
-      driverName: driverName.value,
-      driverNumber: driverNumber.value,
-      vehicleModel: vehicleModel.value,
-      vehicleNo: vehicleNo.value,
-      start: startTime.value,
-      end: endTime.value,
-      duration: duration.value,
-      extraHours: extraHours.value,
-      startKM: startKM.value,
-      endKM: endKM.value,
-      totalKM: totalKM.value,
-      extraKM: extraKM.value,
-      parking: parking.value,
-      toll: toll.value,
-      totalAmount: totalAmount.value,
-      paymentStatus: paymentStatus.value,
-      note: note.value
+      id: tripId.value, date: tripDateDisplay.value, duty: duty.value,
+      pickup: pickupLocation.value, drop: dropLocation.value,
+      custName: custName.value, custNumber: custNumber.value,
+      driverName: driverName.value, driverNumber: driverNumber.value,
+      vehicleModel: vehicleModel.value, vehicleNo: vehicleNo.value,
+      start: startTime.value, end: endTime.value, duration: duration.value,
+      extraHours: extraHours.value, startKM: startKM.value, endKM: endKM.value,
+      totalKM: totalKM.value, extraKM: extraKM.value,
+      parking: parking.value, toll: toll.value,
+      totalAmount: totalAmount.value, paymentStatus: paymentStatus.value, note: note.value
     };
 
     try {
@@ -204,22 +181,16 @@
       "👨‍✈️ *DRIVER INFO*": { "Name": driverName.value, "Number": driverNumber.value },
       "🚘 *VEHICLE INFO*": { "Model": vehicleModel.value, "Number": vehicleNo.value },
       "🕒 *TIME DETAILS*": {
-        "Start Time": startTime.value,
-        "End Time": endTime.value,
-        "Duration": duration.value ? `${duration.value} hrs` : "",
-        "Extra Hours": extraHours.value
+        "Start Time": startTime.value, "End Time": endTime.value,
+        "Duration": duration.value ? `${duration.value} hrs` : "", "Extra Hours": extraHours.value
       },
       "📏 *DISTANCE DETAILS*": {
-        "Start KM": startKM.value,
-        "End KM": endKM.value,
-        "Total KM": totalKM.value ? `${totalKM.value} km` : "",
-        "Extra KM": extraKM.value ? `${extraKM.value} km` : ""
+        "Start KM": startKM.value, "End KM": endKM.value,
+        "Total KM": totalKM.value ? `${totalKM.value} km` : "", "Extra KM": extraKM.value
       },
       "💰 *FARE DETAILS*": {
-        "Parking": parking.value ? `₹${parking.value}` : "",
-        "Toll": toll.value ? `₹${toll.value}` : "",
-        "Total Amount": totalAmount.value ? `₹${totalAmount.value}` : "",
-        "Payment Status": paymentStatus.value
+        "Parking": parking.value ? `₹${parking.value}` : "", "Toll": toll.value ? `₹${toll.value}` : "",
+        "Total Amount": totalAmount.value ? `₹${totalAmount.value}` : "", "Payment Status": paymentStatus.value
       },
       "📝 *NOTE*": { "-": note.value }
     };
@@ -241,8 +212,7 @@
   }
 
   tripDate.addEventListener("change", () => {
-    const raw = tripDate.value;
-    const d = new Date(raw);
+    const d = new Date(tripDate.value);
     tripDateDisplay.value = d.toLocaleDateString("en-GB", { day: '2-digit', month: 'long', year: 'numeric' });
   });
 
