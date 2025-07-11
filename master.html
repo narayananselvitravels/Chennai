@@ -3,170 +3,207 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NST Master Data</title>
+  <title>Driver & Vehicle Master – NST</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: #f4f6f9;
-      max-width: 800px;
-      margin: 20px auto;
-      padding: 20px;
-    }
-    h2 { color: #4b2aad; }
-    label { font-weight: 600; display: block; margin-top: 10px; }
-    input, button {
-      padding: 10px; font-size: 15px; margin-top: 5px;
+    body { font-family: 'Poppins', sans-serif; background: #f4f6f9; max-width: 900px; margin: auto; padding: 20px; }
+    h2, h3 { color: #4b2aad; }
+    input, select, button {
+      padding: 10px; margin: 5px; font-size: 16px;
       border: 1px solid #ccc; border-radius: 5px;
     }
     button {
-      background: #4b2aad; color: #fff;
-      border: none; cursor: pointer; margin-top: 10px;
+      background: #4b2aad; color: white; border: none; cursor: pointer;
     }
     button:hover { background: #3a208b; }
-    table {
-      width: 100%; margin-top: 20px; border-collapse: collapse;
-    }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px }
     th, td {
-      border: 1px solid #ccc; padding: 8px; font-size: 14px;
+      border: 1px solid #ddd; padding: 8px; text-align: left;
     }
-    th { background: #4b2aad; color: #fff; }
-    section { margin-bottom: 40px; }
+    th { background: #4b2aad; color: white; }
+    .section { background: white; padding: 15px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+    .toggle { float: right; font-size: 18px; cursor: pointer; color: #4b2aad }
+    .nav-btns button { margin-right: 10px; }
   </style>
 </head>
 <body>
+  <h2>📚 NST Master – Driver & Vehicle Management</h2>
+  <div class="nav-btns">
+    <button onclick="window.location.href='index.html'">← Trip Sheet</button>
+    <button onclick="window.location.href='admin.html'">🔐 Admin Panel</button>
+  </div>
 
-<h2>🛠️ NST Master Data</h2>
+  <!-- Driver Master -->
+  <div class="section">
+    <h3>👨‍✈️ Driver Master <span class="toggle" onclick="toggleSection('driverSec')">[+]</span></h3>
+    <div id="driverSec">
+      <input id="dName" placeholder="Driver Name" />
+      <input id="dMobile" placeholder="Driver Mobile" />
+      <button onclick="addDriver()">➕ Add Driver</button>
+      <input placeholder="Search Driver" onkeyup="filter('driverTable',this.value)" />
+      <table id="driverTable"><thead><tr><th>Name</th><th>Mobile</th><th>✏️</th><th>🗑️</th></tr></thead><tbody></tbody></table>
+      <p>Total Drivers: <span id="driverCount">0</span></p>
+    </div>
+  </div>
 
-<section>
-  <h3>👨‍✈️ Add Driver</h3>
-  <label>Name</label>
-  <input type="text" id="driverName">
-  <label>Mobile</label>
-  <input type="text" id="driverMobile">
-  <button onclick="addDriver()">➕ Add Driver</button>
-</section>
+  <!-- Vehicle Master -->
+  <div class="section">
+    <h3>🚘 Vehicle Master <span class="toggle" onclick="toggleSection('vehicleSec')">[+]</span></h3>
+    <div id="vehicleSec">
+      <input id="vModel" placeholder="Vehicle Model" />
+      <input id="vNumber" placeholder="Vehicle Number" />
+      <button onclick="addVehicle()">➕ Add Vehicle</button>
+      <input placeholder="Search Vehicle" onkeyup="filter('vehicleTable',this.value)" />
+      <table id="vehicleTable"><thead><tr><th>Model</th><th>Number</th><th>✏️</th><th>🗑️</th></tr></thead><tbody></tbody></table>
+      <p>Total Vehicles: <span id="vehicleCount">0</span></p>
+    </div>
+  </div>
 
-<section>
-  <h3>🚘 Add Vehicle</h3>
-  <label>Model</label>
-  <input type="text" id="vehicleModel">
-  <label>Number</label>
-  <input type="text" id="vehicleNumber">
-  <button onclick="addVehicle()">➕ Add Vehicle</button>
-</section>
+  <!-- Assign Vehicles -->
+  <div class="section">
+    <h3>🚗 Assign Vehicle to Driver</h3>
+    <select id="assignDriver"></select>
+    <select id="assignVehicle"></select>
+    <button onclick="assignPair()">🔗 Assign</button>
+    <table id="assignTable"><thead><tr><th>Driver</th><th>Vehicle</th></tr></thead><tbody></tbody></table>
+  </div>
 
-<section>
-  <h3>📋 Add Duty</h3>
-  <label>Duty Name</label>
-  <input type="text" id="dutyName">
-  <button onclick="addDuty()">➕ Add Duty</button>
-</section>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDNnQtossolWIfqFw9dM2i3TjYZXpMKTrY",
+      authDomain: "narayanan-selvi-travels-aafcc.firebaseapp.com",
+      databaseURL: "https://narayanan-selvi-travels-aafcc-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "narayanan-selvi-travels-aafcc",
+      storageBucket: "narayanan-selvi-travels-aafcc.appspot.com",
+      messagingSenderId: "439796129397",
+      appId: "1:439796129397:web:3dc531e6fc4e7a0be3a23c"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-<hr/>
+    let drivers = [], vehicles = [], assigned = [];
 
-<section>
-  <h3>📄 Current Master Data</h3>
-  <button onclick="loadMasters()">🔄 Refresh</button>
-  <div id="masterDisplay"></div>
-</section>
-
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDNnQtossolWIfqFw9dM2i3TjYZXpMKTrY",
-    authDomain: "narayanan-selvi-travels-aafcc.firebaseapp.com",
-    databaseURL: "https://narayanan-selvi-travels-aafcc-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "narayanan-selvi-travels-aafcc",
-    storageBucket: "narayanan-selvi-travels-aafcc.firebasestorage.app",
-    messagingSenderId: "439796129397",
-    appId: "1:439796129397:web:3dc531e6fc4e7a0be3a23c"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-
-  function addDriver() {
-    const name = driverName.value.trim();
-    const mobile = driverMobile.value.trim();
-    if (!name || !mobile) return alert("Please enter both name and mobile");
-
-    db.ref("masters/drivers").once("value").then(snap => {
-      const list = snap.val() || [];
-      list.push({ name, mobile });
-      db.ref("masters/drivers").set(list).then(() => {
-        alert("✅ Driver added");
-        driverName.value = '';
-        driverMobile.value = '';
-        loadMasters();
-      });
-    });
-  }
-
-  function addVehicle() {
-    const model = vehicleModel.value.trim();
-    const number = vehicleNumber.value.trim();
-    if (!model || !number) return alert("Please enter both model and number");
-
-    db.ref("masters/vehicles").once("value").then(snap => {
-      const list = snap.val() || [];
-      list.push({ model, number });
-      db.ref("masters/vehicles").set(list).then(() => {
-        alert("✅ Vehicle added");
-        vehicleModel.value = '';
-        vehicleNumber.value = '';
-        loadMasters();
-      });
-    });
-  }
-
-  function addDuty() {
-    const name = dutyName.value.trim();
-    if (!name) return alert("Please enter a duty name");
-
-    db.ref("masters/duties").once("value").then(snap => {
-      const list = snap.val() || [];
-      list.push({ name });
-      db.ref("masters/duties").set(list).then(() => {
-        alert("✅ Duty added");
-        dutyName.value = '';
-        loadMasters();
-      });
-    });
-  }
-
-  function loadMasters() {
-    db.ref("masters").once("value").then(snap => {
+    async function fetchData() {
+      const snap = await db.ref('masters').get();
       const data = snap.val() || {};
-      let html = "";
+      drivers = data.drivers || [];
+      vehicles = data.vehicles || [];
+      assigned = data['assigned-map'] || [];
+      renderDrivers();
+      renderVehicles();
+      renderAssignments();
+    }
 
-      html += "<h4>👨‍✈️ Drivers</h4><table><tr><th>Name</th><th>Mobile</th></tr>";
-      (data.drivers || []).forEach(d => {
-        html += `<tr><td>${d.name}</td><td>${d.mobile}</td></tr>`;
+    function addDriver() {
+      const name = dName.value.trim(), mobile = dMobile.value.trim();
+      if (!name || !mobile) return alert("Fill all fields");
+      if (drivers.some(d => d.name === name || d.mobile === mobile)) return alert("Duplicate driver!");
+      drivers.push({name, mobile});
+      db.ref('masters/drivers').set(drivers);
+      dName.value = dMobile.value = "";
+      renderDrivers();
+    }
+
+    function addVehicle() {
+      const model = vModel.value.trim(), number = vNumber.value.trim();
+      if (!model || !number) return alert("Fill all fields");
+      if (vehicles.some(v => v.model === model || v.number === number)) return alert("Duplicate vehicle!");
+      vehicles.push({model, number});
+      db.ref('masters/vehicles').set(vehicles);
+      vModel.value = vNumber.value = "";
+      renderVehicles();
+    }
+
+    function editDriver(i) {
+      const name = prompt("Edit name", drivers[i].name);
+      const mobile = prompt("Edit mobile", drivers[i].mobile);
+      if (name && mobile) {
+        drivers[i] = {name, mobile};
+        db.ref('masters/drivers').set(drivers);
+        renderDrivers();
+      }
+    }
+
+    function editVehicle(i) {
+      const model = prompt("Edit model", vehicles[i].model);
+      const number = prompt("Edit number", vehicles[i].number);
+      if (model && number) {
+        vehicles[i] = {model, number};
+        db.ref('masters/vehicles').set(vehicles);
+        renderVehicles();
+      }
+    }
+
+    function deleteDriver(i) {
+      if (confirm("Delete this driver?")) {
+        drivers.splice(i, 1);
+        db.ref('masters/drivers').set(drivers);
+        renderDrivers();
+      }
+    }
+
+    function deleteVehicle(i) {
+      if (confirm("Delete this vehicle?")) {
+        vehicles.splice(i, 1);
+        db.ref('masters/vehicles').set(vehicles);
+        renderVehicles();
+      }
+    }
+
+    function assignPair() {
+      const d = assignDriver.value, v = assignVehicle.value;
+      if (!d || !v) return alert("Select both");
+      assigned.push({driver: d, vehicle: v});
+      db.ref('masters/assigned-map').set(assigned);
+      renderAssignments();
+    }
+
+    function renderDrivers() {
+      const tb = document.querySelector("#driverTable tbody");
+      tb.innerHTML = "";
+      drivers.forEach((d, i) => {
+        tb.innerHTML += `<tr><td>${d.name}</td><td>${d.mobile}</td>
+        <td><button onclick="editDriver(${i})">✏️</button></td>
+        <td><button onclick="deleteDriver(${i})">🗑️</button></td></tr>`;
       });
-      html += "</table>";
+      driverCount.innerText = drivers.length;
+      assignDriver.innerHTML = drivers.map(d=>`<option>${d.name}</option>`).join("");
+    }
 
-      html += "<h4>🚘 Vehicles</h4><table><tr><th>Model</th><th>Number</th></tr>";
-      (data.vehicles || []).forEach(v => {
-        html += `<tr><td>${v.model}</td><td>${v.number}</td></tr>`;
+    function renderVehicles() {
+      const tb = document.querySelector("#vehicleTable tbody");
+      tb.innerHTML = "";
+      vehicles.forEach((v, i) => {
+        tb.innerHTML += `<tr><td>${v.model}</td><td>${v.number}</td>
+        <td><button onclick="editVehicle(${i})">✏️</button></td>
+        <td><button onclick="deleteVehicle(${i})">🗑️</button></td></tr>`;
       });
-      html += "</table>";
+      vehicleCount.innerText = vehicles.length;
+      assignVehicle.innerHTML = vehicles.map(v=>`<option>${v.model}</option>`).join("");
+    }
 
-      html += "<h4>📋 Duties</h4><table><tr><th>Duty</th></tr>";
-      (data.duties || []).forEach(d => {
-        html += `<tr><td>${d.name}</td></tr>`;
+    function renderAssignments() {
+      const tb = document.querySelector("#assignTable tbody");
+      tb.innerHTML = assigned.map(p => `<tr><td>${p.driver}</td><td>${p.vehicle}</td></tr>`).join("");
+    }
+
+    function filter(tableId, value) {
+      const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+      value = value.toLowerCase();
+      rows.forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
       });
-      html += "</table>";
+    }
 
-      masterDisplay.innerHTML = html;
-    });
-  }
+    function toggleSection(id) {
+      const div = document.getElementById(id);
+      div.style.display = div.style.display === "none" ? "block" : "none";
+    }
 
-  window.onload = loadMasters;
-</script>
-
+    fetchData();
+  </script>
 </body>
 </html>
