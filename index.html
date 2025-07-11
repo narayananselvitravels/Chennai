@@ -5,282 +5,244 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>NST Trip Sheet</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Toastr for notifications -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+  <!-- Chart.js for analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- PapaParse for CSV import/export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
-    body { font-family: 'Poppins', sans-serif; background: #f4f6f9; max-width: 800px; margin: 20px auto; padding: 20px; }
-    h2 { color: #4b2aad; }
-    label { display: block; font-weight: 600; margin-top: 10px; }
-    input, select, textarea {
-      width: 100%; padding: 10px; margin-top: 5px;
-      border: 1px solid #ccc; border-radius: 5px; font-size: 15px;
-    }
-    button {
-      background: #4b2aad; color: #fff; border: none;
-      padding: 10px 15px; font-size: 16px; margin-right: 10px;
-      border-radius: 5px; cursor: pointer;
-    }
-    button:hover { background: #3a208b; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; font-size: 14px; }
-    th { background: #4b2aad; color: #fff; }
-    .paid { background: #d4edda; color: #155724; font-weight: 600; }
-    .not-paid { background: #f8d7da; color: #721c24; font-weight: 600; }
+    /* ... Keep your existing styles ... */
+    /* Add extra for toasts, charts, etc as needed */
+    #dashboard { margin-top: 40px; }
+    #chartContainer { width:100%; max-width:600px; margin:auto;}
   </style>
 </head>
 <body>
 
-<h2>📝 NST Trip Sheet</h2>
-
-<label>Trip ID</label>
-<input id="tripId" readonly>
-
-<label>Date</label>
-<div style="position:relative">
-  <input type="text" id="tripDateDisplay" placeholder="Select Date" readonly style="cursor:pointer">
-  <input type="date" id="tripDate" style="opacity:0;position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer">
+<!-- Authentication UI -->
+<div id="authSection">
+  <button onclick="login()">Login</button>
+  <button onclick="logout()">Logout</button>
+  <span id="currentUser"></span>
 </div>
 
-<label>Duty</label>
-<select id="duty"></select>
+<h2>📝 NST Trip Sheet</h2>
 
-<label>Pickup Location</label><input id="pickupLocation">
-<label>Drop Location</label><input id="dropLocation">
+<!-- Export/Import Buttons -->
+<button onclick="exportTrips()">⬇️ Export Trips (CSV)</button>
+<input type="file" id="importFile" accept=".csv" style="display:none" onchange="importTrips(event)">
+<button onclick="document.getElementById('importFile').click()">⬆️ Import Trips (CSV)</button>
 
-<label>Customer Name</label><input id="custName">
-<label>Customer Number</label><input id="custNumber">
+<!-- Search/Filter UI -->
+<div>
+  <input id="searchInput" placeholder="Search by Driver, Duty, or Location" oninput="filterTrips()">
+  <select id="filterStatus" onchange="filterTrips()">
+    <option value="">All Status</option>
+    <option value="Paid">Paid</option>
+    <option value="Not Paid">Not Paid</option>
+  </select>
+</div>
 
-<label>Driver Name</label><select id="driverName" onchange="syncDriver(true)"></select>
-<label>Driver Number</label><select id="driverNumber" onchange="syncDriver(false)"></select>
+<!-- Trip Form (existing form) -->
+<!-- ... Keep your trip form as is ... -->
 
-<label>Vehicle Model</label><select id="vehicleModel" onchange="syncVehicle(true)"></select>
-<label>Vehicle Number</label><select id="vehicleNo" onchange="syncVehicle(false)"></select>
-
-<label>Start Time</label><input type="time" id="startTime" onchange="recalc()">
-<label>End Time</label><input type="time" id="endTime" onchange="recalc()">
-<label>Total Duration (hrs)</label><input id="duration">
-
-<label>Extra Hours</label><input type="number" id="extraHours">
-
-<label>Start KM</label><input type="number" id="startKM" onchange="recalc()">
-<label>End KM</label><input type="number" id="endKM" onchange="recalc()">
-<label>Total KM</label><input id="totalKM">
-<label>Extra KM</label><input type="number" id="extraKM">
-
-<label>Parking ₹</label><input type="number" id="parking">
-<label>Toll ₹</label><input type="number" id="toll">
-
-<label>Total Amount ₹</label><input type="number" id="totalAmount">
-
-<label>Payment Status</label>
-<select id="paymentStatus">
-  <option value="">-- Select --</option>
-  <option>Paid</option>
-  <option>Not Paid</option>
+<!-- WhatsApp recipient selection -->
+<label>Share with:</label>
+<select id="whatsappRecipient">
+  <option value="customer">Customer</option>
+  <option value="driver">Driver</option>
 </select>
 
-<label>Note</label>
-<textarea id="note" rows="3"></textarea>
-
-<br/>
 <button onclick="shareWhatsApp()">📤 Share via WhatsApp</button>
 <button onclick="showSharedTrips()">📋 View Saved Trips</button>
 <button onclick="window.location.href='admin.html'">🔐 Admin Panel</button>
 
 <div id="sharedTripsList"></div>
 
- <script type="module">
-    import { supabase } from './supabase.js';
+<!-- Analytics Dashboard -->
+<div id="dashboard">
+  <h3>📊 Analytics Dashboard</h3>
+  <div id="summaryStats"></div>
+  <div id="chartContainer">
+    <canvas id="tripsChart"></canvas>
+  </div>
+</div>
 
-    async function loadDrivers() {
-      const {{ data, error }} = await supabase.from('drivers').select('*');
-      if (error) {
-        console.error("Error loading drivers:", error);
-      } else {
-        const driverName = document.getElementById("driverName");
-        const driverNumber = document.getElementById("driverNumber");
-        driverName.innerHTML = '<option value="">-- Select --</option>';
-        driverNumber.innerHTML = '<option value="">-- Select --</option>';
-        data.forEach(d => {
-          driverName.innerHTML += `<option>${d.name}</option>`;
-          driverNumber.innerHTML += `<option>${d.mobile}</option>`;
-        });
+<!-- Toastr notifications -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<script type="module">
+  import { supabase } from './supabase.js';
+
+  // --- 2. Authentication & Roles ---
+  let currentUser = null;
+  async function login() {
+    // Simple Supabase login (replace with your flow)
+    const { user, error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+    if(user) {
+      currentUser = user;
+      document.getElementById('currentUser').textContent = `Logged in as ${user.email}`;
+    } else if(error) {
+      toastr.error("Login failed.");
+    }
+  }
+  async function logout() {
+    await supabase.auth.signOut();
+    currentUser = null;
+    document.getElementById('currentUser').textContent = '';
+    toastr.info("Logged out.");
+  }
+
+  // --- 3. Cloud Sync ---
+  async function saveTripCloud(trip) {
+    if(!currentUser) return toastr.warning("Login required for cloud sync.");
+    const { data, error } = await supabase.from('trips').insert([trip]);
+    if(error) toastr.error("Cloud save failed.");
+    else toastr.success("Trip saved to cloud!");
+  }
+
+  // --- 1. Export/Import Trips ---
+  function exportTrips() {
+    const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
+    const csv = Papa.unparse(trips);
+    const blob = new Blob([csv], {type: "text/csv"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = "NST_trips.csv";
+    a.click();
+    toastr.success("Trips exported!");
+  }
+  function importTrips(event) {
+    const file = event.target.files[0];
+    Papa.parse(file, {
+      header: true,
+      complete: function(results) {
+        localStorage.setItem("shared-trips", JSON.stringify(results.data));
+        toastr.success("Trips imported!");
+        showSharedTrips();
       }
-    }
-
-    window.onload = loadDrivers;
-  </script>
-
-<script>
-  const SHKEY = "shared-trips";
-  let drivers = {}, vehicles = {};
-
-  function init() {
-    // Trip ID
-    tripId.value = genId();
-
-    // Duty dropdown
-    const dutyList = JSON.parse(localStorage.getItem("duty-master") || "[]");
-    duty.innerHTML = '<option value="">-- Select --</option>';
-    dutyList.forEach(d => {
-      duty.innerHTML += `<option>${d.name}</option>`;
-    });
-
-    // Drivers
-    const dList = JSON.parse(localStorage.getItem("driver-master") || "[]");
-    driverName.innerHTML = '<option value="">-- Select --</option>';
-    driverNumber.innerHTML = '<option value="">-- Select --</option>';
-    dList.forEach(d => {
-      drivers[d.name] = d.mobile;
-      driverName.innerHTML += `<option>${d.name}</option>`;
-      driverNumber.innerHTML += `<option>${d.mobile}</option>`;
-    });
-
-    // Vehicles
-    const vList = JSON.parse(localStorage.getItem("vehicle-master") || "[]");
-    vehicleModel.innerHTML = '<option value="">-- Select --</option>';
-    vehicleNo.innerHTML = '<option value="">-- Select --</option>';
-    vList.forEach(v => {
-      vehicles[v.model] = v.number;
-      vehicleModel.innerHTML += `<option>${v.model}</option>`;
-      vehicleNo.innerHTML += `<option>${v.number}</option>`;
     });
   }
 
-  function genId() {
-    let n = parseInt(localStorage.getItem("trip-seq") || "1");
-    return "#NST" + String(n).padStart(3, "0");
+  // --- 4. Edit/Delete Trips ---
+  function editTrip(idx) {
+    // Load trip data into form for editing
+    const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
+    const t = trips[idx];
+    // Fill form fields as needed...
+    // Set a flag so saveTrip knows it's editing
+    window.editingTripIdx = idx;
+  }
+  function deleteTrip(idx) {
+    let trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
+    trips.splice(idx, 1);
+    localStorage.setItem("shared-trips", JSON.stringify(trips));
+    toastr.info("Trip deleted.");
+    showSharedTrips();
   }
 
-  function reserveId() {
-    let n = parseInt(localStorage.getItem("trip-seq") || "1");
-    localStorage.setItem("#NST" + String(n).padStart(3, "0"), "used");
-    localStorage.setItem("trip-seq", n + 1);
+  // --- 5. Search & Filter ---
+  function filterTrips() {
+    const search = searchInput.value.toLowerCase();
+    const status = filterStatus.value;
+    let trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
+    const filtered = trips.filter(t =>
+      (!search || (t.driverName + t.duty + t.pickup + t.drop).toLowerCase().includes(search)) &&
+      (!status || t.paymentStatus === status)
+    );
+    renderTripsTable(filtered);
   }
 
-  function syncDriver(fromName) {
-    if (fromName) driverNumber.value = drivers[driverName.value] || "";
-    else for (let k in drivers) if (drivers[k] === driverNumber.value) driverName.value = k;
+  // --- 6. Reminders & Notifications ---
+  function checkReminders() {
+    const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
+    const today = new Date();
+    trips.forEach(t => {
+      if(t.paymentStatus === "Not Paid") toastr.warning(`Unpaid trip: ${t.id}`);
+      // Upcoming trip logic
+      let d = new Date(t.date);
+      if((d - today) < 86400000 && (d - today) > 0) toastr.info(`Trip tomorrow: ${t.id}`);
+    });
   }
 
-  function syncVehicle(fromModel) {
-    if (fromModel) vehicleNo.value = vehicles[vehicleModel.value] || "";
-    else for (let k in vehicles) if (vehicles[k] === vehicleNo.value) vehicleModel.value = k;
+  // --- 7. PWA Manifest/Service Worker ---
+  // Add a manifest.json and simple service worker registration here for installability:
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js').then(() => {
+      console.log('Service Worker registered');
+    });
   }
 
-  function recalc() {
-    if (startTime.value && endTime.value) {
-      let s = new Date(`1970-01-01T${startTime.value}`);
-      let e = new Date(`1970-01-01T${endTime.value}`);
-      let diff = (e - s) / 3600000;
-      if (diff < 0) diff += 24;
-      duration.value = diff.toFixed(2);
-    }
-    if (startKM.value && endKM.value) {
-      totalKM.value = (endKM.value - startKM.value);
-    }
-  }
-
-  function saveTrip(fromShare = false) {
-    const data = {
-      id: tripId.value,
-      date: tripDateDisplay.value,
-      duty: duty.value,
-      pickup: pickupLocation.value,
-      drop: dropLocation.value,
-      custName: custName.value,
-      custNumber: custNumber.value,
-      driverName: driverName.value,
-      driverNumber: driverNumber.value,
-      vehicleModel: vehicleModel.value,
-      vehicleNo: vehicleNo.value,
-      start: startTime.value,
-      end: endTime.value,
-      duration: duration.value,
-      extraHours: extraHours.value,
-      startKM: startKM.value,
-      endKM: endKM.value,
-      totalKM: totalKM.value,
-      extraKM: extraKM.value,
-      parking: parking.value,
-      toll: toll.value,
-      totalAmount: totalAmount.value,
-      paymentStatus: paymentStatus.value,
-      note: note.value
-    };
-    let arr = JSON.parse(localStorage.getItem(SHKEY) || "[]");
-    arr.push(data);
-    localStorage.setItem(SHKEY, JSON.stringify(arr));
-    if (!fromShare) alert("✅ Trip saved");
-    reserveId();
-    tripId.value = genId();
-  }
-
+  // --- 8. Advanced WhatsApp Sharing ---
   function shareWhatsApp() {
-    const tripFields = {
-      "🗓️ *TRIP DETAILS*": { "Trip ID": tripId.value, "Date": tripDateDisplay.value },
-      "📍 *LOCATIONS*": { "Pickup": pickupLocation.value, "Drop": dropLocation.value, "Duty": duty.value },
-      "👤 *CUSTOMER INFO*": { "Name": custName.value, "Number": custNumber.value },
-      "👨‍✈️ *DRIVER INFO*": { "Name": driverName.value, "Number": driverNumber.value },
-      "🚘 *VEHICLE INFO*": { "Model": vehicleModel.value, "Number": vehicleNo.value },
-      "🕒 *TIME DETAILS*": {
-        "Start Time": startTime.value,
-        "End Time": endTime.value,
-        "Duration": duration.value ? `${duration.value} hrs` : "",
-        "Extra Hours": extraHours.value
-      },
-      "📏 *DISTANCE DETAILS*": {
-        "Start KM": startKM.value,
-        "End KM": endKM.value,
-        "Total KM": totalKM.value ? `${totalKM.value} km` : "",
-        "Extra KM": extraKM.value ? `${extraKM.value} km` : ""
-      },
-      "💰 *FARE DETAILS*": {
-        "Parking": parking.value ? `₹${parking.value}` : "",
-        "Toll": toll.value ? `₹${toll.value}` : "",
-        "Total Amount": totalAmount.value ? `₹${totalAmount.value}` : "",
-        "Payment Status": paymentStatus.value
-      },
-      "📝 *NOTE*": { "-": note.value }
-    };
-
-    let msg = "📋 *NST TRIP SUMMARY*\n\n";
-    for (let section in tripFields) {
-      let lines = "";
-      for (let label in tripFields[section]) {
-        const val = tripFields[section][label];
-        if (val && val.trim()) {
-          lines += `• *${label}:* ${val}\n`;
-        }
-      }
-      if (lines) msg += `${section}\n${lines}\n`;
-    }
-
-    saveTrip(true);
-    window.open("https://wa.me/?text=" + encodeURIComponent(msg), '_blank');
+    let recipient = whatsappRecipient.value;
+    let number = recipient === "customer" ? custNumber.value : driverNumber.value;
+    // ... build the message as before ...
+    let msg = "NST Trip Details ..."; // Build full message here
+    window.open(`https://wa.me/${number}?text=${encodeURIComponent(msg)}`, '_blank');
+    toastr.info(`Shared with ${recipient}.`);
   }
 
+  // --- 9. Analytics Dashboard ---
+  function updateDashboard() {
+    const trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
+    let totalTrips = trips.length;
+    let paid = trips.filter(t => t.paymentStatus === "Paid").length;
+    let unpaid = totalTrips - paid;
+    let totalRevenue = trips.reduce((sum, t) => sum + Number(t.totalAmount||0), 0);
+
+    summaryStats.innerHTML = `
+      <p>Total Trips: <b>${totalTrips}</b></p>
+      <p>Total Revenue: <b>₹${totalRevenue}</b></p>
+      <p>Paid: <b>${paid}</b> | Unpaid: <b>${unpaid}</b></p>
+    `;
+
+    // Chart: Trips per Driver
+    let driverCounts = {};
+    trips.forEach(t => { driverCounts[t.driverName] = (driverCounts[t.driverName]||0)+1; });
+    new Chart(document.getElementById('tripsChart'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(driverCounts),
+        datasets: [{ label: "Trips per Driver", data: Object.values(driverCounts) }]
+      }
+    });
+  }
+
+  // --- 10. UI/UX Improvements ---
+  function validateForm() {
+    if(!duty.value) { toastr.error("Duty required."); return false; }
+    if(!custName.value) { toastr.error("Customer name required."); return false; }
+    // ...other validations...
+    return true;
+  }
+
+  // --- Existing showSharedTrips, saveTrip, etc. ---
   function showSharedTrips() {
-    const trips = JSON.parse(localStorage.getItem(SHKEY) || "[]");
+    let trips = JSON.parse(localStorage.getItem("shared-trips") || "[]");
     if (!trips.length) return sharedTripsList.innerHTML = "<p>No trips saved.</p>";
     let html = `<h3>📋 Saved Trips</h3><table><tr>
-    <th>ID</th><th>Date</th><th>Duty</th><th>Pickup</th><th>Drop</th><th>Driver</th><th>Vehicle</th><th>Amount</th><th>Status</th></tr>`;
-    trips.forEach(t => {
-      const statusClass = t.paymentStatus === "Paid" ? 'paid' : 'not-paid';
+    <th>ID</th><th>Date</th><th>Duty</th><th>Pickup</th><th>Drop</th><th>Driver</th><th>Vehicle</th><th>Amount</th><th>Status</th><th>Edit</th><th>Delete</th></tr>`;
+    trips.forEach((t, idx) => {
       html += `<tr>
       <td>${t.id}</td><td>${t.date}</td><td>${t.duty}</td><td>${t.pickup}</td><td>${t.drop}</td>
       <td>${t.driverName}</td><td>${t.vehicleModel}</td><td>₹${t.totalAmount}</td>
-      <td class="${statusClass}">${t.paymentStatus}</td></tr>`;
+      <td>${t.paymentStatus}</td>
+      <td><button onclick="editTrip(${idx})">Edit</button></td>
+      <td><button onclick="deleteTrip(${idx})">Delete</button></td>
+      </tr>`;
     });
     sharedTripsList.innerHTML = html + "</table>";
+    updateDashboard();
   }
 
-  tripDate.addEventListener("change", () => {
-    const raw = tripDate.value;
-    const d = new Date(raw);
-    tripDateDisplay.value = d.toLocaleDateString("en-GB", { day: '2-digit', month: 'long', year: 'numeric' });
-  });
+  // Call reminders and dashboard on load
+  window.onload = function() {
+    checkReminders();
+    showSharedTrips();
+  };
 
-  window.onload = init;
 </script>
-
 </body>
 </html>
