@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -39,8 +39,7 @@
   <input type="date" id="tripDate" style="opacity:0;position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer">
 </div>
 
-<label>Duty</label>
-<select id="duty"></select>
+<label>Duty</label><select id="duty"></select>
 
 <label>Pickup Location</label><input id="pickupLocation">
 <label>Drop Location</label><input id="dropLocation">
@@ -82,7 +81,7 @@
 
 <br/>
 <button onclick="shareWhatsApp()">📤 Share via WhatsApp</button>
-<button onclick="showSharedTrips()">📋 View Saved Trips</button>
+<button onclick="saveTrip()">💾 Save to Google Sheet</button>
 <button onclick="window.location.href='admin.html'">🔐 Admin Panel</button>
 
 <div id="sharedTripsList"></div>
@@ -92,17 +91,14 @@
   let drivers = {}, vehicles = {};
 
   function init() {
-    // Trip ID
     tripId.value = genId();
 
-    // Duty dropdown
     const dutyList = JSON.parse(localStorage.getItem("duty-master") || "[]");
     duty.innerHTML = '<option value="">-- Select --</option>';
     dutyList.forEach(d => {
       duty.innerHTML += `<option>${d.name}</option>`;
     });
 
-    // Drivers
     const dList = JSON.parse(localStorage.getItem("driver-master") || "[]");
     driverName.innerHTML = '<option value="">-- Select --</option>';
     driverNumber.innerHTML = '<option value="">-- Select --</option>';
@@ -112,7 +108,6 @@
       driverNumber.innerHTML += `<option>${d.mobile}</option>`;
     });
 
-    // Vehicles
     const vList = JSON.parse(localStorage.getItem("vehicle-master") || "[]");
     vehicleModel.innerHTML = '<option value="">-- Select --</option>';
     vehicleNo.innerHTML = '<option value="">-- Select --</option>';
@@ -157,7 +152,7 @@
     }
   }
 
-  function saveTrip(fromShare = false) {
+  async function saveTrip(fromShare = false) {
     const data = {
       id: tripId.value,
       date: tripDateDisplay.value,
@@ -184,10 +179,19 @@
       paymentStatus: paymentStatus.value,
       note: note.value
     };
-    let arr = JSON.parse(localStorage.getItem(SHKEY) || "[]");
-    arr.push(data);
-    localStorage.setItem(SHKEY, JSON.stringify(arr));
-    if (!fromShare) alert("✅ Trip saved");
+
+    try {
+      const res = await fetch("https://docs.google.com/spreadsheets/d/1PUP6jxxDHHU_cQoNzvM2d2rx-rv2qIJpJP29RyJKf1k/edit?gid=0#gid=0", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" }
+      });
+      const text = await res.text();
+      if (!fromShare) alert("✅ Trip saved to Google Sheet\n" + text);
+    } catch (err) {
+      alert("❌ Failed to save: " + err.message);
+    }
+
     reserveId();
     tripId.value = genId();
   }
@@ -234,21 +238,6 @@
 
     saveTrip(true);
     window.open("https://wa.me/?text=" + encodeURIComponent(msg), '_blank');
-  }
-
-  function showSharedTrips() {
-    const trips = JSON.parse(localStorage.getItem(SHKEY) || "[]");
-    if (!trips.length) return sharedTripsList.innerHTML = "<p>No trips saved.</p>";
-    let html = `<h3>📋 Saved Trips</h3><table><tr>
-    <th>ID</th><th>Date</th><th>Duty</th><th>Pickup</th><th>Drop</th><th>Driver</th><th>Vehicle</th><th>Amount</th><th>Status</th></tr>`;
-    trips.forEach(t => {
-      const statusClass = t.paymentStatus === "Paid" ? 'paid' : 'not-paid';
-      html += `<tr>
-      <td>${t.id}</td><td>${t.date}</td><td>${t.duty}</td><td>${t.pickup}</td><td>${t.drop}</td>
-      <td>${t.driverName}</td><td>${t.vehicleModel}</td><td>₹${t.totalAmount}</td>
-      <td class="${statusClass}">${t.paymentStatus}</td></tr>`;
-    });
-    sharedTripsList.innerHTML = html + "</table>";
   }
 
   tripDate.addEventListener("change", () => {
