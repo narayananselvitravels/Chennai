@@ -91,7 +91,7 @@
     import { supabase } from './supabase.js';
 
     async function loadDrivers() {
-      const { data, error } = await supabase.from('drivers').select('*');
+      const {{ data, error }} = await supabase.from('drivers').select('*');
       if (error) {
         console.error("Error loading drivers:", error);
       } else {
@@ -258,36 +258,17 @@
     window.open("https://wa.me/?text=" + encodeURIComponent(msg), '_blank');
   }
 
-  // Updated function: includes "No duty" column
   function showSharedTrips() {
     const trips = JSON.parse(localStorage.getItem(SHKEY) || "[]");
     if (!trips.length) return sharedTripsList.innerHTML = "<p>No trips saved.</p>";
     let html = `<h3>📋 Saved Trips</h3><table><tr>
-      <th>ID</th>
-      <th>Date</th>
-      <th>Duty</th>
-      <th>No duty</th>
-      <th>Pickup</th>
-      <th>Drop</th>
-      <th>Driver</th>
-      <th>Vehicle</th>
-      <th>Amount</th>
-      <th>Status</th>
-    </tr>`;
+    <th>ID</th><th>Date</th><th>Duty</th><th>Pickup</th><th>Drop</th><th>Driver</th><th>Vehicle</th><th>Amount</th><th>Status</th></tr>`;
     trips.forEach(t => {
       const statusClass = t.paymentStatus === "Paid" ? 'paid' : 'not-paid';
       html += `<tr>
-        <td>${t.id}</td>
-        <td>${t.date}</td>
-        <td>${t.duty}</td>
-        <td>${!t.duty ? "Yes" : "No"}</td>
-        <td>${t.pickup}</td>
-        <td>${t.drop}</td>
-        <td>${t.driverName}</td>
-        <td>${t.vehicleModel}</td>
-        <td>₹${t.totalAmount}</td>
-        <td class="${statusClass}">${t.paymentStatus}</td>
-      </tr>`;
+      <td>${t.id}</td><td>${t.date}</td><td>${t.duty}</td><td>${t.pickup}</td><td>${t.drop}</td>
+      <td>${t.driverName}</td><td>${t.vehicleModel}</td><td>₹${t.totalAmount}</td>
+      <td class="${statusClass}">${t.paymentStatus}</td></tr>`;
     });
     sharedTripsList.innerHTML = html + "</table>";
   }
