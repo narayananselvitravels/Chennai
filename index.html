@@ -5,11 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>NST Trip Sheet</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-
   <style>
     body { font-family: 'Poppins', sans-serif; background: #f4f6f9; max-width: 800px; margin: 20px auto; padding: 20px; }
     h2 { color: #4b2aad; }
@@ -44,32 +39,44 @@
   <input type="date" id="tripDate" style="opacity:0;position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer">
 </div>
 
-<label>Duty</label><select id="duty"></select>
+<label>Duty</label>
+<select id="duty"></select>
+
 <label>Pickup Location</label><input id="pickupLocation">
 <label>Drop Location</label><input id="dropLocation">
+
 <label>Customer Name</label><input id="custName">
 <label>Customer Number</label><input id="custNumber">
+
 <label>Driver Name</label><select id="driverName" onchange="syncDriver(true)"></select>
 <label>Driver Number</label><select id="driverNumber" onchange="syncDriver(false)"></select>
+
 <label>Vehicle Model</label><select id="vehicleModel" onchange="syncVehicle(true)"></select>
 <label>Vehicle Number</label><select id="vehicleNo" onchange="syncVehicle(false)"></select>
+
 <label>Start Time</label><input type="time" id="startTime" onchange="recalc()">
 <label>End Time</label><input type="time" id="endTime" onchange="recalc()">
 <label>Total Duration (hrs)</label><input id="duration">
+
 <label>Extra Hours</label><input type="number" id="extraHours">
+
 <label>Start KM</label><input type="number" id="startKM" onchange="recalc()">
 <label>End KM</label><input type="number" id="endKM" onchange="recalc()">
 <label>Total KM</label><input id="totalKM">
 <label>Extra KM</label><input type="number" id="extraKM">
+
 <label>Parking ₹</label><input type="number" id="parking">
 <label>Toll ₹</label><input type="number" id="toll">
+
 <label>Total Amount ₹</label><input type="number" id="totalAmount">
+
 <label>Payment Status</label>
 <select id="paymentStatus">
   <option value="">-- Select --</option>
   <option>Paid</option>
   <option>Not Paid</option>
 </select>
+
 <label>Note</label>
 <textarea id="note" rows="3"></textarea>
 
@@ -81,27 +88,21 @@
 <div id="sharedTripsList"></div>
 
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDNnQtossolWIfqFw9dM2i3TjYZXpMKTrY",
-    authDomain: "narayanan-selvi-travels-aafcc.firebaseapp.com",
-    databaseURL: "https://narayanan-selvi-travels-aafcc-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "narayanan-selvi-travels-aafcc",
-    storageBucket: "narayanan-selvi-travels-aafcc.firebasestorage.app",
-    messagingSenderId: "439796129397",
-    appId: "1:439796129397:web:3dc531e6fc4e7a0be3a23c"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-
   const SHKEY = "shared-trips";
   let drivers = {}, vehicles = {};
 
   function init() {
+    // Trip ID
     tripId.value = genId();
+
+    // Duty dropdown
     const dutyList = JSON.parse(localStorage.getItem("duty-master") || "[]");
     duty.innerHTML = '<option value="">-- Select --</option>';
-    dutyList.forEach(d => duty.innerHTML += `<option>${d.name}</option>`);
+    dutyList.forEach(d => {
+      duty.innerHTML += `<option>${d.name}</option>`;
+    });
 
+    // Drivers
     const dList = JSON.parse(localStorage.getItem("driver-master") || "[]");
     driverName.innerHTML = '<option value="">-- Select --</option>';
     driverNumber.innerHTML = '<option value="">-- Select --</option>';
@@ -111,6 +112,7 @@
       driverNumber.innerHTML += `<option>${d.mobile}</option>`;
     });
 
+    // Vehicles
     const vList = JSON.parse(localStorage.getItem("vehicle-master") || "[]");
     vehicleModel.innerHTML = '<option value="">-- Select --</option>';
     vehicleNo.innerHTML = '<option value="">-- Select --</option>';
@@ -128,6 +130,7 @@
 
   function reserveId() {
     let n = parseInt(localStorage.getItem("trip-seq") || "1");
+    localStorage.setItem("#NST" + String(n).padStart(3, "0"), "used");
     localStorage.setItem("trip-seq", n + 1);
   }
 
@@ -155,7 +158,7 @@
   }
 
   function saveTrip(fromShare = false) {
-    const tripData = {
+    const data = {
       id: tripId.value,
       date: tripDateDisplay.value,
       duty: duty.value,
@@ -181,14 +184,12 @@
       paymentStatus: paymentStatus.value,
       note: note.value
     };
-
-    db.ref('trips/' + tripData.id).set(tripData)
-      .then(() => {
-        if (!fromShare) alert("✅ Trip saved to Firebase");
-        reserveId();
-        tripId.value = genId();
-      })
-      .catch(error => alert("❌ Error saving trip: " + error.message));
+    let arr = JSON.parse(localStorage.getItem(SHKEY) || "[]");
+    arr.push(data);
+    localStorage.setItem(SHKEY, JSON.stringify(arr));
+    if (!fromShare) alert("✅ Trip saved");
+    reserveId();
+    tripId.value = genId();
   }
 
   function shareWhatsApp() {
@@ -236,20 +237,18 @@
   }
 
   function showSharedTrips() {
-    db.ref('trips').once('value', snapshot => {
-      const trips = snapshot.val();
-      if (!trips) return sharedTripsList.innerHTML = "<p>No trips saved.</p>";
-      let html = `<h3>📋 Saved Trips</h3><table><tr>
-      <th>ID</th><th>Date</th><th>Duty</th><th>Pickup</th><th>Drop</th><th>Driver</th><th>Vehicle</th><th>Amount</th><th>Status</th></tr>`;
-      Object.values(trips).forEach(t => {
-        const statusClass = t.paymentStatus === "Paid" ? 'paid' : 'not-paid';
-        html += `<tr>
-        <td>${t.id}</td><td>${t.date}</td><td>${t.duty}</td><td>${t.pickup}</td><td>${t.drop}</td>
-        <td>${t.driverName}</td><td>${t.vehicleModel}</td><td>₹${t.totalAmount}</td>
-        <td class="${statusClass}">${t.paymentStatus}</td></tr>`;
-      });
-      sharedTripsList.innerHTML = html + "</table>";
+    const trips = JSON.parse(localStorage.getItem(SHKEY) || "[]");
+    if (!trips.length) return sharedTripsList.innerHTML = "<p>No trips saved.</p>";
+    let html = `<h3>📋 Saved Trips</h3><table><tr>
+    <th>ID</th><th>Date</th><th>Duty</th><th>Pickup</th><th>Drop</th><th>Driver</th><th>Vehicle</th><th>Amount</th><th>Status</th></tr>`;
+    trips.forEach(t => {
+      const statusClass = t.paymentStatus === "Paid" ? 'paid' : 'not-paid';
+      html += `<tr>
+      <td>${t.id}</td><td>${t.date}</td><td>${t.duty}</td><td>${t.pickup}</td><td>${t.drop}</td>
+      <td>${t.driverName}</td><td>${t.vehicleModel}</td><td>₹${t.totalAmount}</td>
+      <td class="${statusClass}">${t.paymentStatus}</td></tr>`;
     });
+    sharedTripsList.innerHTML = html + "</table>";
   }
 
   tripDate.addEventListener("change", () => {
