@@ -15,13 +15,12 @@
     }
     button { background:#4b2aad; color:#fff; border:none; cursor:pointer }
     button:hover { background:#3a208b }
+    #paymentStatus.paid { background:#d4edda; color:#155724; font-weight:bold; }
+    #paymentStatus.notpaid { background:#f8d7da; color:#721c24; font-weight:bold; }
     table { width:100%; border-collapse:collapse; margin-top:20px }
     table, th, td { border:1px solid #ddd }
     th, td { padding:8px; text-align:left }
     th { background:#4b2aad; color:#fff }
-    .status-green { background:#d4edda; }
-    .status-red { background:#f8d7da; }
-    .status-default { background:white; }
   </style>
 </head>
 <body>
@@ -59,19 +58,16 @@
 <label>Extra KM</label><input type="number" id="extraKM">
 
 <label>Total Amount ₹</label><input type="number" id="totalAmount">
-
 <label>Payment Status</label>
-<select id="paymentStatus" onchange="updatePaymentColor()">
+<select id="paymentStatus" onchange="updatePayStatusClass(this)">
   <option value="">-- Select --</option>
-  <option>Paid</option>
-  <option>Not Paid</option>
+  <option value="Paid">Paid</option>
+  <option value="Not Paid">Not Paid</option>
 </select>
 
 <label>Note</label><textarea id="note" rows="3"></textarea>
 
-<!-- ACTION BUTTONS -->
 <button onclick="shareWhatsApp()">📤 Share via WhatsApp</button>
-<button onclick="window.location.href='whatsapp-share.html'">📤 WhatsApp Share</button>
 <button onclick="showSharedTrips()">📋 View Saved Trips</button>
 <button onclick="window.location.href='admin.html'">🔐 Admin Panel</button>
 
@@ -108,6 +104,12 @@
     return "#NST" + String(n).padStart(3, "0");
   }
 
+  function reserveId() {
+    let n = parseInt(localStorage.getItem("trip-seq") || "1");
+    localStorage.setItem("#NST" + String(n).padStart(3, "0"), "used");
+    localStorage.setItem("trip-seq", n + 1);
+  }
+
   function syncDriver(fromName) {
     if (fromName) driverNumber.value = drivers[driverName.value] || "";
     else for (let k in drivers) if (drivers[k] === driverNumber.value) driverName.value = k;
@@ -128,14 +130,6 @@
     }
     let total = endKM.value - startKM.value;
     totalKM.value = total;
-  }
-
-  function updatePaymentColor() {
-    let sel = document.getElementById("paymentStatus");
-    sel.classList.remove("status-green", "status-red", "status-default");
-    if (sel.value === "Paid") sel.classList.add("status-green");
-    else if (sel.value === "Not Paid") sel.classList.add("status-red");
-    else sel.classList.add("status-default");
   }
 
   function shareWhatsApp() {
@@ -163,6 +157,12 @@
       html += `<tr><td>${t.id}</td><td>${t.date}</td><td>${t.pickup}</td><td>${t.drop}</td><td>${t.custName}</td><td>${t.driverName}</td><td>${t.vehicleModel}</td><td>₹${t.totalAmount}</td><td>${t.paymentStatus}</td></tr>`;
     });
     sharedTripsList.innerHTML = html + "</table>";
+  }
+
+  function updatePayStatusClass(el) {
+    el.classList.remove("paid", "notpaid");
+    if (el.value === "Paid") el.classList.add("paid");
+    else if (el.value === "Not Paid") el.classList.add("notpaid");
   }
 
   tripDate.addEventListener("change", () => {
