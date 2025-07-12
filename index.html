@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>NST Trip Sheet</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body { font-family:'Poppins',sans-serif; margin:0 auto; padding:20px; max-width:800px; background:#f4f6f9 }
     h2 { color:#4b2aad }
@@ -34,6 +33,9 @@
   <input type="date" id="tripDate" style="opacity:0;position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer">
 </div>
 
+<label>Pickup Location</label><input id="pickupLocation">
+<label>Drop Location</label><input id="dropLocation">
+
 <label>Customer Name</label><input id="custName">
 <label>Customer Number</label><input id="custNumber">
 
@@ -46,19 +48,29 @@
 <label>Start Time</label><input type="time" id="startTime" onchange="recalc()">
 <label>End Time</label><input type="time" id="endTime" onchange="recalc()">
 <label>Duration (hrs)</label><input id="duration" readonly>
-
 <label>Extra Hours</label><input type="number" id="extraHours">
+
 <label>Start KM</label><input type="number" id="startKM" onchange="recalc()">
 <label>End KM</label><input type="number" id="endKM" onchange="recalc()">
 <label>Total KM</label><input id="totalKM" readonly>
 <label>Extra KM</label><input type="number" id="extraKM">
 
+<label>Total Amount ₹</label><input type="number" id="totalAmount">
+<label>Payment Status</label>
+<select id="paymentStatus">
+  <option value="">-- Select --</option>
+  <option>Paid</option>
+  <option>Not Paid</option>
+</select>
+
 <label>Note</label><textarea id="note" rows="3"></textarea>
 
-<button onclick="saveTrip()">💾 Save Trip</button>
-<button onclick="shareWhatsApp()">📤 Share via WhatsApp</button>
-<button onclick="showSharedTrips()">📋 View Saved Trips</button>
-<button onclick="window.location.href='admin.html'">🔐 Admin Panel</button>
+<div style="margin-top:15px">
+  <button onclick="saveTrip()">💾 Save Trip</button>
+  <button onclick="shareWhatsApp()">📤 Share via WhatsApp</button>
+  <button onclick="showSharedTrips()">📋 View Trips</button>
+  <button onclick="window.location.href='admin.html'" style="background:#6c757d">🔐 Admin Panel</button>
+</div>
 
 <div id="sharedTripsList"></div>
 
@@ -125,6 +137,8 @@
     const data = {
       id: tripId.value,
       date: tripDateDisplay.dataset.raw || "",
+      pickup: pickupLocation.value,
+      drop: dropLocation.value,
       custName: custName.value,
       custNumber: custNumber.value,
       driverName: driverName.value,
@@ -139,6 +153,8 @@
       endKM: endKM.value,
       totalKM: totalKM.value,
       extraKM: extraKM.value,
+      totalAmount: totalAmount.value,
+      paymentStatus: paymentStatus.value,
       note: note.value
     };
     let arr = JSON.parse(localStorage.getItem(SHKEY) || "[]");
@@ -151,11 +167,13 @@
 
   function shareWhatsApp() {
     const msg = `📋 *TRIP SUMMARY*\n\n*Trip ID:* ${tripId.value}\n*Date:* ${tripDateDisplay.value}\n\n` +
+    `📍 *Pickup:* ${pickupLocation.value}\n📍 *Drop:* ${dropLocation.value}\n\n` +
     `👤 *Customer:* ${custName.value} (${custNumber.value})\n` +
     `🚖 *Driver:* ${driverName.value} (${driverNumber.value})\n` +
     `🚘 *Vehicle:* ${vehicleModel.value} (${vehicleNo.value})\n\n` +
     `🕒 *Time:* ${startTime.value} - ${endTime.value} (${duration.value} hrs, Extra ${extraHours.value} hrs)\n` +
-    `📍 *KM:* ${startKM.value} - ${endKM.value} = ${totalKM.value} km (Extra ${extraKM.value} km)\n\n` +
+    `📍 *KM:* ${startKM.value} - ${endKM.value} = ${totalKM.value} km (Extra ${extraKM.value} km)\n` +
+    `💰 *Total Amount:* ₹${totalAmount.value} | *Status:* ${paymentStatus.value}\n\n` +
     `📝 *Note:* ${note.value || '-'}`;
     window.open("https://wa.me/?text=" + encodeURIComponent(msg), '_blank');
   }
@@ -167,9 +185,9 @@
       return;
     }
     let html = `<h3>📋 Saved Trips</h3><table><tr>
-    <th>ID</th><th>Date</th><th>Customer</th><th>Driver</th><th>Vehicle</th><th>KM</th><th>Duration</th></tr>`;
+    <th>ID</th><th>Date</th><th>Pickup</th><th>Drop</th><th>Customer</th><th>Driver</th><th>Vehicle</th><th>Amount</th><th>Status</th></tr>`;
     arr.forEach(t => {
-      html += `<tr><td>${t.id}</td><td>${t.date}</td><td>${t.custName}</td><td>${t.driverName}</td><td>${t.vehicleModel}</td><td>${t.totalKM}</td><td>${t.duration}</td></tr>`;
+      html += `<tr><td>${t.id}</td><td>${t.date}</td><td>${t.pickup}</td><td>${t.drop}</td><td>${t.custName}</td><td>${t.driverName}</td><td>${t.vehicleModel}</td><td>₹${t.totalAmount}</td><td>${t.paymentStatus}</td></tr>`;
     });
     sharedTripsList.innerHTML = html + "</table>";
   }
