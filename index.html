@@ -17,45 +17,34 @@
     button:hover { background: #3a208b }
     .status-paid { background: #d4edda; color: #155724; font-weight: bold; }
     .status-unpaid { background: #f8d7da; color: #721c24; font-weight: bold; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
-    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
-    th { background-color: #4b2aad; color: white; }
   </style>
 </head>
 <body>
-
 <h2>📝 NST Trip Sheet</h2>
 
 <label>Trip ID</label><input id="tripId" readonly />
+
 <label>Date</label>
 <div style="position:relative">
   <input type="text" id="tripDateDisplay" placeholder="Select Date" readonly style="cursor:pointer" />
   <input type="date" id="tripDate" style="opacity:0;position:absolute;top:0;left:0;width:100%;height:100%;" />
 </div>
 
-<label>Duty</label><select id="dutySelect"><option value="">-- Select Duty --</option></select>
 <label>Pickup Location</label><input id="pickupLocation" />
 <label>Drop Location</label><input id="dropLocation" />
 <label>Customer Name</label><input id="custName" />
 <label>Customer Number</label><input id="custNumber" />
-<label>Driver Name</label><select id="driverName" onchange="syncDriver(true)"></select>
-<label>Driver Number</label><select id="driverNumber" onchange="syncDriver(false)"></select>
-<label>Vehicle Model</label><select id="vehicleModel" onchange="syncVehicle(true)"></select>
-<label>Vehicle Number</label><select id="vehicleNo" onchange="syncVehicle(false)"></select>
-<label>Start Time</label><input type="time" id="startTime" onchange="recalc()" />
-<label>End Time</label><input type="time" id="endTime" onchange="recalc()" />
-<label>Duration (hrs)</label><input id="duration" readonly />
-<label>Extra Hours</label><input type="number" id="extraHours" />
-<label>Start KM</label><input type="number" id="startKM" onchange="recalc()" />
-<label>End KM</label><input type="number" id="endKM" onchange="recalc()" />
-<label>Total KM</label><input id="totalKM" readonly />
-<label>Extra KM</label><input type="number" id="extraKM" />
-<label>Parking ₹</label><input type="number" id="parking" />
-<label>Toll ₹</label><input type="number" id="toll" />
+<label>Driver Name</label><input id="driverName" />
+<label>Driver Number</label><input id="driverNumber" />
+<label>Vehicle Model</label><input id="vehicleModel" />
+<label>Vehicle Number</label><input id="vehicleNo" />
+<label>Start Time</label><input type="time" id="startTime" />
+<label>End Time</label><input type="time" id="endTime" />
+<label>Start KM</label><input type="number" id="startKM" />
+<label>End KM</label><input type="number" id="endKM" />
 <label>Total Amount ₹</label><input type="number" id="totalAmount" />
 <label>Payment Status</label>
 <select id="paymentStatus">
-  <option value="">-- Select --</option>
   <option>Paid</option>
   <option>Not Paid</option>
 </select>
@@ -63,14 +52,10 @@
 
 <button onclick="shareWhatsApp()">📤 Share via WhatsApp</button>
 <button onclick="saveTripToFirebase()">💾 Save to Firebase</button>
-<button onclick="showSharedTrips()">📋 View Saved Trips</button>
-<button onclick="window.location.href='admin.html'">🔐 Admin Panel</button>
-
-<div id="sharedTripsList"></div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-  import { getDatabase, ref, set, get, runTransaction, onValue } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+  import { getDatabase, ref, get, set, runTransaction, child } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyApXtRsd8S2u9tXseS9DSBUGVTEBZlw-mM",
@@ -85,17 +70,28 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  async function generateTripId() {
+  let currentTripId = "";
+
+  async function getTripIdPreview() {
+    const snapshot = await get(ref(db, "trip-seq"));
+    const seq = snapshot.exists() ? snapshot.val() : 1;
+    currentTripId = "#NST" + String(seq).padStart(3, "0");
+    document.getElementById("tripId").value = currentTripId;
+  }
+
+  async function generateTripIdAndReserve() {
     const seqRef = ref(db, "trip-seq");
     const result = await runTransaction(seqRef, current => (current || 1) + 1);
-    return "#NST" + String(result.snapshot.val() - 1).padStart(3, "0");
+    const tripId = "#NST" + String(result.snapshot.val() - 1).padStart(3, "0");
+    currentTripId = tripId;
+    document.getElementById("tripId").value = tripId;
+    return tripId;
   }
 
   function getTripData() {
     return {
-      id: tripId.value,
+      id: currentTripId,
       date: tripDateDisplay.value,
-      duty: dutySelect.value,
       pickup: pickupLocation.value,
       drop: dropLocation.value,
       custName: custName.value,
@@ -106,14 +102,8 @@
       vehicleNo: vehicleNo.value,
       startTime: startTime.value,
       endTime: endTime.value,
-      duration: duration.value,
-      extraHours: extraHours.value,
       startKM: startKM.value,
       endKM: endKM.value,
-      totalKM: totalKM.value,
-      extraKM: extraKM.value,
-      parking: parking.value,
-      toll: toll.value,
       totalAmount: totalAmount.value,
       paymentStatus: paymentStatus.value,
       note: note.value
@@ -121,130 +111,53 @@
   }
 
   async function saveTripToFirebase() {
-    let data = getTripData();
-    if (!data.id) {
-      data.id = await generateTripId();
-      tripId.value = data.id;
+    if (!currentTripId) return alert("Trip ID not set.");
+    const tripRef = ref(db, "trips/" + currentTripId);
+    const snapshot = await get(tripRef);
+    if (snapshot.exists()) {
+      alert("Trip already exists in Firebase.");
+      return;
     }
-    const tripRef = ref(db, "trips/" + data.id);
-    const existing = await get(tripRef);
-    if (existing.exists()) {
-      const old = existing.val();
-      if (JSON.stringify(data) === JSON.stringify(old)) {
-        alert("Trip already saved. No changes.");
-        return;
-      } else {
-        alert("Trip ID already exists with different data.");
-        return;
-      }
-    }
-    await set(tripRef, data);
+    await set(tripRef, getTripData());
     alert("Trip saved to Firebase.");
-    tripId.value = await generateTripId();
+    await generateTripIdAndReserve(); // increment only on save
   }
 
   async function shareWhatsApp() {
-    let data = getTripData();
-    if (!data.id) {
-      data.id = await generateTripId();
-      tripId.value = data.id;
-    }
-    const tripRef = ref(db, "trips/" + data.id);
-    const existing = await get(tripRef);
-    if (!existing.exists()) {
-      await set(tripRef, data);
+    if (!currentTripId) await generateTripIdAndReserve();
+    const trip = getTripData();
+    const msg = `📋 NST TRIP SUMMARY
+
+🗓 Date: ${trip.date}
+📍 From: ${trip.pickup} → ${trip.drop}
+👤 Customer: ${trip.custName} (${trip.custNumber})
+👨‍✈ Driver: ${trip.driverName} (${trip.driverNumber})
+🚘 Vehicle: ${trip.vehicleModel} (${trip.vehicleNo})
+🕒 Time: ${trip.startTime} - ${trip.endTime}
+📏 KM: ${trip.startKM} → ${trip.endKM}
+💰 Amount: ₹${trip.totalAmount}
+💳 Payment: ${trip.paymentStatus}
+📝 Note: ${trip.note}
+
+Trip ID: ${trip.id}`;
+
+    // Save only if not already
+    const tripRef = ref(db, "trips/" + trip.id);
+    const snapshot = await get(tripRef);
+    if (!snapshot.exists()) {
+      await set(tripRef, trip);
     }
 
-    const msg = `📋 NST TRIP SUMMARY\n\n🗓 TRIP DETAILS\n• Trip ID: ${data.id}\n• Date: ${data.date}\n\n📍 LOCATIONS\n• Pickup: ${data.pickup}\n• Drop: ${data.drop}\n\n👤 CUSTOMER INFO\n• Name: ${data.custName}\n• Number: ${data.custNumber}\n\n👨‍✈ DRIVER INFO\n• Name: ${data.driverName}\n• Number: ${data.driverNumber}\n\n🚘 VEHICLE INFO\n• Model: ${data.vehicleModel}\n• Number: ${data.vehicleNo}\n\n🕒 TIME DETAILS\n• Start Time: ${data.startTime}\n• End Time: ${data.endTime}\n• Duration: ${data.duration} hrs\n• Extra Hours: ${data.extraHours}\n\n📏 DISTANCE DETAILS\n• Start KM: ${data.startKM}\n• End KM: ${data.endKM}\n• Total KM: ${data.totalKM}\n• Extra KM: ${data.extraKM}\n\n💰 FARE DETAILS\n• Parking: ₹${data.parking}\n• Toll: ₹${data.toll}\n• Total Amount: ₹${data.totalAmount}\n• Payment Status: ${data.paymentStatus}\n\n📝 NOTE\n${data.note || "-"}`;
-    
     window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
-    tripId.value = await generateTripId();
-  }
-
-  function recalc() {
-    if (startTime.value && endTime.value) {
-      let s = new Date("1970-01-01T" + startTime.value);
-      let e = new Date("1970-01-01T" + endTime.value);
-      let diff = (e - s) / 3600000;
-      if (diff < 0) diff += 24;
-      duration.value = diff.toFixed(2);
-    }
-    if (startKM.value && endKM.value) {
-      totalKM.value = endKM.value - startKM.value;
-    }
-  }
-
-  function showSharedTrips() {
-    const tripRef = ref(db, "trips");
-    onValue(tripRef, (snapshot) => {
-      const trips = snapshot.val();
-      if (!trips) return sharedTripsList.innerHTML = "<p>No trips saved.</p>";
-
-      let html = `<h3>📋 Saved Trips</h3><table><tr>
-      <th>ID</th><th>Date</th><th>Pickup</th><th>Drop</th>
-      <th>Customer</th><th>Driver</th><th>Vehicle</th>
-      <th>KM</th><th>Amount</th><th>Status</th></tr>`;
-
-      for (let id in trips) {
-        const t = trips[id];
-        const statusClass = t.paymentStatus === "Paid" ? "status-paid" : "status-unpaid";
-        html += `<tr>
-          <td>${t.id}</td><td>${t.date}</td><td>${t.pickup}</td><td>${t.drop}</td>
-          <td>${t.custName}</td><td>${t.driverName}</td><td>${t.vehicleModel}</td>
-          <td>${t.totalKM}</td><td>₹${t.totalAmount}</td>
-          <td class="${statusClass}">${t.paymentStatus}</td>
-        </tr>`;
-      }
-      sharedTripsList.innerHTML = html + "</table>";
-    });
+    await generateTripIdAndReserve(); // move to next trip
   }
 
   tripDate.addEventListener("change", () => {
-    const raw = tripDate.value;
-    const d = new Date(raw);
+    const d = new Date(tripDate.value);
     tripDateDisplay.value = d.toLocaleDateString("en-GB", { day: '2-digit', month: 'long', year: 'numeric' });
-    tripDateDisplay.dataset.raw = raw;
   });
 
-  window.onload = () => {
-    tripId.value = "";
-    const dList = JSON.parse(localStorage.getItem("driver-master") || "[]");
-    driverName.innerHTML = '<option value="">-- Select --</option>';
-    driverNumber.innerHTML = '<option value="">-- Select --</option>';
-    dList.forEach(d => {
-      driverName.innerHTML += `<option>${d.name}</option>`;
-      driverNumber.innerHTML += `<option>${d.mobile}</option>`;
-    });
-
-    const vList = JSON.parse(localStorage.getItem("vehicle-master") || "[]");
-    vehicleModel.innerHTML = '<option value="">-- Select --</option>';
-    vehicleNo.innerHTML = '<option value="">-- Select --</option>';
-    vList.forEach(v => {
-      vehicleModel.innerHTML += `<option>${v.model}</option>`;
-      vehicleNo.innerHTML += `<option>${v.number}</option>`;
-    });
-
-    const dutyList = JSON.parse(localStorage.getItem("duty-master") || "[]");
-    dutySelect.innerHTML = '<option value="">-- Select Duty --</option>';
-    dutyList.forEach(d => {
-      dutySelect.innerHTML += `<option>${typeof d === "string" ? d : d.name}</option>`;
-    });
-  };
-
-  function syncDriver(fromName) {
-    const map = {};
-    JSON.parse(localStorage.getItem("driver-master") || "[]").forEach(d => map[d.name] = d.mobile);
-    if (fromName) driverNumber.value = map[driverName.value] || "";
-    else for (let name in map) if (map[name] === driverNumber.value) driverName.value = name;
-  }
-
-  function syncVehicle(fromModel) {
-    const map = {};
-    JSON.parse(localStorage.getItem("vehicle-master") || "[]").forEach(v => map[v.model] = v.number);
-    if (fromModel) vehicleNo.value = map[vehicleModel.value] || "";
-    else for (let model in map) if (map[model] === vehicleNo.value) vehicleModel.value = model;
-  }
+  window.onload = getTripIdPreview;
 </script>
-
 </body>
 </html>
