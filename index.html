@@ -85,14 +85,15 @@
 
 <!-- Buttons -->
 <button onclick="shareWhatsApp()">📤 Share via WhatsApp</button>
+<button onclick="saveTripToFirebase()">💾 Save to Firebase</button>
 <button onclick="showSharedTrips()">📋 View Saved Trips</button>
 <button onclick="window.location.href='admin.html'">🔐 Admin Panel</button>
 <div id="sharedTripsList"></div>
 
-<!-- FIREBASE MODULE -->
+<!-- Firebase Save & Load -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-  import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+  import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyApXtRsd8S2u9tXseS9DSBUGVTEBZlw-mM",
@@ -107,8 +108,8 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // SAVE TRIP TO FIREBASE
-  function saveTripToFirebase() {
+  // ✅ Save trip
+  window.saveTripToFirebase = function () {
     const data = {
       id: tripId.value,
       date: tripDateDisplay.value,
@@ -145,16 +146,39 @@
         tripId.value = genId();
       })
       .catch((error) => alert("❌ Error: " + error.message));
-  }
+  };
 
-  // ADD SAVE BUTTON
-  const saveBtn = document.createElement("button");
-  saveBtn.textContent = "💾 Save to Firebase";
-  saveBtn.onclick = saveTripToFirebase;
-  document.body.appendChild(saveBtn);
+  // ✅ Load trips
+  window.showSharedTrips = function () {
+    const tripsRef = ref(db, "trips");
+    onValue(tripsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (!data) {
+        sharedTripsList.innerHTML = "<p>No trips found in Firebase.</p>";
+        return;
+      }
+
+      let html = `<h3>📋 Trips from Firebase</h3><table><tr>
+        <th>ID</th><th>Date</th><th>Pickup</th><th>Drop</th>
+        <th>Customer</th><th>Driver</th><th>Vehicle</th>
+        <th>KM</th><th>Amount</th><th>Status</th></tr>`;
+
+      Object.values(data).forEach((t) => {
+        const statusClass = t.paymentStatus === "Paid" ? "status-paid" : "status-unpaid";
+        html += `<tr>
+          <td>${t.id}</td><td>${t.date}</td><td>${t.pickup}</td><td>${t.drop}</td>
+          <td>${t.custName}</td><td>${t.driverName}</td><td>${t.vehicleModel}</td>
+          <td>${t.totalKM}</td><td>₹${t.totalAmount}</td>
+          <td class="${statusClass}">${t.paymentStatus}</td>
+        </tr>`;
+      });
+
+      sharedTripsList.innerHTML = html + "</table>";
+    });
+  };
 </script>
 
-<!-- ORIGINAL SCRIPT (unchanged) -->
+<!-- Existing JS (init, recalc, syncDriver, WhatsApp, etc.) -->
 <script>
   let drivers = {}, vehicles = {}, SHKEY = "shared-trips";
 
@@ -182,11 +206,8 @@
     const dutyList = JSON.parse(localStorage.getItem("duty-master") || "[]");
     dutySelect.innerHTML = '<option value="">-- Select Duty --</option>';
     dutyList.forEach(d => {
-      if (typeof d === "string") {
-        dutySelect.innerHTML += `<option>${d}</option>`;
-      } else if (typeof d === "object" && d.name) {
-        dutySelect.innerHTML += `<option>${d.name}</option>`;
-      }
+      if (typeof d === "string") dutySelect.innerHTML += `<option>${d}</option>`;
+      else if (typeof d === "object" && d.name) dutySelect.innerHTML += `<option>${d.name}</option>`;
     });
   }
 
@@ -283,28 +304,6 @@
     window.open("https://wa.me/?text=" + encodeURIComponent(msg.trim()), "_blank");
     reserveId();
     tripId.value = genId();
-  }
-
-  function showSharedTrips() {
-    const arr = JSON.parse(localStorage.getItem(SHKEY) || "[]");
-    if (!arr.length) return sharedTripsList.innerHTML = "<p>No trips saved.</p>";
-
-    let html = `<h3>📋 Saved Trips</h3><table><tr>
-      <th>ID</th><th>Date</th><th>Pickup</th><th>Drop</th>
-      <th>Customer</th><th>Driver</th><th>Vehicle</th>
-      <th>KM</th><th>Amount</th><th>Status</th></tr>`;
-
-    arr.forEach(t => {
-      const statusClass = t.paymentStatus === "Paid" ? "status-paid" : "status-unpaid";
-      html += `<tr>
-        <td>${t.id}</td><td>${t.date}</td><td>${t.pickup}</td><td>${t.drop}</td>
-        <td>${t.custName}</td><td>${t.driverName}</td><td>${t.vehicleModel}</td>
-        <td>${t.totalKM}</td><td>₹${t.totalAmount}</td>
-        <td class="${statusClass}">${t.paymentStatus}</td>
-      </tr>`;
-    });
-
-    sharedTripsList.innerHTML = html + "</table>";
   }
 
   tripDate.addEventListener("change", () => {
