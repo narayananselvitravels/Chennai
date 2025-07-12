@@ -6,22 +6,20 @@
   <title>Admin Panel – NST Travels</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    /* 🔮 Background with Animated Floating Bubbles */
+    /* 🌌 Background with animated float */
     body {
       margin: 0;
       font-family: 'Poppins', sans-serif;
-      background: #0f0c29; /* Deep purple/blue */
       background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
       height: 100vh;
       overflow: hidden;
       display: flex;
       justify-content: center;
       align-items: center;
+      padding: 20px;
     }
 
-    /* 🫧 Floating animation shapes */
-    body::before,
-    body::after {
+    body::before, body::after {
       content: "";
       position: absolute;
       width: 400px;
@@ -44,7 +42,7 @@
       100% { transform: translateY(-80px) translateX(40px); }
     }
 
-    /* 🧊 Glass panel */
+    /* 🧊 Card Panel Styling */
     #loginBox, #panelBox {
       position: relative;
       z-index: 1;
@@ -54,18 +52,21 @@
       backdrop-filter: blur(20px);
       border-radius: 20px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      padding: 40px 30px;
-      color: #ffffff;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
     }
 
     h2 {
-      text-align: center;
       font-size: 28px;
       margin-bottom: 30px;
       color: #ffffff;
     }
 
     .section {
+      width: 100%;
       margin-top: 30px;
     }
 
@@ -73,6 +74,7 @@
       font-size: 18px;
       color: #ffffffdd;
       margin-bottom: 15px;
+      text-align: center;
     }
 
     input {
@@ -86,6 +88,7 @@
       color: #fff;
       box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.1);
       transition: all 0.3s ease;
+      text-align: center;
     }
 
     input::placeholder {
@@ -98,7 +101,6 @@
       box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
     }
 
-    /* 🚀 Glowing Buttons */
     button {
       width: 100%;
       padding: 14px;
@@ -112,6 +114,7 @@
       box-shadow: 0 0 12px rgba(0, 255, 255, 0.5);
       cursor: pointer;
       transition: all 0.3s ease;
+      text-align: center;
     }
 
     button:hover {
@@ -135,6 +138,7 @@
 </head>
 <body>
 
+<!-- 🔐 Login Box -->
 <div id="loginBox">
   <h2>🔐 NST Admin Login</h2>
   <input id="adminUser" placeholder="Username" />
@@ -142,6 +146,7 @@
   <button onclick="login()">Login</button>
 </div>
 
+<!-- 🛠️ Panel Box -->
 <div id="panelBox">
   <h2>🛠️ NST Admin Panel</h2>
 
@@ -164,6 +169,7 @@
   </div>
 </div>
 
+<!-- 🔧 Scripts -->
 <script>
   const USER = "Nst", PASS = "1007";
 
@@ -173,7 +179,7 @@
     if (u === USER && p === PASS) {
       localStorage.setItem("adminLogged", "yes");
       document.getElementById("loginBox").style.display = "none";
-      document.getElementById("panelBox").style.display = "block";
+      document.getElementById("panelBox").style.display = "flex";
     } else {
       alert("❌ Invalid credentials");
     }
@@ -196,7 +202,7 @@
   window.onload = function() {
     if (localStorage.getItem("adminLogged") === "yes") {
       document.getElementById("loginBox").style.display = "none";
-      document.getElementById("panelBox").style.display = "block";
+      document.getElementById("panelBox").style.display = "flex";
     }
   };
 </script>
