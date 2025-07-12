@@ -6,13 +6,13 @@
   <title>Admin Panel – NST Travels</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    /* 🌌 Background with animated float */
+    /* 🌌 Background with animation */
     body {
       margin: 0;
       font-family: 'Poppins', sans-serif;
       background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
       height: 100vh;
-      overflow: hidden;
+      overflow-x: hidden;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -42,7 +42,7 @@
       100% { transform: translateY(-80px) translateX(40px); }
     }
 
-    /* 🧊 Card Panel Styling */
+    /* 🧊 Main Panels */
     #loginBox, #panelBox {
       position: relative;
       z-index: 1;
@@ -134,11 +134,46 @@
     #panelBox {
       display: none;
     }
+
+    /* 🍫 Snackbar Style */
+    #snackbar {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: linear-gradient(135deg, #ff4e50, #f9d423);
+      padding: 14px 24px;
+      color: #fff;
+      border-radius: 30px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      z-index: 9999;
+      opacity: 0;
+      transition: all 0.4s ease;
+    }
+
+    #snackbar.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    #snackbar button {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
-<!-- 🔐 Login Box -->
+<!-- 🔐 Login -->
 <div id="loginBox">
   <h2>🔐 NST Admin Login</h2>
   <input id="adminUser" placeholder="Username" />
@@ -146,7 +181,7 @@
   <button onclick="login()">Login</button>
 </div>
 
-<!-- 🛠️ Panel Box -->
+<!-- 🛠️ Admin Panel -->
 <div id="panelBox">
   <h2>🛠️ NST Admin Panel</h2>
 
@@ -169,7 +204,13 @@
   </div>
 </div>
 
-<!-- 🔧 Scripts -->
+<!-- ⚠️ Snackbar Notification -->
+<div id="snackbar">
+  <span>⚠️ Please backup your data regularly!</span>
+  <button onclick="hideSnackbar()">✖</button>
+</div>
+
+<!-- 🔧 Script Logic -->
 <script>
   const USER = "Nst", PASS = "1007";
 
@@ -199,12 +240,34 @@
     alert("✅ Trip ID reset to #NST001 successfully");
   }
 
+  function hideSnackbar() {
+    document.getElementById("snackbar").classList.remove("show");
+  }
+
+  function showSnackbar() {
+    if (!localStorage.getItem("snackbarSeen")) {
+      const bar = document.getElementById("snackbar");
+      bar.classList.add("show");
+      localStorage.setItem("snackbarSeen", "true");
+
+      setTimeout(() => {
+        bar.classList.remove("show");
+      }, 6000);
+    }
+  }
+
   window.onload = function() {
     if (localStorage.getItem("adminLogged") === "yes") {
       document.getElementById("loginBox").style.display = "none";
       document.getElementById("panelBox").style.display = "flex";
     }
   };
+
+  window.addEventListener("scroll", function () {
+    if (window.scrollY > 100) {
+      showSnackbar();
+    }
+  });
 </script>
 
 </body>
