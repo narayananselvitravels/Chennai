@@ -45,6 +45,7 @@
 <label>Total Amount ₹</label><input type="number" id="totalAmount" />
 <label>Payment Status</label>
 <select id="paymentStatus">
+  <option value="">-- Select --</option>
   <option>Paid</option>
   <option>Not Paid</option>
 </select>
@@ -52,10 +53,11 @@
 
 <button onclick="shareWhatsApp()">📤 Share via WhatsApp</button>
 <button onclick="saveTripToFirebase()">💾 Save to Firebase</button>
+<button onclick="window.location.href='admin.html'">🔐 Admin Panel</button>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-  import { getDatabase, ref, get, set, runTransaction, child } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+  import { getDatabase, ref, get, set, runTransaction } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyApXtRsd8S2u9tXseS9DSBUGVTEBZlw-mM",
@@ -141,7 +143,6 @@
 
 Trip ID: ${trip.id}`;
 
-    // Save only if not already
     const tripRef = ref(db, "trips/" + trip.id);
     const snapshot = await get(tripRef);
     if (!snapshot.exists()) {
@@ -149,7 +150,7 @@ Trip ID: ${trip.id}`;
     }
 
     window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
-    await generateTripIdAndReserve(); // move to next trip
+    await generateTripIdAndReserve(); // increment only after successful share
   }
 
   tripDate.addEventListener("change", () => {
@@ -159,5 +160,6 @@ Trip ID: ${trip.id}`;
 
   window.onload = getTripIdPreview;
 </script>
+
 </body>
 </html>
