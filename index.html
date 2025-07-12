@@ -1,549 +1,278 @@
-<!-- Due to message size limitations, the full merged HTML is too long to display here in one go. I'll paste it in multiple parts. Starting with Part 1 -->
-
-<!-- PART 1: HTML <head> & Navigation + Trip Sheet -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NST Travels – All-in-One</title>
+  <title>NST Trip Sheet</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    body { font-family: 'Poppins', sans-serif; margin: 0; padding: 0; background: #f4f6f9; }
-    nav {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      padding: 10px 15px;
-      background: #4b2aad;
-      justify-content: center;
+    body { font-family: 'Poppins', sans-serif; background: #f4f6f9; padding: 20px; max-width: 900px; margin: auto; }
+    h2 { color: #4b2aad }
+    label { font-weight: 600; margin-top: 10px; display: block }
+    input, select, textarea, button {
+      width: 100%; padding: 10px; margin: 5px 0 15px;
+      border: 1px solid #ccc; border-radius: 5px; font-size: 15px;
     }
-    nav button {
-      background: white;
-      color: #4b2aad;
-      border: none;
-      padding: 8px 15px;
-      font-weight: 600;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    nav button:hover { background: #ddd; }
-    section { display: none; padding: 20px; max-width: 1100px; margin: auto; }
-    section.active { display: block; }
-
-    h2 { color: #4b2aad; margin-top: 0; }
-    input, select, button, textarea {
-      font-family: inherit;
-      padding: 10px;
-      font-size: 16px;
-      margin: 5px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    button { background: #4b2aad; color: white; border: none; cursor: pointer; }
-    button:hover { background: #3a208b; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 14px;
-    }
-    th, td {
-      padding: 8px;
-      border: 1px solid #ccc;
-      text-align: left;
-    }
-    th {
-      background: #4b2aad;
-      color: white;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-    .badge-paid { background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; }
-    .badge-unpaid { background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 4px; }
-    .msg-box {
-      white-space: pre-line;
-      background: #fff;
-      padding: 15px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      font-family: monospace;
-      margin-bottom: 10px;
-    }
+    button { background: #4b2aad; color: #fff; border: none; cursor: pointer }
+    button:hover { background: #3a208b }
+    .status-paid { background: #d4edda; color: #155724; font-weight: bold; }
+    .status-unpaid { background: #f8d7da; color: #721c24; font-weight: bold; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    th { background-color: #4b2aad; color: white; }
   </style>
 </head>
 <body>
 
-<!-- Navigation Tabs -->
-<nav>
-  <button onclick="switchSection('tripForm')">📝 Trip Sheet</button>
-  <button onclick="switchSection('master')">👨‍✈️ Master</button>
-  <button onclick="switchSection('tripDashboard')">📊 Dashboard</button>
-  <button onclick="switchSection('viewTrips')">📋 View Trips</button>
-  <button onclick="switchSection('whatsappShare')">📤 WhatsApp</button>
-</nav>
+<h2>📝 NST Trip Sheet</h2>
 
-<!-- Sections -->
-<section id="tripForm" class="active">
-  <h2>📝 NST Trip Sheet</h2>
-  <!-- Your trip sheet form goes here -->
-  <p>Trip Sheet form will be placed here... (from index.html)</p>
-</section>
+<!-- Trip ID and Date -->
+<label>Trip ID</label>
+<input id="tripId" readonly />
 
-<section id="master">
-  <h2>👨‍✈️ Driver & Vehicle Master</h2>
-  <!-- Driver and Vehicle master content -->
-  <p>Driver & Vehicle Master UI here... (from master.html)</p>
-</section>
+<label>Date</label>
+<div style="position:relative">
+  <input type="text" id="tripDateDisplay" placeholder="Select Date" readonly style="cursor:pointer" />
+  <input type="date" id="tripDate" style="opacity:0;position:absolute;top:0;left:0;width:100%;height:100%;" />
+</div>
 
-<section id="tripDashboard">
-  <h2>📊 Trip Dashboard</h2>
-  <!-- Dashboard logic -->
-  <p>Dashboard and statistics here... (from trip.html)</p>
-</section>
+<!-- Duty Column -->
+<label>Duty</label>
+<select id="dutySelect">
+  <option value="">-- Select Duty --</option>
+</select>
 
-<section id="viewTrips">
-  <h2>📋 View All Trips</h2>
-  <!-- Trip list UI -->
-  <p>Trip List from view-trips.html</p>
-</section>
+<!-- Locations -->
+<label>Pickup Location</label><input id="pickupLocation" />
+<label>Drop Location</label><input id="dropLocation" />
 
-<section id="whatsappShare">
-  <h2>📤 WhatsApp Share</h2>
-  <div>
-    <label>Select Trip</label>
-    <select id="tripSelect" onchange="generateMessage()"></select>
+<!-- Customer -->
+<label>Customer Name</label><input id="custName" />
+<label>Customer Number</label><input id="custNumber" />
 
-    <label>Preview Message</label>
-    <div class="msg-box" id="whatsAppMsg">Select a trip to preview message...</div>
+<!-- Driver -->
+<label>Driver Name</label><select id="driverName" onchange="syncDriver(true)"></select>
+<label>Driver Number</label><select id="driverNumber" onchange="syncDriver(false)"></select>
 
-    <button onclick="copyMsg()">📋 Copy</button>
-    <button onclick="sendWhatsApp()">🟢 Send via WhatsApp</button>
-  </div>
-</section>
+<!-- Vehicle -->
+<label>Vehicle Model</label><select id="vehicleModel" onchange="syncVehicle(true)"></select>
+<label>Vehicle Number</label><select id="vehicleNo" onchange="syncVehicle(false)"></select>
+
+<!-- Time -->
+<label>Start Time</label><input type="time" id="startTime" onchange="recalc()" />
+<label>End Time</label><input type="time" id="endTime" onchange="recalc()" />
+<label>Duration (hrs)</label><input id="duration" readonly />
+<label>Extra Hours</label><input type="number" id="extraHours" />
+
+<!-- KM -->
+<label>Start KM</label><input type="number" id="startKM" onchange="recalc()" />
+<label>End KM</label><input type="number" id="endKM" onchange="recalc()" />
+<label>Total KM</label><input id="totalKM" readonly />
+<label>Extra KM</label><input type="number" id="extraKM" />
+
+<!-- Fare -->
+<label>Parking ₹</label><input type="number" id="parking" />
+<label>Toll ₹</label><input type="number" id="toll" />
+<label>Total Amount ₹</label><input type="number" id="totalAmount" />
+
+<!-- Payment -->
+<label>Payment Status</label>
+<select id="paymentStatus">
+  <option value="">-- Select --</option>
+  <option>Paid</option>
+  <option>Not Paid</option>
+</select>
+
+<!-- Notes -->
+<label>Note</label><textarea id="note" rows="3"></textarea>
+
+<!-- Buttons -->
+<button onclick="shareWhatsApp()">📤 Share via WhatsApp</button>
+<button onclick="showSharedTrips()">📋 View Saved Trips</button>
+<button onclick="window.location.href='admin.html'">🔐 Admin Panel</button>
+
+<div id="sharedTripsList"></div>
 
 <script>
-function switchSection(id) {
-  document.querySelectorAll("section").forEach(sec => sec.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-}
-</script>
-<!-- 🔹 Trip Sheet Form UI inside #tripForm section -->
-<section id="tripForm" class="active">
-  <h2>📝 NST Trip Sheet</h2>
-  <form id="tripFormElement">
-    <label>Trip ID</label><br>
-    <input type="text" id="tripId" readonly><br>
+  let drivers = {}, vehicles = {}, SHKEY = "shared-trips";
 
-    <label>Date</label><br>
-    <input type="date" id="tripDate"><br>
+  function init() {
+    // Trip ID
+    tripId.value = genId();
 
-    <label>Pickup</label><br>
-    <input type="text" id="pickup"><br>
+    // Driver Master
+    const dList = JSON.parse(localStorage.getItem("driver-master") || "[]");
+    driverName.innerHTML = '<option value="">-- Select --</option>';
+    driverNumber.innerHTML = '<option value="">-- Select --</option>';
+    dList.forEach(d => {
+      drivers[d.name] = d.mobile;
+      driverName.innerHTML += <option>${d.name}</option>;
+      driverNumber.innerHTML += <option>${d.mobile}</option>;
+    });
 
-    <label>Drop</label><br>
-    <input type="text" id="drop"><br>
+    // Vehicle Master
+    const vList = JSON.parse(localStorage.getItem("vehicle-master") || "[]");
+    vehicleModel.innerHTML = '<option value="">-- Select --</option>';
+    vehicleNo.innerHTML = '<option value="">-- Select --</option>';
+    vList.forEach(v => {
+      vehicles[v.model] = v.number;
+      vehicleModel.innerHTML += <option>${v.model}</option>;
+      vehicleNo.innerHTML += <option>${v.number}</option>;
+    });
 
-    <label>Customer Name</label><br>
-    <input type="text" id="custName"><br>
-
-    <label>Customer Number</label><br>
-    <input type="text" id="custNumber"><br>
-
-    <label>Driver</label><br>
-    <select id="driverSelect"></select><br>
-
-    <label>Vehicle</label><br>
-    <select id="vehicleSelect"></select><br>
-
-    <label>Start Time</label><br>
-    <input type="time" id="start"><br>
-
-    <label>End Time</label><br>
-    <input type="time" id="end"><br>
-
-    <label>Start KM</label><br>
-    <input type="number" id="startKM"><br>
-
-    <label>End KM</label><br>
-    <input type="number" id="endKM"><br>
-
-    <label>Parking Fee (₹)</label><br>
-    <input type="number" id="parking"><br>
-
-    <label>Toll Fee (₹)</label><br>
-    <input type="number" id="toll"><br>
-
-    <label>Note</label><br>
-    <textarea id="note"></textarea><br>
-
-    <label>Payment Status</label><br>
-    <select id="paymentStatus">
-      <option value="Paid">Paid</option>
-      <option value="Not Paid">Not Paid</option>
-    </select><br><br>
-
-    <button type="button" onclick="saveTrip()">💾 Save Trip</button>
-    <button type="reset">🔄 Reset</button>
-  </form>
-</section>
-
-<!-- 🔹 Master Section (Driver & Vehicle Master) inside #master section -->
-<section id="master">
-  <h2>👨‍✈️ Driver & Vehicle Master</h2>
-
-  <h3>➕ Add Driver</h3>
-  <input type="text" id="driverName" placeholder="Driver Name">
-  <input type="text" id="driverNumber" placeholder="Driver Mobile">
-  <button onclick="addDriver()">Add Driver</button>
-
-  <h3>📝 All Drivers</h3>
-  <ul id="driverList"></ul>
-
-  <hr>
-
-  <h3>➕ Add Vehicle</h3>
-  <input type="text" id="vehicleModel" placeholder="Vehicle Model">
-  <input type="text" id="vehicleNo" placeholder="Vehicle Number">
-  <button onclick="addVehicle()">Add Vehicle</button>
-
-  <h3>📝 All Vehicles</h3>
-  <ul id="vehicleList"></ul>
-</section>
-<!-- 🔹 Trip Dashboard Section -->
-<section id="dashboard">
-  <h2>📊 NST Trip Dashboard</h2>
-
-  <!-- Summary Cards -->
-  <div class="cards">
-    <div class="card">
-      <div class="card-title">Total Trips</div>
-      <div class="card-value" id="cardTotalTrips">0</div>
-    </div>
-    <div class="card">
-      <div class="card-title">Total Revenue</div>
-      <div class="card-value" id="cardRevenue">₹0</div>
-    </div>
-    <div class="card">
-      <div class="card-title">Total KM</div>
-      <div class="card-value" id="cardKM">0 km</div>
-    </div>
-    <div class="card">
-      <div class="card-title">Paid / Unpaid</div>
-      <div class="card-value" id="cardPayStatus">0 / 0</div>
-    </div>
-  </div>
-
-  <!-- Filter Panel -->
-  <div class="filter-panel">
-    <div class="filter-row">
-      <div>
-        <label>Search</label>
-        <input type="text" id="searchInput" placeholder="Search ID, Customer, Driver, Vehicle..." />
-      </div>
-      <div>
-        <label>Driver</label>
-        <select id="filterDriver"><option value="">All Drivers</option></select>
-      </div>
-      <div>
-        <label>Vehicle</label>
-        <select id="filterVehicle"><option value="">All Vehicles</option></select>
-      </div>
-      <div>
-        <label>Status</label>
-        <select id="filterStatus">
-          <option value="">All Status</option>
-          <option value="Paid">Paid</option>
-          <option value="Not Paid">Not Paid</option>
-        </select>
-      </div>
-      <div>
-        <label>Date From</label>
-        <input type="date" id="filterDateFrom">
-      </div>
-      <div>
-        <label>Date To</label>
-        <input type="date" id="filterDateTo">
-      </div>
-    </div>
-  </div>
-
-  <!-- Controls -->
-  <div class="controls">
-    <button onclick="exportExcel()">📤 Export CSV</button>
-    <button onclick="print()">🖨️ Print</button>
-    <button onclick="backupData()">💾 Backup</button>
-    <button onclick="restoreData()">📂 Restore</button>
-  </div>
-
-  <!-- Trip Table Output -->
-  <div id="tripTableContainer"></div>
-</section>
-<!-- 🔹 View Trips Section -->
-<section id="view-trips">
-  <h2>📋 View All Trips – NST Travels</h2>
-  <div class="filter-bar">
-    <input type="text" id="searchBox" placeholder="🔍 Keyword..." oninput="filterTripsView()">
-    <input type="month" id="monthFilter" onchange="filterTripsView()" />
-    <input type="date" id="dateFilter" onchange="filterTripsView()" />
-    <button onclick="exportExcel()">📥 Export</button>
-    <button onclick="showSection('trip-entry')">➕ New Trip</button>
-  </div>
-  <div id="tripViewTable"></div>
-</section>
-
-<!-- 🔹 WhatsApp Summary Section -->
-<section id="whatsapp-share">
-  <h2>📤 WhatsApp Trip Summary</h2>
-  <label>Select Trip</label>
-  <select id="tripSelect" onchange="generateWhatsAppMessage()"></select>
-
-  <label>Preview Message</label>
-  <div class="msg-box" id="whatsAppMsg">Select a trip to preview message...</div>
-
-  <button onclick="copyMsg()">📋 Copy</button>
-  <button onclick="sendWhatsApp()">🟢 Send via WhatsApp</button>
-  <button onclick="showSection('trip-entry')">⬅️ Back</button>
-</section>
-.msg-box {
-  white-space: pre-line;
-  background: #fff;
-  padding: 15px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-family: monospace;
-  margin-bottom: 10px;
-}
-.filter-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script>
-const SHKEY = "shared-trips";
-let allTrips = [];
-let editTripIndex = null;
-
-// Firebase Config
-const firebaseConfig = {
-  apiKey: "AIzaSyDNnQtossolWIfqFw9dM2i3TjYZXpMKTrY",
-  authDomain: "narayanan-selvi-travels-aafcc.firebaseapp.com",
-  databaseURL: "https://narayanan-selvi-travels-aafcc-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "narayanan-selvi-travels-aafcc",
-  storageBucket: "narayanan-selvi-travels-aafcc.appspot.com",
-  messagingSenderId: "486409167170",
-  appId: "1:486409167170:web:3a40eaa4162bffcb30a3b2"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const tripSeqRef = db.ref("trip-seq");
-const tripsRef = db.ref("trips");
-
-// Show Section Function
-function showSection(id) {
-  document.querySelectorAll("section").forEach(s => s.style.display = "none");
-  document.getElementById(id).style.display = "block";
-}
-
-// Load Drivers/Vehicles from LocalStorage (replace with Firebase if needed)
-let drivers = JSON.parse(localStorage.getItem("driver-master") || "[]");
-let vehicles = JSON.parse(localStorage.getItem("vehicle-master") || "[]");
-let assigned = JSON.parse(localStorage.getItem("assigned-map") || "[]");
-
-function renderMasterTables() {
-  const dt = document.querySelector("#driverTable tbody");
-  const vt = document.querySelector("#vehicleTable tbody");
-  const at = document.querySelector("#assignTable tbody");
-
-  dt.innerHTML = drivers.map((d, i) =>
-    `<tr><td>${d.name}</td><td>${d.mobile}</td>
-    <td><button onclick="editDriver(${i})">✏️</button></td>
-    <td><button onclick="deleteDriver(${i})">🗑️</button></td></tr>`).join("");
-
-  vt.innerHTML = vehicles.map((v, i) =>
-    `<tr><td>${v.model}</td><td>${v.number}</td>
-    <td><button onclick="editVehicle(${i})">✏️</button></td>
-    <td><button onclick="deleteVehicle(${i})">🗑️</button></td></tr>`).join("");
-
-  at.innerHTML = assigned.map(a => `<tr><td>${a.driver}</td><td>${a.vehicle}</td></tr>`).join("");
-
-  document.getElementById("assignDriver").innerHTML = drivers.map(d => `<option>${d.name}</option>`).join("");
-  document.getElementById("assignVehicle").innerHTML = vehicles.map(v => `<option>${v.model}</option>`).join("");
-
-  document.getElementById("driverCount").innerText = drivers.length;
-  document.getElementById("vehicleCount").innerText = vehicles.length;
-}
-
-// Driver/Vehicle Add/Edit/Delete
-function addDriver() {
-  const name = dName.value.trim(), mobile = dMobile.value.trim();
-  if (!name || !mobile) return alert("Fill all fields");
-  if (drivers.some(d => d.name === name || d.mobile === mobile)) return alert("Duplicate!");
-  drivers.push({ name, mobile });
-  localStorage.setItem("driver-master", JSON.stringify(drivers));
-  dName.value = dMobile.value = "";
-  renderMasterTables();
-}
-function editDriver(i) {
-  const name = prompt("Edit name", drivers[i].name);
-  const mobile = prompt("Edit mobile", drivers[i].mobile);
-  if (name && mobile) {
-    drivers[i] = { name, mobile };
-    localStorage.setItem("driver-master", JSON.stringify(drivers));
-    renderMasterTables();
+    // Duty Master
+    const dutyList = JSON.parse(localStorage.getItem("duty-master") || "[]");
+    dutySelect.innerHTML = '<option value="">-- Select Duty --</option>';
+    dutyList.forEach(d => {
+      if (typeof d === "string") {
+        dutySelect.innerHTML += <option>${d}</option>;
+      } else if (typeof d === "object" && d.name) {
+        dutySelect.innerHTML += <option>${d.name}</option>;
+      }
+    });
   }
-}
-function deleteDriver(i) {
-  if (confirm("Delete driver?")) {
-    drivers.splice(i, 1);
-    localStorage.setItem("driver-master", JSON.stringify(drivers));
-    renderMasterTables();
+
+  function genId() {
+    let n = parseInt(localStorage.getItem("trip-seq") || "1");
+    return "#NST" + String(n).padStart(3, "0");
   }
-}
-function addVehicle() {
-  const model = vModel.value.trim(), number = vNumber.value.trim();
-  if (!model || !number) return alert("Fill all fields");
-  if (vehicles.some(v => v.model === model || v.number === number)) return alert("Duplicate!");
-  vehicles.push({ model, number });
-  localStorage.setItem("vehicle-master", JSON.stringify(vehicles));
-  vModel.value = vNumber.value = "";
-  renderMasterTables();
-}
-function editVehicle(i) {
-  const model = prompt("Edit model", vehicles[i].model);
-  const number = prompt("Edit number", vehicles[i].number);
-  if (model && number) {
-    vehicles[i] = { model, number };
-    localStorage.setItem("vehicle-master", JSON.stringify(vehicles));
-    renderMasterTables();
+
+  function reserveId() {
+    let n = parseInt(localStorage.getItem("trip-seq") || "1");
+    localStorage.setItem("#NST" + String(n).padStart(3, "0"), "used");
+    localStorage.setItem("trip-seq", n + 1);
   }
-}
-function deleteVehicle(i) {
-  if (confirm("Delete vehicle?")) {
-    vehicles.splice(i, 1);
-    localStorage.setItem("vehicle-master", JSON.stringify(vehicles));
-    renderMasterTables();
+
+  function syncDriver(fromName) {
+    if (fromName) driverNumber.value = drivers[driverName.value] || "";
+    else for (let k in drivers) if (drivers[k] === driverNumber.value) driverName.value = k;
   }
-}
-function assignPair() {
-  const d = assignDriver.value, v = assignVehicle.value;
-  if (!d || !v) return alert("Select both");
-  assigned.push({ driver: d, vehicle: v });
-  localStorage.setItem("assigned-map", JSON.stringify(assigned));
-  renderMasterTables();
+
+  function syncVehicle(fromModel) {
+    if (fromModel) vehicleNo.value = vehicles[vehicleModel.value] || "";
+    else for (let k in vehicles) if (vehicles[k] === vehicleNo.value) vehicleModel.value = k;
+  }
+
+  function recalc() {
+    if (startTime.value && endTime.value) {
+      let s = new Date(1970-01-01T${startTime.value});
+      let e = new Date(1970-01-01T${endTime.value});
+      let diff = (e - s) / (1000 * 60 * 60); // in hours
+      if (diff < 0) diff += 24;
+      duration.value = diff.toFixed(2);
+    }
+    if (startKM.value && endKM.value) {
+      totalKM.value = endKM.value - startKM.value;
+    }
+  }
+
+function shareWhatsApp() {
+  const fields = {
+    "📋 NST TRIP SUMMARY": "",
+
+    "🗓 TRIP DETAILS": {
+      "• Trip ID:": tripId.value,
+      "• Date:": tripDateDisplay.value
+    },
+
+    "📍 LOCATIONS": {
+      "• Pickup:": pickupLocation.value,
+      "• Drop:": dropLocation.value
+    },
+
+    "👤 CUSTOMER INFO": {
+      "• Name:": custName.value,
+      "• Number:": custNumber.value
+    },
+
+    "👨‍✈ DRIVER INFO": {
+      "• Name:": driverName.value,
+      "• Number:": driverNumber.value
+    },
+
+    "🚘 VEHICLE INFO": {
+      "• Model:": vehicleModel.value,
+      "• Number:": vehicleNo.value
+    },
+
+    "🕒 TIME DETAILS": {
+      "• Start Time:": startTime.value,
+      "• End Time:": endTime.value,
+      "• Duration:": duration.value ? ${duration.value} hrs : "",
+      "• Extra Hours:": extraHours.value
+    },
+
+    "📏 DISTANCE DETAILS": {
+      "• Start KM:": startKM.value,
+      "• End KM:": endKM.value,
+      "• Total KM:": totalKM.value ? ${totalKM.value} km : "",
+      "• Extra KM:": extraKM.value ? ${extraKM.value} km : ""
+    },
+
+    "💰 FARE DETAILS": {
+      "• Parking:": parking?.value ? ₹${parking.value} : "",
+      "• Toll:": toll?.value ? ₹${toll.value} : "",
+      "• Total Amount:": totalAmount?.value ? ₹${totalAmount.value} : "",
+      "• Payment Status:": paymentStatus.value
+    },
+
+    "📝 NOTE": note.value
+  };
+
+  let msg = "";
+
+  for (const [section, data] of Object.entries(fields)) {
+    if (typeof data === "string") {
+      if (data.trim()) msg += ${section}\n${data.trim()}\n\n;
+      else if (section.includes("NOTE")) msg += ${section}\n-\n\n;
+      else msg += ${section}\n\n;
+    } else {
+      let lines = Object.entries(data)
+        .filter(([_, val]) => val && val.trim())
+        .map(([label, val]) => ${label} ${val.trim()});
+      if (lines.length) {
+        msg += ${section}\n${lines.join("\n")}\n\n;
+      }
+    }
+  }
+
+  window.open("https://wa.me/?text=" + encodeURIComponent(msg.trim()), "_blank");
+  reserveId();
+  tripId.value = genId();
 }
 
-// Trip Table Logic
-function loadTrips() {
-  allTrips = JSON.parse(localStorage.getItem(SHKEY) || "[]");
-  renderTripTable();
-  renderTripCards();
-  populateTripDropdown();
-}
-function saveTrips() {
-  localStorage.setItem(SHKEY, JSON.stringify(allTrips));
-  loadTrips();
-}
-function addTrip(data) {
-  allTrips.push(data);
-  saveTrips();
-}
-function deleteTrip(index) {
-  if (confirm("Delete this trip?")) {
-    allTrips.splice(index, 1);
-    saveTrips();
-  }
-}
-function renderTripTable() {
-  if (!allTrips.length) return tripViewTable.innerHTML = "<p>No trips found.</p>";
-  let html = `<table><thead><tr>
-    <th>Trip ID</th><th>Date</th><th>Pickup</th><th>Drop</th>
+  function showSharedTrips() {
+    const arr = JSON.parse(localStorage.getItem(SHKEY) || "[]");
+    if (!arr.length) return sharedTripsList.innerHTML = "<p>No trips saved.</p>";
+
+    let html = `<h3>📋 Saved Trips</h3><table><tr>
+    <th>ID</th><th>Date</th><th>Pickup</th><th>Drop</th>
     <th>Customer</th><th>Driver</th><th>Vehicle</th>
-    <th>KM</th><th>Time</th><th>₹</th><th>Status</th><th>Note</th><th>✏️</th></tr></thead><tbody>`;
-  allTrips.forEach((t, i) => {
-    html += `<tr>
-      <td>${t.id}</td><td>${t.date}</td><td>${t.pickup}</td><td>${t.drop}</td>
-      <td>${t.custName} (${t.custNumber})</td>
-      <td>${t.driverName} (${t.driverNumber})</td>
-      <td>${t.vehicleModel} (${t.vehicleNo})</td>
-      <td>${t.totalKM}</td><td>${t.duration}</td><td>${t.totalAmount}</td>
-      <td>${t.paymentStatus}</td><td>${t.note}</td>
-      <td>
-        <button onclick="editTrip(${i})">✏️</button>
-        <button onclick="deleteTrip(${i})">🗑️</button>
-      </td></tr>`;
+    <th>KM</th><th>Amount</th><th>Status</th></tr>`;
+
+    arr.forEach(t => {
+      const statusClass = t.paymentStatus === "Paid" ? "status-paid" : "status-unpaid";
+      html += `<tr>
+        <td>${t.id}</td><td>${t.date}</td><td>${t.pickup}</td><td>${t.drop}</td>
+        <td>${t.custName}</td><td>${t.driverName}</td><td>${t.vehicleModel}</td>
+        <td>${t.totalKM}</td><td>₹${t.totalAmount}</td>
+        <td class="${statusClass}">${t.paymentStatus}</td>
+      </tr>`;
+    });
+
+    sharedTripsList.innerHTML = html + "</table>";
+  }
+
+  // Date Formatting
+  tripDate.addEventListener("change", () => {
+    const raw = tripDate.value;
+    const d = new Date(raw);
+    tripDateDisplay.value = d.toLocaleDateString("en-GB", { day: '2-digit', month: 'long', year: 'numeric' });
+    tripDateDisplay.dataset.raw = raw;
   });
-  html += "</tbody></table>";
-  tripViewTable.innerHTML = html;
-}
-function renderTripCards() {
-  cardTotalTrips.textContent = allTrips.length;
-  cardRevenue.textContent = "₹" + allTrips.reduce((a, t) => a + Number(t.totalAmount || 0), 0);
-  cardKM.textContent = allTrips.reduce((a, t) => a + Number(t.totalKM || 0), 0) + " km";
-  const paid = allTrips.filter(t => t.paymentStatus === "Paid").length;
-  const unpaid = allTrips.filter(t => t.paymentStatus !== "Paid").length;
-  cardPayStatus.textContent = `${paid} / ${unpaid}`;
-}
 
-// Filter View Trips
-function filterTripsView() {
-  const q = searchBox.value.toLowerCase();
-  const m = monthFilter.value;
-  const d = dateFilter.value;
-  const result = allTrips.filter(t =>
-    (!q || JSON.stringify(t).toLowerCase().includes(q)) &&
-    (!m || t.date.startsWith(m)) &&
-    (!d || t.date === d)
-  );
-  renderTripTable(result);
-}
-
-// WhatsApp Message
-function populateTripDropdown() {
-  const select = document.getElementById("tripSelect");
-  select.innerHTML = `<option value="">-- Select Trip --</option>`;
-  allTrips.forEach((t, i) =>
-    select.innerHTML += `<option value="${i}">${t.id || ("#NST" + (i+1))} - ${t.date}</option>`);
-}
-function fallback(val) {
-  return (val === undefined || val === null || val === "") ? "-" : val;
-}
-function generateWhatsAppMessage() {
-  const i = tripSelect.value;
-  if (i === "") return whatsAppMsg.textContent = "Select a trip to preview message...";
-  const t = allTrips[i];
-  const msg = `📋 *NST TRIP SUMMARY*\n\n` +
-`🗓️ *TRIP DETAILS*\n• Trip ID: ${fallback(t.id)}\n• Date: ${fallback(t.date)}\n\n` +
-`📍 *LOCATIONS*\n• Pickup: ${fallback(t.pickup)}\n• Drop: ${fallback(t.drop)}\n\n` +
-`👤 *CUSTOMER*\n• Name: ${fallback(t.custName)}\n• Number: ${fallback(t.custNumber)}\n\n` +
-`👨‍✈️ *DRIVER*\n• Name: ${fallback(t.driverName)}\n• Number: ${fallback(t.driverNumber)}\n\n` +
-`🚘 *VEHICLE*\n• Model: ${fallback(t.vehicleModel)}\n• Number: ${fallback(t.vehicleNo)}\n\n` +
-`🕒 *TIME*\n• Start: ${fallback(t.start)}\n• End: ${fallback(t.end)}\n• Duration: ${fallback(t.duration)} hrs\n\n` +
-`📏 *DISTANCE*\n• Start KM: ${fallback(t.startKM)}\n• End KM: ${fallback(t.endKM)}\n• Total KM: ${fallback(t.totalKM)} km\n\n` +
-`💰 *FARE*\n• Parking: ₹${fallback(t.parking)}\n• Toll: ₹${fallback(t.toll)}\n• Total: ₹${fallback(t.totalAmount)}\n• Status: ${fallback(t.paymentStatus)}\n\n` +
-`📝 *Note*: ${fallback(t.note)}`;
-  whatsAppMsg.textContent = msg;
-}
-function copyMsg() {
-  navigator.clipboard.writeText(whatsAppMsg.textContent);
-  alert("✅ Copied to clipboard");
-}
-function sendWhatsApp() {
-  const msg = whatsAppMsg.textContent;
-  if (!msg || msg.includes("Select a trip")) return alert("⚠️ Please select a trip first.");
-  window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
-}
-
-// Init
-window.onload = () => {
-  loadTrips();
-  renderMasterTables();
-  showSection('trip-entry');
-};
+  window.onload = init;
 </script>
+
+</body>
+</html>
