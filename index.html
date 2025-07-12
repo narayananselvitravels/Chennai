@@ -67,10 +67,11 @@
 
 <div id="sharedTripsList"></div>
 
-<!-- Firebase -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-  import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+  import {
+    getDatabase, ref, set, push, onValue, remove, runTransaction
+  } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyApXtRsd8S2u9tXseS9DSBUGVTEBZlw-mM",
@@ -85,22 +86,32 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  window.saveTripToFirebase = function () {
+  async function generateTripId() {
+    const seqRef = ref(db, "trip-seq");
+    const result = await runTransaction(seqRef, current => (current || 1) + 1);
+    const newId = result.snapshot.val();
+    return "#NST" + String(newId - 1).padStart(3, "0");
+  }
+
+  async function assignNewTripId() {
+    const id = await generateTripId();
+    tripId.value = id;
+  }
+
+  window.saveTripToFirebase = async function () {
     const data = collectTripData();
     const tripsRef = ref(db, "trips");
     const newTrip = push(tripsRef);
-    set(newTrip, data).then(() => {
-      alert("✅ Trip saved!");
-      reserveId();
-      tripId.value = genId();
-    });
+    await set(newTrip, data);
+    alert("✅ Trip saved!");
+    assignNewTripId();
   };
 
-  window.shareWhatsApp = function () {
+  window.shareWhatsApp = async function () {
     const data = collectTripData();
     const tripsRef = ref(db, "trips");
 
-    onValue(tripsRef, (snapshot) => {
+    onValue(tripsRef, async (snapshot) => {
       const trips = snapshot.val();
       let exists = false;
       if (trips) {
@@ -114,15 +125,14 @@
 
       if (!exists) {
         const newTrip = push(tripsRef);
-        set(newTrip, data)
-          .then(() => console.log("✅ Trip saved during WhatsApp share"));
+        await set(newTrip, data);
+        console.log("✅ Trip saved during WhatsApp share");
       } else {
         console.log("⚠️ Duplicate trip, skipping save");
       }
 
       sendWhatsAppMessage(data);
-      reserveId();
-      tripId.value = genId();
+      assignNewTripId();
     }, { onlyOnce: true });
   };
 
@@ -158,12 +168,11 @@
   function sendWhatsAppMessage(data) {
     const msg = `
 📋 *NST TRIP SUMMARY*
-
 🗓 *Trip ID:* ${data.id}
-📍 *Date:* ${data.date}
+📅 *Date:* ${data.date}
 👤 *Customer:* ${data.custName} (${data.custNumber})
-🧍 *Driver:* ${data.driverName} (${data.driverNumber})
 🚘 *Vehicle:* ${data.vehicleModel} (${data.vehicleNo})
+🧍 *Driver:* ${data.driverName} (${data.driverNumber})
 📍 *From:* ${data.pickup} ➡️ *To:* ${data.drop}
 🕒 *Time:* ${data.startTime}–${data.endTime} (${data.duration} hrs)
 📏 *KM:* ${data.startKM} → ${data.endKM} = ${data.totalKM} km (+${data.extraKM} km)
@@ -211,7 +220,7 @@
   });
 
   window.onload = () => {
-    tripId.value = genId();
+    assignNewTripId();
     const dList = JSON.parse(localStorage.getItem("driver-master") || "[]");
     dList.forEach(d => {
       driverName.innerHTML += `<option>${d.name}</option>`;
@@ -228,17 +237,6 @@
       if (name) dutySelect.innerHTML += `<option>${name}</option>`;
     });
   };
-
-  function genId() {
-    let n = parseInt(localStorage.getItem("trip-seq") || "1");
-    return "#NST" + String(n).padStart(3, "0");
-  }
-
-  function reserveId() {
-    let n = parseInt(localStorage.getItem("trip-seq") || "1");
-    localStorage.setItem("#NST" + String(n).padStart(3, "0"), "used");
-    localStorage.setItem("trip-seq", n + 1);
-  }
 
   function recalc() {
     if (startTime.value && endTime.value) {
