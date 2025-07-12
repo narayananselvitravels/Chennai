@@ -6,40 +6,63 @@
   <title>Admin Panel – NST Travels</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    /* ✨ Mind-Blowing Background */
+    /* 🔮 Background with Animated Floating Bubbles */
     body {
-      font-family: 'Poppins', sans-serif;
       margin: 0;
-      padding: 0;
-      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: #0f0c29; /* Deep purple/blue */
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      height: 100vh;
+      overflow: hidden;
       display: flex;
       justify-content: center;
       align-items: center;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      background-size: cover;
-      overflow: hidden;
     }
 
-    /* 🧊 Glass Card */
+    /* 🫧 Floating animation shapes */
+    body::before,
+    body::after {
+      content: "";
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: rgba(255, 0, 255, 0.08);
+      filter: blur(80px);
+      border-radius: 50%;
+      animation: float 20s infinite ease-in-out alternate;
+      z-index: 0;
+    }
+
+    body::after {
+      top: 50%;
+      left: 80%;
+      background: rgba(0, 255, 255, 0.08);
+    }
+
+    @keyframes float {
+      0%   { transform: translateY(0px) translateX(0px); }
+      100% { transform: translateY(-80px) translateX(40px); }
+    }
+
+    /* 🧊 Glass panel */
     #loginBox, #panelBox {
+      position: relative;
+      z-index: 1;
       width: 100%;
       max-width: 520px;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.07);
       backdrop-filter: blur(20px);
       border-radius: 20px;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
-      padding: 35px 30px;
-      margin: 20px;
-      color: #fff;
-      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      padding: 40px 30px;
+      color: #ffffff;
     }
 
     h2 {
       text-align: center;
-      color: #ffffff;
       font-size: 28px;
       margin-bottom: 30px;
-      letter-spacing: 1px;
+      color: #ffffff;
     }
 
     .section {
@@ -48,44 +71,8 @@
 
     .section h3 {
       font-size: 18px;
-      color: #ffffffcc;
+      color: #ffffffdd;
       margin-bottom: 15px;
-    }
-
-    /* 🔘 Glowing Modern Buttons */
-    button {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      background: rgba(255,255,255,0.2);
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.3);
-      padding: 14px 20px;
-      font-size: 16px;
-      font-weight: 500;
-      border-radius: 12px;
-      margin: 10px 0;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 0 12px rgba(255,255,255,0.1);
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: rgba(255,255,255,0.3);
-      transform: scale(1.02);
-      box-shadow: 0 0 16px rgba(255,255,255,0.3);
-    }
-
-    .danger {
-      background: rgba(255, 80, 80, 0.2);
-      border: 1px solid rgba(255, 80, 80, 0.4);
-    }
-
-    .danger:hover {
-      background: rgba(255, 80, 80, 0.4);
     }
 
     input {
@@ -95,9 +82,8 @@
       margin-bottom: 20px;
       border: none;
       border-radius: 10px;
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.15);
       color: #fff;
-      backdrop-filter: blur(8px);
       box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.1);
       transition: all 0.3s ease;
     }
@@ -109,7 +95,37 @@
     input:focus {
       outline: none;
       background: rgba(255, 255, 255, 0.3);
-      box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    }
+
+    /* 🚀 Glowing Buttons */
+    button {
+      width: 100%;
+      padding: 14px;
+      margin: 12px 0;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      background: linear-gradient(135deg, #00feba, #5b86e5);
+      box-shadow: 0 0 12px rgba(0, 255, 255, 0.5);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+    }
+
+    .danger {
+      background: linear-gradient(135deg, #ff4e50, #f9d423);
+      box-shadow: 0 0 12px rgba(255, 100, 100, 0.4);
+    }
+
+    .danger:hover {
+      box-shadow: 0 0 20px rgba(255, 100, 100, 0.8);
     }
 
     #panelBox {
