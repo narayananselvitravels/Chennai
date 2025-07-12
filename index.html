@@ -19,6 +19,9 @@
     table, th, td { border:1px solid #ddd }
     th, td { padding:8px; text-align:left }
     th { background:#4b2aad; color:#fff }
+    .status-green { background:#d4edda; }
+    .status-red { background:#f8d7da; }
+    .status-default { background:white; }
   </style>
 </head>
 <body>
@@ -56,8 +59,9 @@
 <label>Extra KM</label><input type="number" id="extraKM">
 
 <label>Total Amount ₹</label><input type="number" id="totalAmount">
+
 <label>Payment Status</label>
-<select id="paymentStatus">
+<select id="paymentStatus" onchange="updatePaymentColor()">
   <option value="">-- Select --</option>
   <option>Paid</option>
   <option>Not Paid</option>
@@ -65,12 +69,11 @@
 
 <label>Note</label><textarea id="note" rows="3"></textarea>
 
-<div style="margin-top:15px">
-  <button onclick="saveTrip()">💾 Save Trip</button>
-  <button onclick="shareWhatsApp()">📤 Share via WhatsApp</button>
-  <button onclick="showSharedTrips()">📋 View Trips</button>
-  <button onclick="window.location.href='admin.html'" style="background:#6c757d">🔐 Admin Panel</button>
-</div>
+<!-- ACTION BUTTONS -->
+<button onclick="shareWhatsApp()">📤 Share via WhatsApp</button>
+<button onclick="window.location.href='whatsapp-share.html'">📤 WhatsApp Share</button>
+<button onclick="showSharedTrips()">📋 View Saved Trips</button>
+<button onclick="window.location.href='admin.html'">🔐 Admin Panel</button>
 
 <div id="sharedTripsList"></div>
 
@@ -105,12 +108,6 @@
     return "#NST" + String(n).padStart(3, "0");
   }
 
-  function reserveId() {
-    let n = parseInt(localStorage.getItem("trip-seq") || "1");
-    localStorage.setItem("#NST" + String(n).padStart(3, "0"), "used");
-    localStorage.setItem("trip-seq", n + 1);
-  }
-
   function syncDriver(fromName) {
     if (fromName) driverNumber.value = drivers[driverName.value] || "";
     else for (let k in drivers) if (drivers[k] === driverNumber.value) driverName.value = k;
@@ -133,36 +130,12 @@
     totalKM.value = total;
   }
 
-  function saveTrip() {
-    const data = {
-      id: tripId.value,
-      date: tripDateDisplay.dataset.raw || "",
-      pickup: pickupLocation.value,
-      drop: dropLocation.value,
-      custName: custName.value,
-      custNumber: custNumber.value,
-      driverName: driverName.value,
-      driverNumber: driverNumber.value,
-      vehicleModel: vehicleModel.value,
-      vehicleNo: vehicleNo.value,
-      start: startTime.value,
-      end: endTime.value,
-      duration: duration.value,
-      extraHours: extraHours.value,
-      startKM: startKM.value,
-      endKM: endKM.value,
-      totalKM: totalKM.value,
-      extraKM: extraKM.value,
-      totalAmount: totalAmount.value,
-      paymentStatus: paymentStatus.value,
-      note: note.value
-    };
-    let arr = JSON.parse(localStorage.getItem(SHKEY) || "[]");
-    arr.push(data);
-    localStorage.setItem(SHKEY, JSON.stringify(arr));
-    alert("✅ Trip saved successfully");
-    reserveId();
-    tripId.value = genId();
+  function updatePaymentColor() {
+    let sel = document.getElementById("paymentStatus");
+    sel.classList.remove("status-green", "status-red", "status-default");
+    if (sel.value === "Paid") sel.classList.add("status-green");
+    else if (sel.value === "Not Paid") sel.classList.add("status-red");
+    else sel.classList.add("status-default");
   }
 
   function shareWhatsApp() {
