@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -23,107 +24,106 @@
 </head>
 <body>
 <h2>📜 NST Trip Sheet</h2>
-<!-- Trip ID and Date -->
+
+<!-- Trip Form -->
 <label>Trip ID</label><input id="tripId" readonly />
 <label>Date</label>
 <div style="position:relative">
   <input type="text" id="tripDateDisplay" placeholder="Select Date" readonly style="cursor:pointer" />
   <input type="date" id="tripDate" style="opacity:0;position:absolute;top:0;left:0;width:100%;height:100%;" />
 </div>
-<!-- Duty Column -->
-<label>Duty</label><select id="dutySelect"></select>
-<!-- Locations -->
+<label>Duty</label><select id="dutySelect">
+  <option>Local</option>
+  <option>Outstation</option>
+  <option>Pickup</option>
+  <option>Drop</option>
+</select>
 <label>Pickup Location</label><input id="pickupLocation" />
 <label>Drop Location</label><input id="dropLocation" />
-<!-- Customer -->
 <label>Customer Name</label><input id="custName" />
 <label>Customer Number</label><input id="custNumber" />
-<!-- Driver -->
 <label>Driver Name</label><input id="driverName" />
 <label>Driver Number</label><input id="driverNumber" />
-<!-- Vehicle -->
 <label>Vehicle Model</label><input id="vehicleModel" />
 <label>Vehicle Number</label><input id="vehicleNo" />
-<!-- Time -->
 <label>Start Time</label><input type="time" id="startTime" onchange="recalc()" />
 <label>End Time</label><input type="time" id="endTime" onchange="recalc()" />
 <label>Duration (hrs)</label><input id="duration" readonly />
 <label>Extra Hours</label><input type="number" id="extraHours" />
-<!-- KM -->
 <label>Start KM</label><input type="number" id="startKM" onchange="recalc()" />
 <label>End KM</label><input type="number" id="endKM" onchange="recalc()" />
 <label>Total KM</label><input id="totalKM" readonly />
 <label>Extra KM</label><input type="number" id="extraKM" />
-<!-- Fare -->
 <label>Parking ₹</label><input type="number" id="parking" />
 <label>Toll ₹</label><input type="number" id="toll" />
 <label>Total Amount ₹</label><input type="number" id="totalAmount" />
-<!-- Payment -->
 <label>Payment Status</label>
 <select id="paymentStatus">
   <option value="">-- Select --</option>
   <option>Paid</option>
   <option>Not Paid</option>
 </select>
-<!-- Notes -->
 <label>Note</label><textarea id="note" rows="3"></textarea>
-<!-- Buttons -->
+
+<!-- Action Buttons -->
 <button onclick="shareWhatsApp()">📤 Share via WhatsApp</button>
 <button onclick="showSharedTrips()">📋 View Saved Trips</button>
-<div id="sharedTripsList"></div><script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+<div id="sharedTripsList"></div>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAqPTMu1Bb7WDnwCL8gMMSohYzsEL5w1WQ",
-  authDomain: "narayananselvitravels-6e4ca.firebaseapp.com",
-  databaseURL: "https://narayananselvitravels-6e4ca-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "narayananselvitravels-6e4ca",
-  storageBucket: "narayananselvitravels-6e4ca.appspot.com",
-  messagingSenderId: "591864703196",
-  appId: "1:591864703196:web:7f6813039657765842ac19"
-};
+<!-- Firebase Integration -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+  import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-function genId() {
-  const n = Date.now();
-  return `#NST${n}`;
-}
-
-function reserveId(id) {
-  localStorage.setItem(id, "used");
-}
-
-window.shareWhatsApp = function () {
-  const tripData = {
-    id: tripId.value,
-    date: tripDateDisplay.value,
-    pickup: pickupLocation.value,
-    drop: dropLocation.value,
-    custName: custName.value,
-    custNumber: custNumber.value,
-    driverName: driverName.value,
-    driverNumber: driverNumber.value,
-    vehicleModel: vehicleModel.value,
-    vehicleNo: vehicleNo.value,
-    startTime: startTime.value,
-    endTime: endTime.value,
-    duration: duration.value,
-    extraHours: extraHours.value,
-    startKM: startKM.value,
-    endKM: endKM.value,
-    totalKM: totalKM.value,
-    extraKM: extraKM.value,
-    parking: parking.value,
-    toll: toll.value,
-    totalAmount: totalAmount.value,
-    paymentStatus: paymentStatus.value,
-    note: note.value
+  const firebaseConfig = {
+    apiKey: "AIzaSyAqPTMu1Bb7WDnwCL8gMMSohYzsEL5w1WQ",
+    authDomain: "narayananselvitravels-6e4ca.firebaseapp.com",
+    databaseURL: "https://narayananselvitravels-6e4ca-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "narayananselvitravels-6e4ca",
+    storageBucket: "narayananselvitravels-6e4ca.appspot.com",
+    messagingSenderId: "591864703196",
+    appId: "1:591864703196:web:7f6813039657765842ac19"
   };
 
-  const msg = `*NST TRIP SUMMARY*
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  function genId() {
+    return `#NST${Date.now()}`;
+  }
+
+  function reserveId(id) {
+    localStorage.setItem(id, "used");
+  }
+
+  window.shareWhatsApp = function () {
+    const tripData = {
+      id: tripId.value,
+      date: tripDateDisplay.value,
+      pickup: pickupLocation.value,
+      drop: dropLocation.value,
+      custName: custName.value,
+      custNumber: custNumber.value,
+      driverName: driverName.value,
+      driverNumber: driverNumber.value,
+      vehicleModel: vehicleModel.value,
+      vehicleNo: vehicleNo.value,
+      startTime: startTime.value,
+      endTime: endTime.value,
+      duration: duration.value,
+      extraHours: extraHours.value,
+      startKM: startKM.value,
+      endKM: endKM.value,
+      totalKM: totalKM.value,
+      extraKM: extraKM.value,
+      parking: parking.value,
+      toll: toll.value,
+      totalAmount: totalAmount.value,
+      paymentStatus: paymentStatus.value,
+      note: note.value
+    };
+
+    const msg = `*NST TRIP SUMMARY*
 Trip ID: ${tripData.id}
 Date: ${tripData.date}
 Pickup: ${tripData.pickup}
@@ -137,58 +137,59 @@ Charges: Parking ₹${tripData.parking}, Toll ₹${tripData.toll}, Total ₹${tr
 Payment: ${tripData.paymentStatus}
 Note: ${tripData.note}`;
 
-  window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
+    window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
 
-  push(ref(db, "trips"), tripData);
-  reserveId(tripData.id);
-  tripId.value = genId();
-};
+    push(ref(db, "trips"), tripData);
+    reserveId(tripData.id);
+    tripId.value = genId();
+  };
 
-window.showSharedTrips = function () {
-  const tripsRef = ref(db, "trips");
-  onValue(tripsRef, (snapshot) => {
-    const data = snapshot.val();
-    if (!data) {
-      sharedTripsList.innerHTML = "<p>No trips saved.</p>";
-      return;
-    }
-    let html = `<h3>📋 Saved Trips</h3><table><tr>
-      <th>ID</th><th>Date</th><th>Pickup</th><th>Drop</th>
-      <th>Customer</th><th>Driver</th><th>Vehicle</th>
-      <th>KM</th><th>Amount</th><th>Status</th></tr>`;
-    Object.values(data).forEach(t => {
-      const statusClass = t.paymentStatus === "Paid" ? "status-paid" : "status-unpaid";
-      html += `<tr>
-        <td>${t.id}</td><td>${t.date}</td><td>${t.pickup}</td><td>${t.drop}</td>
-        <td>${t.custName}</td><td>${t.driverName}</td><td>${t.vehicleModel}</td>
-        <td>${t.totalKM}</td><td>₹${t.totalAmount}</td>
-        <td class="${statusClass}">${t.paymentStatus}</td>
-      </tr>`;
+  window.showSharedTrips = function () {
+    const tripsRef = ref(db, "trips");
+    onValue(tripsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (!data) {
+        sharedTripsList.innerHTML = "<p>No trips saved.</p>";
+        return;
+      }
+      let html = `<h3>📋 Saved Trips</h3><table><tr>
+        <th>ID</th><th>Date</th><th>Pickup</th><th>Drop</th>
+        <th>Customer</th><th>Driver</th><th>Vehicle</th>
+        <th>KM</th><th>Amount</th><th>Status</th></tr>`;
+      Object.values(data).forEach(t => {
+        const statusClass = t.paymentStatus === "Paid" ? "status-paid" : "status-unpaid";
+        html += `<tr>
+          <td>${t.id}</td><td>${t.date}</td><td>${t.pickup}</td><td>${t.drop}</td>
+          <td>${t.custName}</td><td>${t.driverName}</td><td>${t.vehicleModel}</td>
+          <td>${t.totalKM}</td><td>₹${t.totalAmount}</td>
+          <td class="${statusClass}">${t.paymentStatus}</td>
+        </tr>`;
+      });
+      sharedTripsList.innerHTML = html + "</table>";
     });
-    sharedTripsList.innerHTML = html + "</table>";
+  };
+
+  tripDate.addEventListener("change", () => {
+    const d = new Date(tripDate.value);
+    tripDateDisplay.value = d.toLocaleDateString("en-GB", { day: '2-digit', month: 'long', year: 'numeric' });
   });
-};
 
-tripDate.addEventListener("change", () => {
-  const d = new Date(tripDate.value);
-  tripDateDisplay.value = d.toLocaleDateString("en-GB", { day: '2-digit', month: 'long', year: 'numeric' });
-});
+  window.onload = () => {
+    tripId.value = genId();
+  };
 
-window.onload = () => {
-  tripId.value = genId();
-};
-
-function recalc() {
-  if (startTime.value && endTime.value) {
-    let s = new Date(`1970-01-01T${startTime.value}`);
-    let e = new Date(`1970-01-01T${endTime.value}`);
-    let diff = (e - s) / (1000 * 60 * 60);
-    if (diff < 0) diff += 24;
-    duration.value = diff.toFixed(2);
+  function recalc() {
+    if (startTime.value && endTime.value) {
+      let s = new Date(`1970-01-01T${startTime.value}`);
+      let e = new Date(`1970-01-01T${endTime.value}`);
+      let diff = (e - s) / (1000 * 60 * 60);
+      if (diff < 0) diff += 24;
+      duration.value = diff.toFixed(2);
+    }
+    if (startKM.value && endKM.value) {
+      totalKM.value = endKM.value - startKM.value;
+    }
   }
-  if (startKM.value && endKM.value) {
-    totalKM.value = endKM.value - startKM.value;
-  }
-}
-</script></body>
+</script>
+</body>
 </html>
