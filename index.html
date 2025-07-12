@@ -1,165 +1,549 @@
+<!-- Due to message size limitations, the full merged HTML is too long to display here in one go. I'll paste it in multiple parts. Starting with Part 1 -->
+
+<!-- PART 1: HTML <head> & Navigation + Trip Sheet -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NST Trip Sheet</title>
+  <title>NST Travels – All-in-One</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    body { font-family: 'Poppins', sans-serif; background: #f4f6f9; padding: 20px; max-width: 900px; margin: auto; }
-    h2 { color: #4b2aad }
-    label { font-weight: 600; margin-top: 10px; display: block }
-    input, select, textarea, button {
-      width: 100%; padding: 10px; margin: 5px 0 15px;
-      border: 1px solid #ccc; border-radius: 5px; font-size: 15px;
+    body { font-family: 'Poppins', sans-serif; margin: 0; padding: 0; background: #f4f6f9; }
+    nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 10px 15px;
+      background: #4b2aad;
+      justify-content: center;
     }
-    button { background: #4b2aad; color: #fff; border: none; cursor: pointer }
-    button:hover { background: #3a208b }
-    .status-paid { background: #d4edda; color: #155724; font-weight: bold; }
-    .status-unpaid { background: #f8d7da; color: #721c24; font-weight: bold; }
+    nav button {
+      background: white;
+      color: #4b2aad;
+      border: none;
+      padding: 8px 15px;
+      font-weight: 600;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    nav button:hover { background: #ddd; }
+    section { display: none; padding: 20px; max-width: 1100px; margin: auto; }
+    section.active { display: block; }
+
+    h2 { color: #4b2aad; margin-top: 0; }
+    input, select, button, textarea {
+      font-family: inherit;
+      padding: 10px;
+      font-size: 16px;
+      margin: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button { background: #4b2aad; color: white; border: none; cursor: pointer; }
+    button:hover { background: #3a208b; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+    th {
+      background: #4b2aad;
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .badge-paid { background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; }
+    .badge-unpaid { background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 4px; }
+    .msg-box {
+      white-space: pre-line;
+      background: #fff;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-family: monospace;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
-<h2>📝 NST Trip Sheet</h2>
 
-<label>Trip ID</label><input id="tripId" readonly />
+<!-- Navigation Tabs -->
+<nav>
+  <button onclick="switchSection('tripForm')">📝 Trip Sheet</button>
+  <button onclick="switchSection('master')">👨‍✈️ Master</button>
+  <button onclick="switchSection('tripDashboard')">📊 Dashboard</button>
+  <button onclick="switchSection('viewTrips')">📋 View Trips</button>
+  <button onclick="switchSection('whatsappShare')">📤 WhatsApp</button>
+</nav>
 
-<label>Date</label>
-<div style="position:relative">
-  <input type="text" id="tripDateDisplay" placeholder="Select Date" readonly style="cursor:pointer" />
-  <input type="date" id="tripDate" style="opacity:0;position:absolute;top:0;left:0;width:100%;height:100%;" />
-</div>
+<!-- Sections -->
+<section id="tripForm" class="active">
+  <h2>📝 NST Trip Sheet</h2>
+  <!-- Your trip sheet form goes here -->
+  <p>Trip Sheet form will be placed here... (from index.html)</p>
+</section>
 
-<label>Pickup Location</label><input id="pickupLocation" />
-<label>Drop Location</label><input id="dropLocation" />
-<label>Customer Name</label><input id="custName" />
-<label>Customer Number</label><input id="custNumber" />
-<label>Driver Name</label><input id="driverName" />
-<label>Driver Number</label><input id="driverNumber" />
-<label>Vehicle Model</label><input id="vehicleModel" />
-<label>Vehicle Number</label><input id="vehicleNo" />
-<label>Start Time</label><input type="time" id="startTime" />
-<label>End Time</label><input type="time" id="endTime" />
-<label>Start KM</label><input type="number" id="startKM" />
-<label>End KM</label><input type="number" id="endKM" />
-<label>Total Amount ₹</label><input type="number" id="totalAmount" />
-<label>Payment Status</label>
-<select id="paymentStatus">
-  <option value="">-- Select --</option>
-  <option>Paid</option>
-  <option>Not Paid</option>
-</select>
-<label>Note</label><textarea id="note" rows="3"></textarea>
+<section id="master">
+  <h2>👨‍✈️ Driver & Vehicle Master</h2>
+  <!-- Driver and Vehicle master content -->
+  <p>Driver & Vehicle Master UI here... (from master.html)</p>
+</section>
 
-<button onclick="shareWhatsApp()">📤 Share via WhatsApp</button>
-<button onclick="saveTripToFirebase()">💾 Save to Firebase</button>
-<button onclick="window.location.href='admin.html'">🔐 Admin Panel</button>
+<section id="tripDashboard">
+  <h2>📊 Trip Dashboard</h2>
+  <!-- Dashboard logic -->
+  <p>Dashboard and statistics here... (from trip.html)</p>
+</section>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-  import { getDatabase, ref, get, set, runTransaction } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+<section id="viewTrips">
+  <h2>📋 View All Trips</h2>
+  <!-- Trip list UI -->
+  <p>Trip List from view-trips.html</p>
+</section>
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyApXtRsd8S2u9tXseS9DSBUGVTEBZlw-mM",
-    authDomain: "nst-travels-457ae.firebaseapp.com",
-    databaseURL: "https://nst-travels-457ae-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "nst-travels-457ae",
-    storageBucket: "nst-travels-457ae.appspot.com",
-    messagingSenderId: "17843202269",
-    appId: "1:17843202269:web:9f9a785291d9a7b13c5334"
-  };
+<section id="whatsappShare">
+  <h2>📤 WhatsApp Share</h2>
+  <div>
+    <label>Select Trip</label>
+    <select id="tripSelect" onchange="generateMessage()"></select>
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+    <label>Preview Message</label>
+    <div class="msg-box" id="whatsAppMsg">Select a trip to preview message...</div>
 
-  let currentTripId = "";
+    <button onclick="copyMsg()">📋 Copy</button>
+    <button onclick="sendWhatsApp()">🟢 Send via WhatsApp</button>
+  </div>
+</section>
 
-  async function getTripIdPreview() {
-    const snapshot = await get(ref(db, "trip-seq"));
-    const seq = snapshot.exists() ? snapshot.val() : 1;
-    currentTripId = "#NST" + String(seq).padStart(3, "0");
-    document.getElementById("tripId").value = currentTripId;
-  }
-
-  async function generateTripIdAndReserve() {
-    const seqRef = ref(db, "trip-seq");
-    const result = await runTransaction(seqRef, current => (current || 1) + 1);
-    const tripId = "#NST" + String(result.snapshot.val() - 1).padStart(3, "0");
-    currentTripId = tripId;
-    document.getElementById("tripId").value = tripId;
-    return tripId;
-  }
-
-  function getTripData() {
-    return {
-      id: currentTripId,
-      date: tripDateDisplay.value,
-      pickup: pickupLocation.value,
-      drop: dropLocation.value,
-      custName: custName.value,
-      custNumber: custNumber.value,
-      driverName: driverName.value,
-      driverNumber: driverNumber.value,
-      vehicleModel: vehicleModel.value,
-      vehicleNo: vehicleNo.value,
-      startTime: startTime.value,
-      endTime: endTime.value,
-      startKM: startKM.value,
-      endKM: endKM.value,
-      totalAmount: totalAmount.value,
-      paymentStatus: paymentStatus.value,
-      note: note.value
-    };
-  }
-
-  async function saveTripToFirebase() {
-    if (!currentTripId) return alert("Trip ID not set.");
-    const tripRef = ref(db, "trips/" + currentTripId);
-    const snapshot = await get(tripRef);
-    if (snapshot.exists()) {
-      alert("Trip already exists in Firebase.");
-      return;
-    }
-    await set(tripRef, getTripData());
-    alert("Trip saved to Firebase.");
-    await generateTripIdAndReserve(); // increment only on save
-  }
-
-  async function shareWhatsApp() {
-    if (!currentTripId) await generateTripIdAndReserve();
-    const trip = getTripData();
-    const msg = `📋 NST TRIP SUMMARY
-
-🗓 Date: ${trip.date}
-📍 From: ${trip.pickup} → ${trip.drop}
-👤 Customer: ${trip.custName} (${trip.custNumber})
-👨‍✈ Driver: ${trip.driverName} (${trip.driverNumber})
-🚘 Vehicle: ${trip.vehicleModel} (${trip.vehicleNo})
-🕒 Time: ${trip.startTime} - ${trip.endTime}
-📏 KM: ${trip.startKM} → ${trip.endKM}
-💰 Amount: ₹${trip.totalAmount}
-💳 Payment: ${trip.paymentStatus}
-📝 Note: ${trip.note}
-
-Trip ID: ${trip.id}`;
-
-    const tripRef = ref(db, "trips/" + trip.id);
-    const snapshot = await get(tripRef);
-    if (!snapshot.exists()) {
-      await set(tripRef, trip);
-    }
-
-    window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
-    await generateTripIdAndReserve(); // increment only after successful share
-  }
-
-  tripDate.addEventListener("change", () => {
-    const d = new Date(tripDate.value);
-    tripDateDisplay.value = d.toLocaleDateString("en-GB", { day: '2-digit', month: 'long', year: 'numeric' });
-  });
-
-  window.onload = getTripIdPreview;
+<script>
+function switchSection(id) {
+  document.querySelectorAll("section").forEach(sec => sec.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
 </script>
+<!-- 🔹 Trip Sheet Form UI inside #tripForm section -->
+<section id="tripForm" class="active">
+  <h2>📝 NST Trip Sheet</h2>
+  <form id="tripFormElement">
+    <label>Trip ID</label><br>
+    <input type="text" id="tripId" readonly><br>
 
-</body>
-</html>
+    <label>Date</label><br>
+    <input type="date" id="tripDate"><br>
+
+    <label>Pickup</label><br>
+    <input type="text" id="pickup"><br>
+
+    <label>Drop</label><br>
+    <input type="text" id="drop"><br>
+
+    <label>Customer Name</label><br>
+    <input type="text" id="custName"><br>
+
+    <label>Customer Number</label><br>
+    <input type="text" id="custNumber"><br>
+
+    <label>Driver</label><br>
+    <select id="driverSelect"></select><br>
+
+    <label>Vehicle</label><br>
+    <select id="vehicleSelect"></select><br>
+
+    <label>Start Time</label><br>
+    <input type="time" id="start"><br>
+
+    <label>End Time</label><br>
+    <input type="time" id="end"><br>
+
+    <label>Start KM</label><br>
+    <input type="number" id="startKM"><br>
+
+    <label>End KM</label><br>
+    <input type="number" id="endKM"><br>
+
+    <label>Parking Fee (₹)</label><br>
+    <input type="number" id="parking"><br>
+
+    <label>Toll Fee (₹)</label><br>
+    <input type="number" id="toll"><br>
+
+    <label>Note</label><br>
+    <textarea id="note"></textarea><br>
+
+    <label>Payment Status</label><br>
+    <select id="paymentStatus">
+      <option value="Paid">Paid</option>
+      <option value="Not Paid">Not Paid</option>
+    </select><br><br>
+
+    <button type="button" onclick="saveTrip()">💾 Save Trip</button>
+    <button type="reset">🔄 Reset</button>
+  </form>
+</section>
+
+<!-- 🔹 Master Section (Driver & Vehicle Master) inside #master section -->
+<section id="master">
+  <h2>👨‍✈️ Driver & Vehicle Master</h2>
+
+  <h3>➕ Add Driver</h3>
+  <input type="text" id="driverName" placeholder="Driver Name">
+  <input type="text" id="driverNumber" placeholder="Driver Mobile">
+  <button onclick="addDriver()">Add Driver</button>
+
+  <h3>📝 All Drivers</h3>
+  <ul id="driverList"></ul>
+
+  <hr>
+
+  <h3>➕ Add Vehicle</h3>
+  <input type="text" id="vehicleModel" placeholder="Vehicle Model">
+  <input type="text" id="vehicleNo" placeholder="Vehicle Number">
+  <button onclick="addVehicle()">Add Vehicle</button>
+
+  <h3>📝 All Vehicles</h3>
+  <ul id="vehicleList"></ul>
+</section>
+<!-- 🔹 Trip Dashboard Section -->
+<section id="dashboard">
+  <h2>📊 NST Trip Dashboard</h2>
+
+  <!-- Summary Cards -->
+  <div class="cards">
+    <div class="card">
+      <div class="card-title">Total Trips</div>
+      <div class="card-value" id="cardTotalTrips">0</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Total Revenue</div>
+      <div class="card-value" id="cardRevenue">₹0</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Total KM</div>
+      <div class="card-value" id="cardKM">0 km</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Paid / Unpaid</div>
+      <div class="card-value" id="cardPayStatus">0 / 0</div>
+    </div>
+  </div>
+
+  <!-- Filter Panel -->
+  <div class="filter-panel">
+    <div class="filter-row">
+      <div>
+        <label>Search</label>
+        <input type="text" id="searchInput" placeholder="Search ID, Customer, Driver, Vehicle..." />
+      </div>
+      <div>
+        <label>Driver</label>
+        <select id="filterDriver"><option value="">All Drivers</option></select>
+      </div>
+      <div>
+        <label>Vehicle</label>
+        <select id="filterVehicle"><option value="">All Vehicles</option></select>
+      </div>
+      <div>
+        <label>Status</label>
+        <select id="filterStatus">
+          <option value="">All Status</option>
+          <option value="Paid">Paid</option>
+          <option value="Not Paid">Not Paid</option>
+        </select>
+      </div>
+      <div>
+        <label>Date From</label>
+        <input type="date" id="filterDateFrom">
+      </div>
+      <div>
+        <label>Date To</label>
+        <input type="date" id="filterDateTo">
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button onclick="exportExcel()">📤 Export CSV</button>
+    <button onclick="print()">🖨️ Print</button>
+    <button onclick="backupData()">💾 Backup</button>
+    <button onclick="restoreData()">📂 Restore</button>
+  </div>
+
+  <!-- Trip Table Output -->
+  <div id="tripTableContainer"></div>
+</section>
+<!-- 🔹 View Trips Section -->
+<section id="view-trips">
+  <h2>📋 View All Trips – NST Travels</h2>
+  <div class="filter-bar">
+    <input type="text" id="searchBox" placeholder="🔍 Keyword..." oninput="filterTripsView()">
+    <input type="month" id="monthFilter" onchange="filterTripsView()" />
+    <input type="date" id="dateFilter" onchange="filterTripsView()" />
+    <button onclick="exportExcel()">📥 Export</button>
+    <button onclick="showSection('trip-entry')">➕ New Trip</button>
+  </div>
+  <div id="tripViewTable"></div>
+</section>
+
+<!-- 🔹 WhatsApp Summary Section -->
+<section id="whatsapp-share">
+  <h2>📤 WhatsApp Trip Summary</h2>
+  <label>Select Trip</label>
+  <select id="tripSelect" onchange="generateWhatsAppMessage()"></select>
+
+  <label>Preview Message</label>
+  <div class="msg-box" id="whatsAppMsg">Select a trip to preview message...</div>
+
+  <button onclick="copyMsg()">📋 Copy</button>
+  <button onclick="sendWhatsApp()">🟢 Send via WhatsApp</button>
+  <button onclick="showSection('trip-entry')">⬅️ Back</button>
+</section>
+.msg-box {
+  white-space: pre-line;
+  background: #fff;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-family: monospace;
+  margin-bottom: 10px;
+}
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const SHKEY = "shared-trips";
+let allTrips = [];
+let editTripIndex = null;
+
+// Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyDNnQtossolWIfqFw9dM2i3TjYZXpMKTrY",
+  authDomain: "narayanan-selvi-travels-aafcc.firebaseapp.com",
+  databaseURL: "https://narayanan-selvi-travels-aafcc-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "narayanan-selvi-travels-aafcc",
+  storageBucket: "narayanan-selvi-travels-aafcc.appspot.com",
+  messagingSenderId: "486409167170",
+  appId: "1:486409167170:web:3a40eaa4162bffcb30a3b2"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const tripSeqRef = db.ref("trip-seq");
+const tripsRef = db.ref("trips");
+
+// Show Section Function
+function showSection(id) {
+  document.querySelectorAll("section").forEach(s => s.style.display = "none");
+  document.getElementById(id).style.display = "block";
+}
+
+// Load Drivers/Vehicles from LocalStorage (replace with Firebase if needed)
+let drivers = JSON.parse(localStorage.getItem("driver-master") || "[]");
+let vehicles = JSON.parse(localStorage.getItem("vehicle-master") || "[]");
+let assigned = JSON.parse(localStorage.getItem("assigned-map") || "[]");
+
+function renderMasterTables() {
+  const dt = document.querySelector("#driverTable tbody");
+  const vt = document.querySelector("#vehicleTable tbody");
+  const at = document.querySelector("#assignTable tbody");
+
+  dt.innerHTML = drivers.map((d, i) =>
+    `<tr><td>${d.name}</td><td>${d.mobile}</td>
+    <td><button onclick="editDriver(${i})">✏️</button></td>
+    <td><button onclick="deleteDriver(${i})">🗑️</button></td></tr>`).join("");
+
+  vt.innerHTML = vehicles.map((v, i) =>
+    `<tr><td>${v.model}</td><td>${v.number}</td>
+    <td><button onclick="editVehicle(${i})">✏️</button></td>
+    <td><button onclick="deleteVehicle(${i})">🗑️</button></td></tr>`).join("");
+
+  at.innerHTML = assigned.map(a => `<tr><td>${a.driver}</td><td>${a.vehicle}</td></tr>`).join("");
+
+  document.getElementById("assignDriver").innerHTML = drivers.map(d => `<option>${d.name}</option>`).join("");
+  document.getElementById("assignVehicle").innerHTML = vehicles.map(v => `<option>${v.model}</option>`).join("");
+
+  document.getElementById("driverCount").innerText = drivers.length;
+  document.getElementById("vehicleCount").innerText = vehicles.length;
+}
+
+// Driver/Vehicle Add/Edit/Delete
+function addDriver() {
+  const name = dName.value.trim(), mobile = dMobile.value.trim();
+  if (!name || !mobile) return alert("Fill all fields");
+  if (drivers.some(d => d.name === name || d.mobile === mobile)) return alert("Duplicate!");
+  drivers.push({ name, mobile });
+  localStorage.setItem("driver-master", JSON.stringify(drivers));
+  dName.value = dMobile.value = "";
+  renderMasterTables();
+}
+function editDriver(i) {
+  const name = prompt("Edit name", drivers[i].name);
+  const mobile = prompt("Edit mobile", drivers[i].mobile);
+  if (name && mobile) {
+    drivers[i] = { name, mobile };
+    localStorage.setItem("driver-master", JSON.stringify(drivers));
+    renderMasterTables();
+  }
+}
+function deleteDriver(i) {
+  if (confirm("Delete driver?")) {
+    drivers.splice(i, 1);
+    localStorage.setItem("driver-master", JSON.stringify(drivers));
+    renderMasterTables();
+  }
+}
+function addVehicle() {
+  const model = vModel.value.trim(), number = vNumber.value.trim();
+  if (!model || !number) return alert("Fill all fields");
+  if (vehicles.some(v => v.model === model || v.number === number)) return alert("Duplicate!");
+  vehicles.push({ model, number });
+  localStorage.setItem("vehicle-master", JSON.stringify(vehicles));
+  vModel.value = vNumber.value = "";
+  renderMasterTables();
+}
+function editVehicle(i) {
+  const model = prompt("Edit model", vehicles[i].model);
+  const number = prompt("Edit number", vehicles[i].number);
+  if (model && number) {
+    vehicles[i] = { model, number };
+    localStorage.setItem("vehicle-master", JSON.stringify(vehicles));
+    renderMasterTables();
+  }
+}
+function deleteVehicle(i) {
+  if (confirm("Delete vehicle?")) {
+    vehicles.splice(i, 1);
+    localStorage.setItem("vehicle-master", JSON.stringify(vehicles));
+    renderMasterTables();
+  }
+}
+function assignPair() {
+  const d = assignDriver.value, v = assignVehicle.value;
+  if (!d || !v) return alert("Select both");
+  assigned.push({ driver: d, vehicle: v });
+  localStorage.setItem("assigned-map", JSON.stringify(assigned));
+  renderMasterTables();
+}
+
+// Trip Table Logic
+function loadTrips() {
+  allTrips = JSON.parse(localStorage.getItem(SHKEY) || "[]");
+  renderTripTable();
+  renderTripCards();
+  populateTripDropdown();
+}
+function saveTrips() {
+  localStorage.setItem(SHKEY, JSON.stringify(allTrips));
+  loadTrips();
+}
+function addTrip(data) {
+  allTrips.push(data);
+  saveTrips();
+}
+function deleteTrip(index) {
+  if (confirm("Delete this trip?")) {
+    allTrips.splice(index, 1);
+    saveTrips();
+  }
+}
+function renderTripTable() {
+  if (!allTrips.length) return tripViewTable.innerHTML = "<p>No trips found.</p>";
+  let html = `<table><thead><tr>
+    <th>Trip ID</th><th>Date</th><th>Pickup</th><th>Drop</th>
+    <th>Customer</th><th>Driver</th><th>Vehicle</th>
+    <th>KM</th><th>Time</th><th>₹</th><th>Status</th><th>Note</th><th>✏️</th></tr></thead><tbody>`;
+  allTrips.forEach((t, i) => {
+    html += `<tr>
+      <td>${t.id}</td><td>${t.date}</td><td>${t.pickup}</td><td>${t.drop}</td>
+      <td>${t.custName} (${t.custNumber})</td>
+      <td>${t.driverName} (${t.driverNumber})</td>
+      <td>${t.vehicleModel} (${t.vehicleNo})</td>
+      <td>${t.totalKM}</td><td>${t.duration}</td><td>${t.totalAmount}</td>
+      <td>${t.paymentStatus}</td><td>${t.note}</td>
+      <td>
+        <button onclick="editTrip(${i})">✏️</button>
+        <button onclick="deleteTrip(${i})">🗑️</button>
+      </td></tr>`;
+  });
+  html += "</tbody></table>";
+  tripViewTable.innerHTML = html;
+}
+function renderTripCards() {
+  cardTotalTrips.textContent = allTrips.length;
+  cardRevenue.textContent = "₹" + allTrips.reduce((a, t) => a + Number(t.totalAmount || 0), 0);
+  cardKM.textContent = allTrips.reduce((a, t) => a + Number(t.totalKM || 0), 0) + " km";
+  const paid = allTrips.filter(t => t.paymentStatus === "Paid").length;
+  const unpaid = allTrips.filter(t => t.paymentStatus !== "Paid").length;
+  cardPayStatus.textContent = `${paid} / ${unpaid}`;
+}
+
+// Filter View Trips
+function filterTripsView() {
+  const q = searchBox.value.toLowerCase();
+  const m = monthFilter.value;
+  const d = dateFilter.value;
+  const result = allTrips.filter(t =>
+    (!q || JSON.stringify(t).toLowerCase().includes(q)) &&
+    (!m || t.date.startsWith(m)) &&
+    (!d || t.date === d)
+  );
+  renderTripTable(result);
+}
+
+// WhatsApp Message
+function populateTripDropdown() {
+  const select = document.getElementById("tripSelect");
+  select.innerHTML = `<option value="">-- Select Trip --</option>`;
+  allTrips.forEach((t, i) =>
+    select.innerHTML += `<option value="${i}">${t.id || ("#NST" + (i+1))} - ${t.date}</option>`);
+}
+function fallback(val) {
+  return (val === undefined || val === null || val === "") ? "-" : val;
+}
+function generateWhatsAppMessage() {
+  const i = tripSelect.value;
+  if (i === "") return whatsAppMsg.textContent = "Select a trip to preview message...";
+  const t = allTrips[i];
+  const msg = `📋 *NST TRIP SUMMARY*\n\n` +
+`🗓️ *TRIP DETAILS*\n• Trip ID: ${fallback(t.id)}\n• Date: ${fallback(t.date)}\n\n` +
+`📍 *LOCATIONS*\n• Pickup: ${fallback(t.pickup)}\n• Drop: ${fallback(t.drop)}\n\n` +
+`👤 *CUSTOMER*\n• Name: ${fallback(t.custName)}\n• Number: ${fallback(t.custNumber)}\n\n` +
+`👨‍✈️ *DRIVER*\n• Name: ${fallback(t.driverName)}\n• Number: ${fallback(t.driverNumber)}\n\n` +
+`🚘 *VEHICLE*\n• Model: ${fallback(t.vehicleModel)}\n• Number: ${fallback(t.vehicleNo)}\n\n` +
+`🕒 *TIME*\n• Start: ${fallback(t.start)}\n• End: ${fallback(t.end)}\n• Duration: ${fallback(t.duration)} hrs\n\n` +
+`📏 *DISTANCE*\n• Start KM: ${fallback(t.startKM)}\n• End KM: ${fallback(t.endKM)}\n• Total KM: ${fallback(t.totalKM)} km\n\n` +
+`💰 *FARE*\n• Parking: ₹${fallback(t.parking)}\n• Toll: ₹${fallback(t.toll)}\n• Total: ₹${fallback(t.totalAmount)}\n• Status: ${fallback(t.paymentStatus)}\n\n` +
+`📝 *Note*: ${fallback(t.note)}`;
+  whatsAppMsg.textContent = msg;
+}
+function copyMsg() {
+  navigator.clipboard.writeText(whatsAppMsg.textContent);
+  alert("✅ Copied to clipboard");
+}
+function sendWhatsApp() {
+  const msg = whatsAppMsg.textContent;
+  if (!msg || msg.includes("Select a trip")) return alert("⚠️ Please select a trip first.");
+  window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
+}
+
+// Init
+window.onload = () => {
+  loadTrips();
+  renderMasterTables();
+  showSection('trip-entry');
+};
+</script>
