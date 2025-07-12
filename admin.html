@@ -6,28 +6,49 @@
   <title>Admin Panel – NST Travels</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    /* 🌐 Page Basics */
     body {
       font-family: 'Poppins', sans-serif;
-      background: #f4f6f9;
-      margin: 0 auto;
-      padding: 20px;
-      max-width: 700px;
-    }
-    h2 { color: #4b2aad; text-align: center; }
-    .section {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.05);
-    }
-    .section h3 {
-      margin-top: 0;
-      color: #4b2aad;
-      font-size: 20px;
+      background: linear-gradient(to right, #eef2f3, #f9f9f9);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 50px;
     }
 
-    /* 🔹 Modern Buttons */
+    /* 🧱 Main Container */
+    #loginBox, #panelBox {
+      width: 100%;
+      max-width: 500px;
+      background: #ffffff;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+      padding: 30px;
+      margin-bottom: 40px;
+      transition: all 0.3s ease;
+    }
+
+    h2 {
+      text-align: center;
+      color: #4b2aad;
+      font-size: 26px;
+      margin-bottom: 25px;
+    }
+
+    .section {
+      margin-top: 30px;
+    }
+
+    .section h3 {
+      font-size: 18px;
+      color: #444;
+      margin-bottom: 15px;
+    }
+
+    /* 🔘 Modern Buttons */
     button {
       display: flex;
       align-items: center;
@@ -63,13 +84,23 @@
 
     input {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
+      padding: 12px 15px;
       font-size: 16px;
+      margin-bottom: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      transition: border-color 0.3s ease;
     }
 
-    #loginBox { max-width: 400px; margin: 50px auto; }
-    #panelBox { display: none; }
+    input:focus {
+      outline: none;
+      border-color: #4b2aad;
+      box-shadow: 0 0 0 2px rgba(75, 42, 173, 0.1);
+    }
+
+    #panelBox {
+      display: none;
+    }
   </style>
 </head>
 <body>
